@@ -140,6 +140,12 @@ public sealed class EllipticCurve
         var primes = Primes(bound);
         ap = new Dictionary<long, long>();
         foreach (var p in primes) ap[p] = Ap(p);
+        // v1.0.1 (Finding 1, Mr Code adversarial review 3 Jul 2026): conductor primes can
+        // exceed the series bound (e.g. N = 233 at digits = 30 gives nmax = 232), and the
+        // Tamagawa/root-number stages index them unconditionally. Their prime powers never
+        // enter the truncated series, so seeding the dictionary is safe and complete.
+        foreach (var p in BadPrimes)
+            if (!ap.ContainsKey(p)) ap[p] = Ap(p);
 
         var badSet = new HashSet<long>(BadPrimes);
         var an = new long[bound + 1];

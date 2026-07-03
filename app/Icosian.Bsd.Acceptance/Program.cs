@@ -63,5 +63,17 @@ Check("Ω(389a1) — the corrected value (142 §2.4 erratum)",
       Analytic.RealPeriod(e389).ToDecimalString(28), "4.980425121710110150642715583");
 Console.WriteLine();
 
+// ── v1.0.1 regression — Finding 1 (Mr Code adversarial review, 3 July 2026) ─
+// Prime conductor exceeding the series bound: nmax(233, digits=30) = 232 < 233.
+// v1.0 threw KeyNotFoundException here; the fix seeds a_p for all conductor primes.
+Console.WriteLine("v1.0.1 regression: bad prime beyond the series bound (N = 233 = Δ)");
+var e233 = new EllipticCurve(1, 3, 0, -1, 0, 233, new long[] { 233 });
+var r233 = BsdCompiler.RunRankZero(e233, digits: 30);
+CheckLong("root number ε", r233.RootNumber, +1);
+CheckLong("∏c_p", r233.TamagawaProduct, 1);
+CheckLong("torsion bound (bound, not certified — see Finding 2)", r233.TorsionBound, 2);
+Check("|Sha| (rank 0)", r233.ShaEstimate.ToDecimalString(20), "1.000000000000000");
+Console.WriteLine();
+
 Console.WriteLine($"{pass} passed, {fail} failed.");
 return fail == 0 ? 0 : 1;

@@ -2,6 +2,13 @@ using Icosian.Numerics;
 
 namespace Icosian.Bsd;
 
+/// <summary>
+/// ⚠ v1 limitation (Finding 2, 3 Jul 2026): <c>TorsionBound</c> is a gcd upper bound, not a
+/// certified order, and it enters <c>ShaEstimate</c> squared — an overshoot by k inflates the
+/// estimate by k² (witness: 30a1 reports 4 where the truth is 1, and 4 is itself a plausible
+/// square). Treat ShaEstimate as exact only for curves whose torsion is independently known
+/// until v1.1 lands Lutz–Nagell certification. See the v1.1 work order.
+/// </summary>
 public sealed record RankZeroReport(
     long Conductor,
     int RootNumber,
