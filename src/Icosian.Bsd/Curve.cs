@@ -41,12 +41,15 @@ public sealed class EllipticCurve
         {
             if (Delta % p != 0)
                 throw new ArgumentException($"Prime {p} declared bad but does not divide Δ.");
+            // Necessary (not sufficient) minimality test — must precede the additive check:
+            // non-minimality forces p⁴ | c₄, so the additive throw would otherwise shadow this
+            // one with a misleading diagnostic, leaving the branch unreachable.
+            // (v1.0.2; found while authoring the guard tests, 3 Jul 2026.)
+            if (Ord(Delta, p) >= 12 && Ord(C4, p) >= 4 && Ord(C6, p) >= 6)
+                throw new NotSupportedException($"Model appears non-minimal at p = {p} (u¹²-test).");
             if (C4 % p == 0)
                 throw new NotSupportedException(
                     $"Additive reduction at p = {p} (ord_p(c₄) > 0): full Tate algorithm is v3 scope.");
-            // Necessary (not sufficient) minimality test at this prime.
-            if (Ord(Delta, p) >= 12 && Ord(C4, p) >= 4 && Ord(C6, p) >= 6)
-                throw new NotSupportedException($"Model appears non-minimal at p = {p} (u¹²-test).");
         }
     }
 
