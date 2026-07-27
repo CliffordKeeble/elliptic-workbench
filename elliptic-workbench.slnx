@@ -1,0 +1,17 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/app/">
+    <Project Path="app/Elliptic.Bsd.Acceptance/Elliptic.Bsd.Acceptance.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Elliptic.Bsd/Elliptic.Bsd.csproj" />
+    <Project Path="src/Elliptic.Numerics/Elliptic.Numerics.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Elliptic.Bsd.Tests/Elliptic.Bsd.Tests.csproj" />
+  </Folder>
+</Solution>
