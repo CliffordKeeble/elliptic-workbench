@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace Icosian.Bsd;
+namespace Elliptic.Bsd;
 
 /// <summary>
 /// A minimal Weierstrass model y² + a₁xy + a₃y = x³ + a₂x² + a₄x + a₆ over ℚ, with its exact

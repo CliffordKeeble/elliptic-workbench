@@ -1,6 +1,6 @@
-using Icosian.Numerics;
+using Elliptic.Numerics;
 
-namespace Icosian.Bsd;
+namespace Elliptic.Bsd;
 
 /// <summary>
 /// ⚠ v1 limitation (Finding 2, 3 Jul 2026): <c>TorsionBound</c> is a gcd upper bound, not a

@@ -1,4 +1,4 @@
-namespace Icosian.Numerics;
+namespace Elliptic.Numerics;
 
 /// <summary>
 /// Real-analytic building blocks over <see cref="BigFloat"/>: π (Brent–Salamin, cached per

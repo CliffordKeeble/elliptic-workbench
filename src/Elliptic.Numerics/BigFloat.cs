@@ -1,14 +1,12 @@
 using System.Numerics;
 
-namespace Icosian.Numerics;
+namespace Elliptic.Numerics;
 
 /// <summary>
 /// Arbitrary-precision binary floating point: value = Mantissa * 2^Exponent.
 /// BCL-only (System.Numerics.BigInteger). Truncating arithmetic with guard bits;
 /// not IEEE-correctly-rounded. Working precision is set via <see cref="Precision"/>
 /// (bits) before any computation; the Pi cache in <see cref="Reals"/> is keyed on it.
-/// Written for the Icosian / 2I Universe Programme. First consumers: Icosian.Bsd
-/// (BSD compiler, Papers 141-145) and the Regge-relaxer precision test.
 /// </summary>
 public readonly struct BigFloat : IComparable<BigFloat>
 {

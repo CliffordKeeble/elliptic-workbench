@@ -1,8 +1,8 @@
-using Icosian.Bsd;
-using Icosian.Numerics;
+using Elliptic.Bsd;
+using Elliptic.Numerics;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Icosian.Bsd acceptance suite (v1, rank-0 channel + period cross-checks).
+// Elliptic.Bsd acceptance suite (v1, rank-0 channel + period cross-checks).
 // Reference constants are the frozen 3 July 2026 bench values (BSD Arc Repair
 // Manifest, Appendix), themselves cross-validated by independent methods.
 // They are oracles-after: nothing here feeds the pipeline.
@@ -27,7 +27,7 @@ void CheckLong(string name, long got, long want)
     if (ok) pass++; else fail++;
 }
 
-Console.WriteLine("Icosian.Bsd v1 acceptance — rank-0 channel\n");
+Console.WriteLine("Elliptic.Bsd v1 acceptance — rank-0 channel\n");
 
 // ── 11a1 = [0,−1,1,−10,−20], N = 11 — the boot curve (Paper 141) ────────────
 Console.WriteLine("11a1  y² + y = x³ − x² − 10x − 20");

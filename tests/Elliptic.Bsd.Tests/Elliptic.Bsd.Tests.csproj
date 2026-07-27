@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Icosian.Bsd\Icosian.Bsd.csproj" />
+    <ProjectReference Include="..\..\src\Elliptic.Bsd\Elliptic.Bsd.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
-using Icosian.Numerics;
+using Elliptic.Numerics;
 
-namespace Icosian.Bsd;
+namespace Elliptic.Bsd;
 
 /// <summary>
 /// The analytic stages of the compiler.

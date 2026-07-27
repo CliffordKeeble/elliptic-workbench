@@ -1,14 +1,14 @@
 using System.Numerics;
-using Icosian.Bsd;
-using Icosian.Numerics;
+using Elliptic.Bsd;
+using Elliptic.Numerics;
 using Xunit;
 
 // BigFloat.Precision is a process-global static; keep the suite single-threaded.
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
-namespace Icosian.Bsd.Tests;
+namespace Elliptic.Bsd.Tests;
 
-// Direct port of the v1.0.2 Icosian.Bsd console battery into xUnit. Component-level
+// Direct port of the v1.0.2 Elliptic.Bsd console battery into xUnit. Component-level
 // rules, distinct from the end-to-end acceptance suite: a_p vs an in-process brute
 // counter (cross-method inside C#), Hecke identities from the recursion's own output,
 // every constructor guard with a witness curve, and the open Finding 2 state asserted
