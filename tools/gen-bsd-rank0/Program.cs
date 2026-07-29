@@ -27,25 +27,29 @@ var defs = new (string Label, string Prov, long A1, long A2, long A3, long A4, l
 };
 
 // Fizz inversion: for D certified digits, M = ceil((D·ln10 + ln(4/(1-q))) / (-ln q)), q = exp(-2π/√N).
+// M is a FLOOR on the term count; using more terms only certifies more digits.
 static int InvertTerms(long N, int D)
 {
     double q = Math.Exp(-2.0 * Math.PI / Math.Sqrt(N));
     return (int)Math.Ceiling((D * Math.Log(10) + Math.Log(4.0 / (1.0 - q))) / (-Math.Log(q)));
 }
 
-static BigFloat QOf(long N) => BigFloat.Exp(-(Reals.Pi().Twice() / BigFloat.Sqrt(BigFloat.From(N))));
-
-// Certified L at exactly M terms — mirrors Analytic.LValueRankZero's body, using the engine's
-// own coefficients (an) and arithmetic (BigFloat). Cross-checked against the engine below.
-static BigFloat CertifiedL(long N, long[] an, int M)
+// Smallest engine digit target whose own TermsFor clears the certified floor M (>= OutDigits emit).
+static int ChooseDigits(long N, int M, int emit)
 {
-    var q = QOf(N);
-    var qn = BigFloat.One; var sum = BigFloat.Zero;
-    for (int n = 1; n <= M; n++) { qn *= q; if (an[n] == 0) continue; sum += (qn * an[n]) / n; }
-    return sum.Twice();
+    int d = emit;
+    while (Analytic.TermsFor(N, d) < M) d++;
+    return d;
 }
 
-static BigFloat PowN(BigFloat b, long e) { var r = BigFloat.One; while (e > 0) { if ((e & 1) == 1) r *= b; b *= b; e >>= 1; } return r; }
+// Fizz tail bound at a given term count: 4 q^(nmax+1) / (1-q).
+static double TailAt(long N, int nmax)
+{
+    double q = Math.Exp(-2.0 * Math.PI / Math.Sqrt(N));
+    return 4.0 * Math.Pow(q, nmax + 1) / (1.0 - q);
+}
+
+static BigFloat QOf(long N) => BigFloat.Exp(-(Reals.Pi().Twice() / BigFloat.Sqrt(BigFloat.From(N))));
 
 static int AgreeFrac(BigFloat a, BigFloat b)
 {
@@ -62,57 +66,48 @@ static bool IsSquare(long v) { if (v < 0) return false; long r = (long)Math.Roun
 static long Gcd(long a, long b) { a = Math.Abs(a); b = Math.Abs(b); while (b != 0) (a, b) = (b, a % b); return a; }
 
 var curvesJson = new JsonArray();
-Console.WriteLine($"{"curve",-10} {"M(inv)",7} {"nmax(old)",9} {"certDig",7} {"agreeL",6} {"agreeQ",6} {"gate",5} {"sq",4} {"stableL/Ω/Q"}");
+Console.WriteLine($"{"curve",-10} {"M(req)",7} {"digits",7} {"termsUsed",10} {"certDig",7} {"gate",5} {"sq",4} {"stableL/Ω/Q"}");
 
 foreach (var d in defs)
 {
-    int M    = InvertTerms(d.N, OutDigits);
-    int nOld = Analytic.TermsFor(d.N, OutDigits);   // old (over-provisioning) engine term count, for the record
+    int M = InvertTerms(d.N, OutDigits);               // certified floor
+    int digits = ChooseDigits(d.N, M, OutDigits);      // engine digit target that clears M
+    int termsUsed = Analytic.TermsFor(d.N, digits);    // engine's actual term count (>= M)
 
-    // ---- primary precision ----
+    // ---- THE single engine call: every report value comes from here ----
     BigFloat.Precision = WorkBits;
     var e = new EllipticCurve(d.A1, d.A2, d.A3, d.A4, d.A6, d.N, d.Bad);
-    var an = e.An(M, out var ap);
+    var rep = BsdCompiler.RunRankZero(e, digits);
+    long tor = rep.TorsionBound, prod = rep.TamagawaProduct, w = rep.RootNumber;
 
-    var Lc = CertifiedL(d.N, an, M);
-    var repEng = BsdCompiler.RunRankZero(e, OutDigits);        // engine, at engine nmax — the faithfulness oracle
-    int agreeL = AgreeFrac(Lc, repEng.LValue);                 // must be >= min certified digits
+    // Engine coefficients (a_p) — read, for point counts and the per-prime Tamagawa derivation.
+    _ = e.An(termsUsed, out var ap);
 
-    var omega = repEng.Omega;
-    long tor = repEng.TorsionBound, prod = repEng.TamagawaProduct, w = repEng.RootNumber;
-    var quotient = Lc * (BigFloat.From(tor) * BigFloat.From(tor)) / (omega * BigFloat.From(prod));
-    int agreeQ = AgreeFrac(quotient, repEng.ShaEstimate);
-
-    // ---- certified tail bound & non-vanishing gate ----
+    // ---- certificate (generator-side; describes the engine's computation) ----
     var qbf = QOf(d.N);
-    var tail = PowN(qbf, M + 1) * 4L / (BigFloat.One - qbf);   // 4 q^(M+1)/(1-q)
-    bool gatePass = Lc.Abs() > tail;
-    var ratio = Lc.Abs() / tail;
-    double qd = Math.Exp(-2.0 * Math.PI / Math.Sqrt(d.N));
-    double tailD = 4.0 * Math.Pow(qd, M + 1) / (1.0 - qd);
+    double tailD = TailAt(d.N, termsUsed);
     int certDigits = (int)Math.Floor(-Math.Log10(tailD));
+    bool gatePass = rep.LValue.Abs().ToDouble() > tailD;
+    double ratioD = rep.LValue.Abs().ToDouble() / tailD;
 
     // ---- conditional square check (labelled conditional) ----
-    long rounded = (long)Math.Round(quotient.ToDouble(), MidpointRounding.AwayFromZero);
+    long rounded = (long)Math.Round(rep.ShaEstimate.ToDouble(), MidpointRounding.AwayFromZero);
     bool isSq = IsSquare(rounded);
 
-    // ---- precision self-check (section 9): 512 vs 640 bit at same M ----
+    // ---- precision self-check (section 9): same call at 640 bits ----
     BigFloat.Precision = CheckBits;
     var e2 = new EllipticCurve(d.A1, d.A2, d.A3, d.A4, d.A6, d.N, d.Bad);
-    var an2 = e2.An(M, out _);
-    var Lc2 = CertifiedL(d.N, an2, M);
-    var rep2 = BsdCompiler.RunRankZero(e2, OutDigits);
-    var quot2 = Lc2 * (BigFloat.From(tor) * BigFloat.From(tor)) / (rep2.Omega * BigFloat.From(prod));
-    int stL = AgreeFrac(Lc, Lc2), stO = AgreeFrac(omega, rep2.Omega), stQ = AgreeFrac(quotient, quot2);
+    var rep2 = BsdCompiler.RunRankZero(e2, digits);
+    int stL = AgreeFrac(rep.LValue, rep2.LValue), stO = AgreeFrac(rep.Omega, rep2.Omega), stQ = AgreeFrac(rep.ShaEstimate, rep2.ShaEstimate);
     BigFloat.Precision = WorkBits;
 
-    // ---- assertion (a): gcd over odd good primes only ----
+    // ---- assertion (a): gcd over odd good primes only (derived; engine gives only the value) ----
     var gcdPrimes = EngineGcdPrimes.Where(p => e.Delta % p != 0).ToArray();
     bool excludesTwo = !EngineGcdPrimes.Contains(2);
     long gcdCheck = 0; foreach (var p in gcdPrimes) { long np = p + 1 - e.Ap(p); gcdCheck = gcdCheck == 0 ? np : Gcd(gcdCheck, np); }
     bool torCrosscheck = gcdCheck == tor;
 
-    // ---- assertions (b)+(c) + per-prime Tamagawa (derived, cross-checked) ----
+    // ---- assertions (b)+(c) + per-prime Tamagawa (derived — engine gives only the product) ----
     var perPrime = new JsonArray();
     long prodCheck = 1; bool allSemistable = true;
     foreach (var p in d.Bad)
@@ -132,12 +127,12 @@ foreach (var d in defs)
     }
     bool tamagawaCrosscheck = prodCheck == prod;
 
-    // ---- point counts: every prime the engine computes (p <= M) ----
+    // ---- point counts: every prime the engine computes (p <= termsUsed) ----
     var pointCounts = new JsonArray();
-    foreach (var p in EllipticCurve.Primes(M))
+    foreach (var p in EllipticCurve.Primes(termsUsed))
         pointCounts.Add(new JsonObject { ["p"] = p, ["Np"] = p + 1 - ap[p], ["ap"] = ap[p] });
 
-    Console.WriteLine($"{d.Label,-10} {M,7} {nOld,9} {certDigits,7} {agreeL,6} {agreeQ,6} {(gatePass ? "pass" : "FAIL"),5} {(isSq ? "sq" : "NO"),4} {stL}/{stO}/{stQ}");
+    Console.WriteLine($"{d.Label,-10} {M,7} {digits,7} {termsUsed,10} {certDigits,7} {(gatePass ? "pass" : "FAIL"),5} {(isSq ? "sq" : "NO"),4} {stL}/{stO}/{stQ}");
 
     curvesJson.Add(new JsonObject
     {
@@ -150,29 +145,28 @@ foreach (var d in defs)
         ["pointCounts"] = pointCounts,
         ["lValue"] = new JsonObject
         {
-            ["value"] = Lc.ToDecimalString(OutDigits),
+            ["value"] = rep.LValue.ToDecimalString(OutDigits),   // engine output (RunRankZero)
             ["method"] = "smoothed Dirichlet series",
-            ["termsUsed"] = M,
-            ["termsRule"] = "inversion of Fizz tail bound at D digits: ceil((D·ln10 + ln(4/(1-q)))/(-ln q))",
+            ["termsUsed"] = termsUsed,                           // the engine's actual term count
+            ["termsRequired"] = M,                               // Fizz inversion: the certified floor
+            ["termsRule"] = "engine LValueRankZero at digits chosen so its TermsFor >= M; M = ceil((D·ln10 + ln(4/(1-q)))/(-ln q))",
             ["q"] = qbf.ToDecimalString(60),
-            ["tailBound"] = tailD.ToString("E4", inv),
-            ["certifiedDigits"] = certDigits,
+            ["tailBound"] = tailD.ToString("E4", inv),           // tail at termsUsed
+            ["certifiedDigits"] = certDigits,                    // from termsUsed, not M
             ["digitsEmitted"] = OutDigits,
-            ["seriesVerified"] = true,     // Q1 of brief 03: engine series matches the certified series exactly
-            ["_termsUsedOld"] = nOld,      // previous over-provisioning term count, for the record
-            ["_engineAgreeDigits"] = agreeL, // fractional digits the certified sum agrees with the engine's own L
+            ["seriesVerified"] = true,                           // brief 03 §2: engine series matches the certified series exactly
         },
         ["nonVanishing"] = new JsonObject
         {
-            ["lValue"] = Lc.Abs().ToDecimalString(20),
+            ["lValue"] = rep.LValue.Abs().ToDecimalString(20),
             ["tailBound"] = tailD.ToString("E4", inv),
-            ["ratio"] = ratio.ToDouble().ToString("E4", inv),
+            ["ratio"] = ratioD.ToString("E4", inv),
             ["gate"] = gatePass ? "pass" : "fail",
             ["note"] = "w catches odd analytic rank; this catches even rank >= 2 (|L| certified clear of the tail).",
         },
         ["period"] = new JsonObject
         {
-            ["value"] = omega.ToDecimalString(OutDigits),
+            ["value"] = rep.Omega.ToDecimalString(OutDigits),    // engine output
             ["method"] = "AGM",
             ["digits"] = OutDigits,
             ["note"] = "AGM in BOTH discriminant branches (incl. 27606c1's spike case); no quadrature branch in the engine.",
@@ -180,33 +174,33 @@ foreach (var d in defs)
         ["regulator"] = new JsonObject { ["value"] = "1", ["note"] = "rank 0" },
         ["tamagawa"] = new JsonObject
         {
-            ["product"] = prod,
-            ["discriminant"] = e.Delta.ToString(),
+            ["product"] = prod,                                  // engine output
+            ["discriminant"] = e.Delta.ToString(),               // engine field
             ["discriminantIsMinimal"] = true,
             ["_minimalityBasis"] = "engine constructor enforces the necessary u^12 minimality test (p^12|Δ ∧ p^4|c4 ∧ p^6|c6 rejected)",
             ["perPrime"] = perPrime,
             ["allSemistable"] = allSemistable,
-            ["perPrimeProvenance"] = "derived in generator from public primitives (Ord, Δ, a_p) per the (v_p(Δ),a_p) recipe; "
-                                   + "product cross-checked against engine TamagawaProduct = " + (tamagawaCrosscheck ? "OK" : "MISMATCH"),
+            ["perPrimeProvenance"] = "derived in generator from public primitives (Ord, Δ, a_p) per the (v_p(Δ),a_p) recipe; the engine "
+                                   + "computes only the product, so nothing is duplicated. Product cross-checked against engine TamagawaProduct = "
+                                   + (tamagawaCrosscheck ? "OK" : "MISMATCH"),
         },
         ["torsion"] = new JsonObject
         {
-            ["value"] = tor,
+            ["value"] = tor,                                     // engine output
             ["exact"] = false,
             ["method"] = "gcd bound",
-            ["gcdPrimes"] = new JsonArray(gcdPrimes.Select(x => (JsonNode)x).ToArray()),
+            ["gcdPrimes"] = new JsonArray(gcdPrimes.Select(x => (JsonNode)x).ToArray()),  // derived: the engine gives only the gcd value
             ["excludesTwo"] = excludesTwo,
             ["_gcdCrosscheck"] = torCrosscheck ? "OK" : "MISMATCH",
             ["_note"] = "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). "
                       + "Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz.",
         },
-        ["rootNumber"] = new JsonObject { ["available"] = true, ["value"] = w },
+        ["rootNumber"] = new JsonObject { ["available"] = true, ["value"] = w },   // engine output
         ["quotient"] = new JsonObject
         {
-            ["value"] = quotient.ToDecimalString(OutDigits),
+            ["value"] = rep.ShaEstimate.ToDecimalString(OutDigits),   // engine output (RunRankZero), NOT reassembled
             ["relation"] = "upper bound",
             ["formula"] = "|Sha| = L(E,1)·|tor|^2 / (Ω·∏cp)",
-            ["_engineAgreeDigits"] = agreeQ,
         },
         ["conditionalChecks"] = new JsonObject
         {
@@ -223,7 +217,7 @@ foreach (var d in defs)
             ["workingBits"] = WorkBits,
             ["checkBits"] = CheckBits,
             ["digitsStable"] = new JsonObject { ["lValue"] = stL, ["period"] = stO, ["quotient"] = stQ },
-            ["note"] = "fractional digits agreeing between the two working precisions at the same term count M (tests the implementation)",
+            ["note"] = "fractional digits agreeing between the two working precisions (same engine call); tests the implementation",
         },
     });
 }
@@ -232,10 +226,12 @@ var root = new JsonObject
 {
     ["schema"] = "elliptic-workbench/bsd-rank0/v2",
     ["engine"] = new JsonObject { ["commit"] = engineCommit, ["generated"] = generated, ["precisionDigits"] = OutDigits },
-    ["provenance"] = "All real quantities computed by Elliptic.Bsd on this run at " + WorkBits + "-bit working precision. "
-                   + "L uses the Fizz-certified term count (inversion); the certified sum is cross-checked against the engine's own "
-                   + "L-value, and the whole pipeline against a " + CheckBits + "-bit run. Labels are internal bench names, NOT LMFDB pulls (W-107). "
-                   + "No value is a frozen constant or a published-table lookup.",
+    ["provenance"] = "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, "
+                   + "Tamagawa product, torsion, root number, quotient), computed at " + WorkBits + "-bit working precision with the term "
+                   + "count set via digits so the engine's own TermsFor clears the Fizz-certified floor M. The generator only chooses the "
+                   + "term count, computes the certificate (q, tail bound, certified digits), and DERIVES quantities the engine does not "
+                   + "itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the "
+                   + "engine computes. Cross-checked against a " + CheckBits + "-bit run. Labels are internal bench names, NOT LMFDB pulls (W-107).",
     ["certificate"] = "Fizz tail bound: |tail| <= 4 q^(M+1)/(1-q), q = exp(-2π/√N), via |a_n/n| <= 2 (Hasse + divisor bound, bad primes included). "
                     + "Series verified against the engine (brief 03 §2): leading 2, exp(-2πn/√N), a_{p^k}=a_p^k at bad primes.",
     ["curves"] = curvesJson,

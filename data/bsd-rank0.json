@@ -1,11 +1,11 @@
 {
   "schema": "elliptic-workbench/bsd-rank0/v2",
   "engine": {
-    "commit": "16aed62",
+    "commit": "bb799c3",
     "generated": "2026-07-29",
     "precisionDigits": 80
   },
-  "provenance": "All real quantities computed by Elliptic.Bsd on this run at 512-bit working precision. L uses the Fizz-certified term count (inversion); the certified sum is cross-checked against the engine\u0027s own L-value, and the whole pipeline against a 640-bit run. Labels are internal bench names, NOT LMFDB pulls (W-107). No value is a frozen constant or a published-table lookup.",
+  "provenance": "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, Tamagawa product, torsion, root number, quotient), computed at 512-bit working precision with the term count set via digits so the engine\u0027s own TermsFor clears the Fizz-certified floor M. The generator only chooses the term count, computes the certificate (q, tail bound, certified digits), and DERIVES quantities the engine does not itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the engine computes. Cross-checked against a 640-bit run. Labels are internal bench names, NOT LMFDB pulls (W-107).",
   "certificate": "Fizz tail bound: |tail| \u003C= 4 q^(M\u002B1)/(1-q), q = exp(-2\u03C0/\u221AN), via |a_n/n| \u003C= 2 (Hasse \u002B divisor bound, bad primes included). Series verified against the engine (brief 03 \u00A72): leading 2, exp(-2\u03C0n/\u221AN), a_{p^k}=a_p^k at bad primes.",
   "curves": [
     {
@@ -148,25 +148,84 @@
           "p": 97,
           "Np": 105,
           "ap": -7
+        },
+        {
+          "p": 101,
+          "Np": 100,
+          "ap": 2
+        },
+        {
+          "p": 103,
+          "Np": 120,
+          "ap": -16
+        },
+        {
+          "p": 107,
+          "Np": 90,
+          "ap": 18
+        },
+        {
+          "p": 109,
+          "Np": 100,
+          "ap": 10
+        },
+        {
+          "p": 113,
+          "Np": 105,
+          "ap": 9
+        },
+        {
+          "p": 127,
+          "Np": 120,
+          "ap": 8
+        },
+        {
+          "p": 131,
+          "Np": 150,
+          "ap": -18
+        },
+        {
+          "p": 137,
+          "Np": 145,
+          "ap": -7
+        },
+        {
+          "p": 139,
+          "Np": 130,
+          "ap": 10
+        },
+        {
+          "p": 149,
+          "Np": 160,
+          "ap": -10
+        },
+        {
+          "p": 151,
+          "Np": 150,
+          "ap": 2
+        },
+        {
+          "p": 157,
+          "Np": 165,
+          "ap": -7
         }
       ],
       "lValue": {
         "value": "0.25384186085591068433775892335090946104389844836612173359342738424608166772255554",
         "method": "smoothed Dirichlet series",
-        "termsUsed": 99,
-        "termsRule": "inversion of Fizz tail bound at D digits: ceil((D\u00B7ln10 \u002B ln(4/(1-q)))/(-ln q))",
+        "termsUsed": 162,
+        "termsRequired": 99,
+        "termsRule": "engine LValueRankZero at digits chosen so its TermsFor \u003E= M; M = ceil((D\u00B7ln10 \u002B ln(4/(1-q)))/(-ln q))",
         "q": "0.150400784679068670582321652286444695326998174782244961187646",
-        "tailBound": "2.4995E-082",
-        "certifiedDigits": 81,
+        "tailBound": "3.6695E-134",
+        "certifiedDigits": 133,
         "digitsEmitted": 80,
-        "seriesVerified": true,
-        "_termsUsedOld": 162,
-        "_engineAgreeDigits": 82
+        "seriesVerified": true
       },
       "nonVanishing": {
         "lValue": "0.25384186085591068434",
-        "tailBound": "2.4995E-082",
-        "ratio": "1.0156E\u002B081",
+        "tailBound": "3.6695E-134",
+        "ratio": "6.9175E\u002B132",
         "gate": "pass",
         "note": "w catches odd analytic rank; this catches even rank \u003E= 2 (|L| certified clear of the tail)."
       },
@@ -197,7 +256,7 @@
           }
         ],
         "allSemistable": true,
-        "perPrimeProvenance": "derived in generator from public primitives (Ord, \u0394, a_p) per the (v_p(\u0394),a_p) recipe; product cross-checked against engine TamagawaProduct = OK"
+        "perPrimeProvenance": "derived in generator from public primitives (Ord, \u0394, a_p) per the (v_p(\u0394),a_p) recipe; the engine computes only the product, so nothing is duplicated. Product cross-checked against engine TamagawaProduct = OK"
       },
       "torsion": {
         "value": 5,
@@ -226,8 +285,7 @@
       "quotient": {
         "value": "1.00000000000000000000000000000000000000000000000000000000000000000000000000000000",
         "relation": "upper bound",
-        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)",
-        "_engineAgreeDigits": 82
+        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)"
       },
       "conditionalChecks": {
         "quotientRoundsToSquare": {
@@ -245,7 +303,7 @@
           "period": 95,
           "quotient": 95
         },
-        "note": "fractional digits agreeing between the two working precisions at the same term count M (tests the implementation)"
+        "note": "fractional digits agreeing between the two working precisions (same engine call); tests the implementation"
       }
     },
     {
@@ -3611,20 +3669,19 @@
       "lValue": {
         "value": "6.45703069175610572800722541680812816127193437817794863565820266999631901964761207",
         "method": "smoothed Dirichlet series",
-        "termsUsed": 4995,
-        "termsRule": "inversion of Fizz tail bound at D digits: ceil((D\u00B7ln10 \u002B ln(4/(1-q)))/(-ln q))",
+        "termsUsed": 4996,
+        "termsRequired": 4995,
+        "termsRule": "engine LValueRankZero at digits chosen so its TermsFor \u003E= M; M = ceil((D\u00B7ln10 \u002B ln(4/(1-q)))/(-ln q))",
         "q": "0.962889883639215104716064990018761775803822519727341334919420",
-        "tailBound": "9.5803E-081",
+        "tailBound": "9.2248E-081",
         "certifiedDigits": 80,
         "digitsEmitted": 80,
-        "seriesVerified": true,
-        "_termsUsedOld": 4936,
-        "_engineAgreeDigits": 82
+        "seriesVerified": true
       },
       "nonVanishing": {
         "lValue": "6.45703069175610572801",
-        "tailBound": "9.5803E-081",
-        "ratio": "6.7399E\u002B080",
+        "tailBound": "9.2248E-081",
+        "ratio": "6.9996E\u002B080",
         "gate": "pass",
         "note": "w catches odd analytic rank; this catches even rank \u003E= 2 (|L| certified clear of the tail)."
       },
@@ -3682,7 +3739,7 @@
           }
         ],
         "allSemistable": true,
-        "perPrimeProvenance": "derived in generator from public primitives (Ord, \u0394, a_p) per the (v_p(\u0394),a_p) recipe; product cross-checked against engine TamagawaProduct = OK"
+        "perPrimeProvenance": "derived in generator from public primitives (Ord, \u0394, a_p) per the (v_p(\u0394),a_p) recipe; the engine computes only the product, so nothing is duplicated. Product cross-checked against engine TamagawaProduct = OK"
       },
       "torsion": {
         "value": 1,
@@ -3711,8 +3768,7 @@
       "quotient": {
         "value": "4.00000000000000000000000000000000000000000000000000000000000000000000000000000000",
         "relation": "upper bound",
-        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)",
-        "_engineAgreeDigits": 82
+        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)"
       },
       "conditionalChecks": {
         "quotientRoundsToSquare": {
@@ -3730,7 +3786,7 @@
           "period": 95,
           "quotient": 95
         },
-        "note": "fractional digits agreeing between the two working precisions at the same term count M (tests the implementation)"
+        "note": "fractional digits agreeing between the two working precisions (same engine call); tests the implementation"
       }
     },
     {
@@ -4183,25 +4239,74 @@
           "p": 449,
           "Np": 432,
           "ap": 18
+        },
+        {
+          "p": 457,
+          "Np": 448,
+          "ap": 10
+        },
+        {
+          "p": 461,
+          "Np": 420,
+          "ap": 42
+        },
+        {
+          "p": 463,
+          "Np": 458,
+          "ap": 6
+        },
+        {
+          "p": 467,
+          "Np": 496,
+          "ap": -28
+        },
+        {
+          "p": 479,
+          "Np": 476,
+          "ap": 4
+        },
+        {
+          "p": 487,
+          "Np": 446,
+          "ap": 42
+        },
+        {
+          "p": 491,
+          "Np": 492,
+          "ap": 0
+        },
+        {
+          "p": 499,
+          "Np": 508,
+          "ap": -8
+        },
+        {
+          "p": 503,
+          "Np": 528,
+          "ap": -24
+        },
+        {
+          "p": 509,
+          "Np": 492,
+          "ap": 18
         }
       ],
       "lValue": {
         "value": "1.39213359856611966544927262569263499820226726528088898258980588729748033217130903",
         "method": "smoothed Dirichlet series",
-        "termsUsed": 454,
-        "termsRule": "inversion of Fizz tail bound at D digits: ceil((D\u00B7ln10 \u002B ln(4/(1-q)))/(-ln q))",
+        "termsUsed": 512,
+        "termsRequired": 454,
+        "termsRule": "engine LValueRankZero at digits chosen so its TermsFor \u003E= M; M = ceil((D\u00B7ln10 \u002B ln(4/(1-q)))/(-ln q))",
         "q": "0.662572591162598363296904695123208370741980075338213139101059",
-        "tailBound": "5.4338E-081",
-        "certifiedDigits": 80,
+        "tailBound": "2.3262E-091",
+        "certifiedDigits": 90,
         "digitsEmitted": 80,
-        "seriesVerified": true,
-        "_termsUsedOld": 512,
-        "_engineAgreeDigits": 82
+        "seriesVerified": true
       },
       "nonVanishing": {
         "lValue": "1.39213359856611966545",
-        "tailBound": "5.4338E-081",
-        "ratio": "2.5620E\u002B080",
+        "tailBound": "2.3262E-091",
+        "ratio": "5.9846E\u002B090",
         "gate": "pass",
         "note": "w catches odd analytic rank; this catches even rank \u003E= 2 (|L| certified clear of the tail)."
       },
@@ -4232,7 +4337,7 @@
           }
         ],
         "allSemistable": true,
-        "perPrimeProvenance": "derived in generator from public primitives (Ord, \u0394, a_p) per the (v_p(\u0394),a_p) recipe; product cross-checked against engine TamagawaProduct = OK"
+        "perPrimeProvenance": "derived in generator from public primitives (Ord, \u0394, a_p) per the (v_p(\u0394),a_p) recipe; the engine computes only the product, so nothing is duplicated. Product cross-checked against engine TamagawaProduct = OK"
       },
       "torsion": {
         "value": 2,
@@ -4262,8 +4367,7 @@
       "quotient": {
         "value": "1.00000000000000000000000000000000000000000000000000000000000000000000000000000000",
         "relation": "upper bound",
-        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)",
-        "_engineAgreeDigits": 82
+        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)"
       },
       "conditionalChecks": {
         "quotientRoundsToSquare": {
@@ -4281,7 +4385,7 @@
           "period": 95,
           "quotient": 95
         },
-        "note": "fractional digits agreeing between the two working precisions at the same term count M (tests the implementation)"
+        "note": "fractional digits agreeing between the two working precisions (same engine call); tests the implementation"
       }
     }
   ]

@@ -6,12 +6,18 @@ Runs the real `Elliptic.Bsd` engine over the rank-0 curves in the acceptance sui
 emits the data contract for the rank-0 quotient panel. **Generator-side only** — it makes no
 change to how the engine computes any quantity.
 
-What it does beyond reading engine outputs:
+Every real quantity in the file (L, period, Tamagawa product, torsion, root number, quotient)
+is a direct output of a **single `RunRankZero` call per curve** — nothing is re-summed or
+reassembled generator-side. The rule: **derive what the engine does not compute; never
+re-derive what it does.**
+
+What it does beyond taking engine outputs:
 
 - **Certified term count** by inversion of the tail bound `|tail| ≤ 4·q^(M+1)/(1−q)`,
-  `q = exp(−2π/√N)` (Fizz): `M = ⌈(D·ln10 + ln(4/(1−q))) / (−ln q)⌉` for `D` certified digits.
-  L is summed at exactly `M` terms using the engine's own coefficients and arithmetic, then
-  **cross-checked against the engine's own `LValueRankZero`** (faithfulness, not luck).
+  `q = exp(−2π/√N)` (Fizz): `M = ⌈(D·ln10 + ln(4/(1−q))) / (−ln q)⌉`, the certified **floor**
+  for `D` digits. The generator picks the engine `digits` whose own `TermsFor` clears `M`, so
+  the single engine call sums `nmax ≥ M` terms. `termsUsed` is the engine's actual count,
+  `termsRequired` is `M`, and `certifiedDigits` is computed from `termsUsed`.
 - **Non-vanishing gate**: `|L(E,1)|` against the certified tail (catches even analytic rank ≥ 2,
   which the root number alone does not).
 - **Per-prime Tamagawa** derived from public primitives (`Ord`, `Δ`, `a_p`); product cross-checked
