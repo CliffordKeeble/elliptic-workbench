@@ -70,8 +70,10 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5.4vw,50px);
 .frac .n,.frac .d{padding:5px 14px;font-family:var(--data);font-size:clamp(12px,1.9vw,15px);
   font-weight:500;white-space:nowrap}
 .frac .n{border-bottom:1.5px solid var(--ink)}
-.frac .sym{display:block;font-family:var(--data);font-size:10.5px;letter-spacing:.05em;
-  color:var(--graphite);margin-bottom:3px}
+.frac.symbolic .n{border-bottom-color:var(--graphite);border-bottom-width:1px}
+.frac.symbolic .n,.frac.symbolic .d{color:var(--graphite);
+  font-size:clamp(10px,1.5vw,12.5px);padding:5px 10px}
+.eq{font-family:var(--display);font-size:clamp(19px,3vw,26px);font-weight:500;color:var(--ink)}
 .lit{text-transform:none}
 .result{font-family:var(--data);font-size:clamp(20px,3.6vw,32px);font-weight:600;
   color:var(--accent);letter-spacing:-.02em}
@@ -251,13 +253,24 @@ function isSquare(n){ const r = Math.round(Math.sqrt(n)); return n >= 0 && r*r =
 /* Granting the conjecture, Q = |Sha| * k^2 where k is the factor by which the gcd
    torsion bound overshoots. |Sha| is a square by Cassels, so sqrt(Q) = s*k with
    |Sha| = s^2. Enumerate the ways sqrt(Q) can split. Unique only when Q = 1. */
-function sharpen(qStr){
+function sharpen(qStr, kKnown){
   const n = Math.round(parseFloat(qStr));
   if (!(n > 0) || !isSquare(n)) return null;
+  if (kKnown && kKnown >= 1 && n % (kKnown*kKnown) === 0){
+    return { n, k: kKnown, opts: [{ sha: n/(kKnown*kKnown), k: kKnown }], resolved: true };
+  }
   const r = Math.round(Math.sqrt(n));
   const opts = [];
   for (let s = 1; s <= r; s++) if (r % s === 0) opts.push({ sha: s*s, k: r/s });
-  return { n, opts };
+  return { n, opts, resolved: false };
+}
+
+/* k is how far the gcd bound overshoots, and it can only be known from outside. */
+function overshoot(t){
+  const b = Number(t.value), tr = Number(t.trueOrder);
+  if (!t || t.trueOrder === null || t.trueOrder === undefined) return null;
+  if (!(b > 0) || !(tr > 0) || b % tr !== 0) return null;
+  return b / tr;
 }
 
 /* ---- state --------------------------------------------------------------- */
@@ -318,14 +331,15 @@ function renderProv(){
   document.getElementById("fixbar").classList.toggle("on", isFix);
   const p = document.getElementById("prov");
   p.classList.toggle("fixture", isFix);
+  const sch = DATA.schema || "unknown";
   const cells = [
-    ["Schema", DATA.schema || "unknown"],
+    ["Schema", sch.includes("/") ? sch.split("/").slice(-2).join("/") : sch, sch],
     ["Engine commit", (DATA.engine && DATA.engine.commit) || "unknown"],
     ["Generated", (DATA.engine && DATA.engine.generated) || "unknown"],
     ["Curves", (DATA.curves || []).length]
   ];
-  p.innerHTML = cells.map(([k,v]) =>
-    `<div class="c"><span class="k">${esc(k)}</span><span class="v" title="${esc(v)}">${esc(v)}</span></div>`).join("");
+  p.innerHTML = cells.map(([k,v,t]) =>
+    `<div class="c"><span class="k">${esc(k)}</span><span class="v" title="${esc(t===undefined?v:t)}">${esc(v)}</span></div>`).join("");
 }
 
 function renderChips(){
@@ -376,13 +390,16 @@ function renderBody(){
       <div class="formula">
         <span class="sha">|&#1064;|</span>
         <span class="rel">${verb}</span>
-        <div class="frac">
-          <div class="n"><span class="sym">L(E,1) &middot; T&sup2;</span>
-            <span title="${esc(L)}">${sig(L,SIG)}</span> &middot; ${esc(T)}&sup2;</div>
-          <div class="d"><span class="sym">&Omega; &middot; &prod;c&#8346;</span>
-            <span title="${esc(om)}">${sig(om,SIG)}</span> &middot; ${esc(pc)}</div>
+        <div class="frac symbolic">
+          <div class="n">L(E,1) &middot; T&sup2;</div>
+          <div class="d">&Omega; &middot; &prod;c<span class="lit">&#8346;</span></div>
         </div>
-        <span class="rel">=</span>
+        <span class="eq">=</span>
+        <div class="frac">
+          <div class="n"><span title="${esc(L)}">${sig(L,SIG)}</span> &middot; ${esc(T)}&sup2;</div>
+          <div class="d"><span title="${esc(om)}">${sig(om,SIG)}</span> &middot; ${esc(pc)}</div>
+        </div>
+        <span class="eq">=</span>
         <span class="result">${dec(c.quotient.value, QDEC)}</span>
       </div>
       ${isFixture() ? '<p class="verbnote" style="color:var(--accent);font-style:normal">'
@@ -417,8 +434,14 @@ function renderBody(){
       ${esc(x.reduction)}, c&#8346; = ${x.cp}`).join("<br>")}</div>`],
     ["Torsion bound T", String(c.torsion.value),
      `<span class="tag engine">engine</span><span class="tag conditional">upper bound</span>
-      <div class="m">${esc(c.torsion.method)} over ${(c.torsion.gcdPrimes||[]).join(", ")}.
-      Not known to be tight, which is why the quotient carries &le;.</div>`]
+      ${K !== null ? `<span class="tag exact">true order ${c.torsion.trueOrder}</span>` : ""}
+      <div class="m">${esc(c.torsion.method)} over ${(c.torsion.gcdPrimes||[]).join(", ")}.<br>
+      ${K === null
+        ? "True order not established from an external source, so how far this overshoots is unknown."
+        : (K === 1
+            ? "Matches the true order, so the bound is tight here."
+            : "Overshoots the true order by a factor of " + K + ", and it enters squared.")}
+      <br>${esc((c.torsion.trueOrderSource || "no external source").toString().slice(0,150))}</div>`]
   ];
 
   const npStrip = (c.pointCounts||[]).slice(0,10).map(x =>
@@ -426,23 +449,43 @@ function renderBody(){
      <span class="n">${x.Np !== undefined ? x.Np : (x.p + 1 - x.ap)}</span>
      <span class="a">a&#8346; = ${x.ap<0?MINUS+Math.abs(x.ap):x.ap}</span></div>`).join("");
 
-  const sh = sharpen(c.quotient.value);
+  const K = overshoot(c.torsion);
+  const sh = sharpen(c.quotient.value, K);
   let condHtml = "";
   if (sh){
     const lead = `Granting the conjecture, the quotient is |&#1064;| multiplied by the square of the
       factor k by which the gcd torsion bound overshoots. Both are squares, so the root of the
       displayed value splits into those two.`;
-    if (sh.opts.length === 1){
-      condHtml = `<p>${lead} Here it is ${sh.n}, and the split is unique:
+
+    if (sh.resolved){
+      /* Is there another curve here showing the same number and meaning something else? */
+      let twin = null;
+      (DATA.curves||[]).forEach(o => {
+        if (o === c) return;
+        const ok = overshoot(o.torsion), os = sharpen(o.quotient.value, ok);
+        if (os && os.resolved && os.n === sh.n && os.opts[0].sha !== sh.opts[0].sha)
+          twin = { label:o.label, sha:os.opts[0].sha };
+      });
+      condHtml = `<p>${lead} Here it is ${sh.n}. The true torsion order is known from an external
+        source, so k = ${sh.k} is fixed and the split resolves:
+        <em>|&#1064;| = ${sh.opts[0].sha}</em>${sh.k===1
+          ? ", with the bound tight."
+          : ", with the bound overshooting by " + sh.k + "."}</p>` +
+        (twin ? `<p style="margin-top:8px">Nothing in the quotient could have told you that.
+          <b>${esc(twin.label)}</b> displays the same ${sh.n} and resolves to
+          |&#1064;| = ${twin.sha}. Same number, different meaning, and only a value from outside
+          the pipeline separates them.</p>` : "");
+    } else if (sh.opts.length === 1){
+      condHtml = `<p>${lead} Here it is ${sh.n}, and the split is unique on arithmetic alone:
         <em>|&#1064;| = 1 and k = 1</em>, so the bound would be an equality and the torsion bound
-        tight. At exactly 1 the &le; sharpens to = on its own.</p>`;
+        tight. At exactly 1 the &le; sharpens to = without needing an external value.</p>`;
     } else {
       condHtml = `<p>${lead} Here it is ${sh.n}, and the split is <em>not</em> unique:</p>
         <ul style="margin:8px 0 0;padding-left:20px;font-family:var(--data);font-size:12px">
         ${sh.opts.map(o=>`<li>|&#1064;| = ${o.sha}, torsion bound ${o.k===1?"tight":"overshooting by "+o.k}</li>`).join("")}
         </ul>
-        <p style="margin-top:8px">The quotient alone cannot tell these apart, which is precisely
-        what a curve with a known loose bound would look like.</p>`;
+        <p style="margin-top:8px">No external true order is recorded for this curve, so the quotient
+        alone cannot tell these apart.</p>`;
     }
     condHtml += `<p style="margin-top:8px">This is what would follow if the conjecture holds. It is
       not evidence that it does.</p>`;

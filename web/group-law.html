@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The group law</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Spectral:ital,wght@0,300;0,400;1,400&family=Azeret+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --film:#E4E8E4;
+  --plate:#F2F4F1;
+  --ink:#14201E;
+  --graphite:#6E7A76;
+  --rule:#C4CCC6;
+  --hair:#D9DFDA;
+  --blue:#2D5F7C;
+  --accent:#B8391E;
+  --display:"Archivo",-apple-system,"Segoe UI",sans-serif;
+  --body:"Spectral",Georgia,serif;
+  --data:"Azeret Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--film);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.sheet{max-width:1200px;margin:0 auto;padding:26px 22px 34px}
+
+/* ---------- header ---------- */
+.eyebrow{
+  display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  font-family:var(--data);font-size:10.5px;font-weight:500;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--graphite);
+  border-bottom:1px solid var(--ink);padding-bottom:7px;
+}
+h1{
+  font-family:var(--display);font-weight:700;
+  font-size:clamp(30px,5.6vw,50px);line-height:1;
+  letter-spacing:.02em;text-transform:uppercase;
+  margin:16px 0 0;
+}
+.eqn{
+  font-family:var(--data);font-size:clamp(14px,2.4vw,18px);font-weight:500;
+  color:var(--blue);margin:8px 0 0;letter-spacing:.02em;
+}
+.standfirst{
+  max-width:56ch;margin:12px 0 0;font-size:16.5px;font-weight:300;
+  color:#28352F;
+}
+.standfirst b{font-weight:400;color:var(--ink)}
+
+/* ---------- board ---------- */
+.board{
+  display:grid;grid-template-columns:minmax(0,1fr) 268px;gap:0;
+  margin-top:22px;border:1px solid var(--ink);background:var(--plate);
+}
+.plate-wrap{position:relative;border-right:1px solid var(--ink);min-width:0}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.plate-wrap:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.plate-wrap{aspect-ratio:1.42;outline:none}
+.offview{
+  position:absolute;left:10px;bottom:10px;
+  display:none;align-items:center;gap:8px;
+  background:var(--plate);border:1px solid var(--accent);
+  padding:5px 8px;font-family:var(--data);font-size:10px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--accent);
+}
+.offview.on{display:flex}
+.offview button{
+  font-family:var(--data);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  background:var(--accent);color:var(--plate);border:0;padding:3px 7px;cursor:pointer;
+}
+
+/* ---------- controls ---------- */
+.panel{padding:0;min-width:0}
+.grp{border-bottom:1px solid var(--rule);padding:13px 14px 15px}
+.grp:last-child{border-bottom:0}
+.grp h2{
+  font-family:var(--data);font-size:9.5px;font-weight:600;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--graphite);
+  margin:0 0 11px;
+}
+.slider{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.slider label{
+  font-family:var(--data);font-size:12px;font-weight:600;width:12px;color:var(--ink);
+}
+.slider input[type=range]{
+  flex:1;min-width:0;height:18px;appearance:none;background:transparent;cursor:ew-resize;
+}
+.slider input[type=range]::-webkit-slider-runnable-track{height:1px;background:var(--rule)}
+.slider input[type=range]::-moz-range-track{height:1px;background:var(--rule)}
+.slider input[type=range]::-webkit-slider-thumb{
+  appearance:none;width:11px;height:11px;margin-top:-5px;border-radius:50%;
+  background:var(--blue);border:0;
+}
+.slider input[type=range]::-moz-range-thumb{
+  width:11px;height:11px;border-radius:50%;background:var(--blue);border:0;
+}
+.slider input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.slider .num{
+  font-family:var(--data);font-size:11.5px;font-variant-numeric:tabular-nums;
+  width:46px;text-align:right;color:var(--ink);
+}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}
+.chip,.act{
+  font-family:var(--data);font-size:10px;font-weight:500;letter-spacing:.07em;
+  background:transparent;color:var(--ink);border:1px solid var(--rule);
+  padding:5px 7px;cursor:pointer;line-height:1;
+}
+.chip:hover,.act:hover{border-color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--plate);border-color:var(--ink)}
+.chip:focus-visible,.act:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.acts .wide{grid-column:1/-1}
+.disc{
+  font-family:var(--data);font-size:10px;letter-spacing:.06em;color:var(--graphite);
+  margin-top:11px;display:flex;justify-content:space-between;
+}
+.disc.bad{color:var(--accent)}
+.hint{
+  font-family:var(--data);font-size:9.5px;line-height:1.7;letter-spacing:.04em;
+  color:var(--graphite);margin:0;
+}
+.hint kbd{
+  font-family:var(--data);font-size:9px;border:1px solid var(--rule);
+  padding:1px 3px;background:var(--plate);
+}
+
+/* ---------- titleblock ---------- */
+.titleblock{
+  border:1px solid var(--ink);border-top:0;
+  display:grid;grid-template-columns:repeat(6,1fr);
+}
+.cell{border-right:1px solid var(--rule);padding:9px 11px 10px;min-width:0}
+.cell:last-child{border-right:0}
+.lit{text-transform:none}
+.cell .k{
+  display:block;font-family:var(--data);font-size:9px;font-weight:600;
+  letter-spacing:.19em;text-transform:uppercase;color:var(--graphite);margin-bottom:5px;
+}
+.cell .v{
+  display:block;font-family:var(--data);font-size:12.5px;font-weight:500;
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cell.q .v,.cell.p .v{color:var(--blue)}
+.cell.star .v{color:var(--graphite)}
+.cell.sum{background:#EDE3DF}
+.cell.sum .k{color:var(--accent)}
+.cell.sum .v{color:var(--accent);font-weight:600}
+
+/* ---------- foot ---------- */
+.foot{
+  display:flex;justify-content:space-between;align-items:baseline;
+  gap:20px;flex-wrap:wrap;margin-top:12px;
+  font-family:var(--data);font-size:9.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--graphite);
+}
+.foot .ok{color:var(--blue)}
+.foot .fail{color:var(--accent);font-weight:600}
+.note{
+  max-width:60ch;margin:16px 0 0;font-size:14px;font-weight:300;
+  font-style:italic;color:var(--graphite);
+}
+
+@media (max-width:880px){
+  .board{grid-template-columns:1fr}
+  .plate-wrap{border-right:0;border-bottom:1px solid var(--ink);aspect-ratio:1.12}
+  .titleblock{grid-template-columns:repeat(2,1fr)}
+  .cell{border-bottom:1px solid var(--rule)}
+  .cell:nth-child(2n){border-right:0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="eyebrow">
+    <span>Elliptic workbench</span>
+    <span>Sheet 01 &middot; Chord and tangent</span>
+  </div>
+
+  <h1>The group law</h1>
+  <p class="eqn" id="eqn">y² = x³ − 4x + 1</p>
+  <p class="standfirst">
+    Two points on a cubic determine a third. Draw the straight line through <b>P</b> and <b>Q</b>,
+    and it meets the curve exactly once more. Reflect that meeting point in the horizontal axis
+    and you have <b>P + Q</b>. Drag either point and watch the construction follow.
+  </p>
+
+  <div class="board">
+    <div class="plate-wrap" id="plateWrap" tabindex="0" role="application"
+         aria-label="Elliptic curve plate. Press 1 or 2 to select a point, arrow keys to move it along the curve.">
+      <canvas id="plate"></canvas>
+      <div class="offview" id="offview">
+        <span id="offviewText">P + Q is outside the view</span>
+        <button type="button" id="fitBtn2">Frame it</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="grp">
+        <h2>Curve</h2>
+        <div class="slider">
+          <label for="sa">a</label>
+          <input type="range" id="sa" min="-8" max="8" step="0.01" value="-4">
+          <span class="num" id="na">−4.00</span>
+        </div>
+        <div class="slider">
+          <label for="sb">b</label>
+          <input type="range" id="sb" min="-8" max="8" step="0.01" value="1">
+          <span class="num" id="nb">1.00</span>
+        </div>
+        <div class="chips" id="presets"></div>
+        <div class="disc" id="disc"><span>Discriminant</span><span id="discV">·</span></div>
+      </div>
+
+      <div class="grp">
+        <h2>Construction</h2>
+        <div class="acts">
+          <button class="act" type="button" id="dblBtn">Set Q = P</button>
+          <button class="act" type="button" id="swapBtn">Swap P and Q</button>
+          <button class="act wide" type="button" id="fitBtn">Frame all points</button>
+          <button class="act wide" type="button" id="resetBtn">Reset the sheet</button>
+        </div>
+      </div>
+
+      <div class="grp">
+        <h2>Keyboard</h2>
+        <p class="hint">
+          <kbd>1</kbd> <kbd>2</kbd> select P or Q<br>
+          <kbd>←</kbd> <kbd>→</kbd> slide along the curve<br>
+          <kbd>↑</kbd> <kbd>↓</kbd> switch to the other branch<br>
+          <kbd>shift</kbd> larger step
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="titleblock">
+    <div class="cell p"><span class="k">P</span><span class="v" id="vP">·</span></div>
+    <div class="cell q"><span class="k">Q</span><span class="v" id="vQ">·</span></div>
+    <div class="cell"><span class="k">Case</span><span class="v" id="vCase">·</span></div>
+    <div class="cell"><span class="k">Slope <span class="lit">λ</span></span><span class="v" id="vLam">·</span></div>
+    <div class="cell star"><span class="k">P ∗ Q</span><span class="v" id="vStar">·</span></div>
+    <div class="cell sum"><span class="k">P + Q</span><span class="v" id="vSum">·</span></div>
+  </div>
+
+  <div class="foot">
+    <span>Residual |y² − (x³ + ax + b)| at P + Q: <span id="vRes">·</span></span>
+    <span id="selfTest">Checks: running</span>
+  </div>
+
+  <p class="note">
+    An explainer, and a reproduction of established mathematics. Arithmetic here is double
+    precision, drawn to make the construction legible rather than to certify a result.
+  </p>
+</div>
+
+<script>
+"use strict";
+
+const COL = {
+  plate:"#F2F4F1", hair:"#E4E9E5", grid:"#D3DBD5", axis:"#9FAAA4",
+  ink:"#14201E", graphite:"#6E7A76", blue:"#2D5F7C", accent:"#B8391E"
+};
+
+const MINUS = "\u2212";
+const EPS = 1e-12;
+
+/* ------------------------------------------------------------------ maths */
+
+const f  = (x,a,b) => ((x*x + a)*x + b);
+const fp = (x,a)   => (3*x*x + a);
+
+// Real roots of x^3 + a x + b, ascending. Trigonometric / Cardano, then one
+// Newton polish so the drawn endpoints sit on y = 0 to machine precision.
+function realRoots(a,b){
+  let out;
+  const disc = 4*a*a*a + 27*b*b;          // < 0  =>  three distinct real roots
+  if (disc < 0 && a < 0){
+    const r = 2*Math.sqrt(-a/3);
+    let c = (3*b)/(2*a) * Math.sqrt(-3/a);
+    c = Math.max(-1, Math.min(1, c));
+    const phi = Math.acos(c)/3;
+    out = [0,1,2].map(k => r*Math.cos(phi - 2*Math.PI*k/3));
+  } else {
+    const p = a, q = b;
+    const D = (q/2)*(q/2) + (p/3)*(p/3)*(p/3);
+    const s = Math.sqrt(Math.max(0,D));
+    const cbrt = v => Math.cbrt(v);
+    out = [ cbrt(-q/2 + s) + cbrt(-q/2 - s) ];
+  }
+  out = out.map(x => {
+    for (let i=0;i<3;i++){
+      const d = fp(x,a);
+      if (Math.abs(d) < 1e-13) break;
+      x -= f(x,a,b)/d;
+    }
+    return x;
+  });
+  return out.sort((u,v)=>u-v);
+}
+
+// The group law. Returns the third intersection (star) and its reflection (sum).
+function groupAdd(a, P, Q){
+  const x1=P.x, y1=P.y, x2=Q.x, y2=Q.y;
+  const same = Math.abs(x1-x2) < 1e-9 && Math.abs(y1-y2) < 1e-9;
+  let lam, kind;
+  if (same){
+    if (Math.abs(y1) < 1e-9) return {kind:"tangent", infinity:true, why:"order 2"};
+    lam = fp(x1,a)/(2*y1); kind = "tangent";
+  } else if (Math.abs(x1-x2) < 1e-9){
+    return {kind:"vertical", infinity:true, why:"inverses"};
+  } else {
+    lam = (y2-y1)/(x2-x1); kind = "chord";
+  }
+  const x3 = lam*lam - x1 - x2;
+  const ys = y1 + lam*(x3 - x1);
+  return {kind, infinity:false, lam, star:{x:x3,y:ys}, sum:{x:x3,y:-ys}};
+}
+
+/* ------------------------------------------------------- curve components */
+
+// Each component: {lo, hi, pts}. hi = Infinity marks the unbounded branch.
+function buildComponents(a,b,xFar){
+  const r = realRoots(a,b);
+  const comps = [];
+  const N = 420;
+
+  if (r.length === 3 && (r[1]-r[0]) > 1e-9){
+    const lo=r[0], hi=r[1], mid=(lo+hi)/2, half=(hi-lo)/2;
+    const up=[], dn=[];
+    for (let i=0;i<=N;i++){                       // Chebyshev spacing: dense at the ends
+      const t = Math.PI*(1 - i/N);
+      const x = mid + half*Math.cos(t);
+      const y = Math.sqrt(Math.max(0, f(x,a,b)));
+      up.push({x,y}); dn.push({x,y:-y});
+    }
+    dn.reverse();
+    comps.push({lo, hi, pts: up.concat(dn), closed:true});
+  }
+  const rb = r.length === 3 ? r[2] : r[0];
+  {
+    const span = Math.max(xFar - rb, 1);
+    const up=[], dn=[];
+    for (let i=0;i<=N;i++){
+      const s = i/N;
+      const x = rb + span*s*s;                    // dense at the turning point
+      const y = Math.sqrt(Math.max(0, f(x,a,b)));
+      up.push({x,y}); dn.push({x,y:-y});
+    }
+    dn.reverse();
+    comps.push({lo:rb, hi:Infinity, pts: dn.concat(up), closed:false});
+  }
+  return comps;
+}
+
+/* -------------------------------------------------------------- app state */
+
+const PRESETS = [
+  {label:"x³ − 4x + 1", a:-4,  b:1},
+  {label:"x³ − x",      a:-1,  b:0},
+  {label:"x³ − 2",      a:0,   b:-2},
+  {label:"x³ + 17",     a:0,   b:17},
+  {label:"x³ − 6x + 4", a:-6,  b:4}
+];
+
+const S = {
+  a:-4, b:1,
+  P:{ci:0, x:-1.0,  s:+1},
+  Q:{ci:1, x: 2.60, s:-1},
+  view:{cx:0.8, cy:0, scale:80},
+  comps:[],
+  drag:null, hover:null, sel:"P",
+  reveal:1
+};
+
+const cv   = document.getElementById("plate");
+const ctx  = cv.getContext("2d");
+const wrap = document.getElementById("plateWrap");
+let W=0, H=0;
+
+const toSX = x => W/2 + (x - S.view.cx)*S.view.scale;
+const toSY = y => H/2 - (y - S.view.cy)*S.view.scale;
+const toWX = px => S.view.cx + (px - W/2)/S.view.scale;
+const toWY = py => S.view.cy - (py - H/2)/S.view.scale;
+
+function pointOf(p){
+  const c = S.comps[Math.min(p.ci, S.comps.length-1)];
+  let x = p.x;
+  if (c){ x = Math.max(c.lo, Math.min(c.hi===Infinity ? x : c.hi, x)); }
+  return {x, y: p.s * Math.sqrt(Math.max(0, f(x, S.a, S.b)))};
+}
+
+function rebuild(){
+  const xFar = toWX(W) + 4;
+  S.comps = buildComponents(S.a, S.b, Math.max(xFar, 6));
+  for (const k of ["P","Q"]){
+    const p = S[k];
+    if (p.ci >= S.comps.length) p.ci = S.comps.length-1;
+    const c = S.comps[p.ci];
+    p.x = Math.max(c.lo, Math.min(c.hi===Infinity ? p.x : c.hi, p.x));
+  }
+}
+
+// Project a screen position onto the nearest sampled segment of the curve.
+function snap(px, py){
+  let best=null;
+  for (let ci=0; ci<S.comps.length; ci++){
+    const pts = S.comps[ci].pts;
+    for (let i=0;i<pts.length-1;i++){
+      const ax=toSX(pts[i].x),   ay=toSY(pts[i].y);
+      const bx=toSX(pts[i+1].x), by=toSY(pts[i+1].y);
+      const dx=bx-ax, dy=by-ay;
+      const L=dx*dx+dy*dy; if (!L) continue;
+      let t=((px-ax)*dx + (py-ay)*dy)/L;
+      t = t<0?0:t>1?1:t;
+      const qx=ax+t*dx, qy=ay+t*dy;
+      const d=(px-qx)*(px-qx)+(py-qy)*(py-qy);
+      if (!best || d<best.d) best={d, ci, wx:toWX(qx), wy:toWY(qy)};
+    }
+  }
+  if (!best) return null;
+  const c = S.comps[best.ci];
+  const x = Math.max(c.lo, Math.min(c.hi===Infinity ? best.wx : c.hi, best.wx));
+  return {ci:best.ci, x, s: best.wy >= 0 ? 1 : -1, d:Math.sqrt(best.d)};
+}
+
+/* -------------------------------------------------------------- rendering */
+
+function niceStep(target){
+  const raw = target / S.view.scale;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const n = raw/mag;
+  return (n<1.5?1:n<3.5?2:n<7.5?5:10)*mag;
+}
+
+function drawGrid(){
+  const step = niceStep(78), minor = step/5;
+  const x0=toWX(0), x1=toWX(W), y1=toWY(0), y0=toWY(H);
+
+  ctx.lineWidth=1;
+  ctx.strokeStyle=COL.hair; ctx.beginPath();
+  for (let x=Math.ceil(x0/minor)*minor; x<x1; x+=minor){ const sx=Math.round(toSX(x))+.5; ctx.moveTo(sx,0); ctx.lineTo(sx,H); }
+  for (let y=Math.ceil(y0/minor)*minor; y<y1; y+=minor){ const sy=Math.round(toSY(y))+.5; ctx.moveTo(0,sy); ctx.lineTo(W,sy); }
+  ctx.stroke();
+
+  ctx.strokeStyle=COL.grid; ctx.beginPath();
+  for (let x=Math.ceil(x0/step)*step; x<x1; x+=step){ const sx=Math.round(toSX(x))+.5; ctx.moveTo(sx,0); ctx.lineTo(sx,H); }
+  for (let y=Math.ceil(y0/step)*step; y<y1; y+=step){ const sy=Math.round(toSY(y))+.5; ctx.moveTo(0,sy); ctx.lineTo(W,sy); }
+  ctx.stroke();
+
+  // Axes in the drafting centre-line pattern.
+  ctx.save();
+  ctx.strokeStyle=COL.axis; ctx.lineWidth=1; ctx.setLineDash([14,4,3,4]);
+  ctx.beginPath();
+  ctx.moveTo(0, Math.round(toSY(0))+.5); ctx.lineTo(W, Math.round(toSY(0))+.5);
+  ctx.moveTo(Math.round(toSX(0))+.5, 0); ctx.lineTo(Math.round(toSX(0))+.5, H);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.fillStyle=COL.graphite;
+  ctx.font='500 10px "Azeret Mono", monospace';
+  ctx.textAlign="center"; ctx.textBaseline="top";
+  const ay = Math.min(H-14, Math.max(4, toSY(0)+5));
+  for (let x=Math.ceil(x0/step)*step; x<x1; x+=step){
+    if (Math.abs(x)<step/100) continue;
+    ctx.fillText(fmt(x, step<1?1:0), toSX(x), ay);
+  }
+  ctx.textAlign="left"; ctx.textBaseline="middle";
+  const ax = Math.min(W-26, Math.max(4, toSX(0)+6));
+  for (let y=Math.ceil(y0/step)*step; y<y1; y+=step){
+    if (Math.abs(y)<step/100) continue;
+    ctx.fillText(fmt(y, step<1?1:0), ax, toSY(y));
+  }
+}
+
+function drawCurve(){
+  ctx.strokeStyle=COL.ink; ctx.lineWidth=2.1;
+  ctx.lineJoin="round"; ctx.lineCap="round";
+  for (const c of S.comps){
+    const n = Math.max(2, Math.floor(c.pts.length*S.reveal));
+    ctx.beginPath();
+    for (let i=0;i<n;i++){
+      const p=c.pts[i];
+      i ? ctx.lineTo(toSX(p.x), toSY(p.y)) : ctx.moveTo(toSX(p.x), toSY(p.y));
+    }
+    if (c.closed && n===c.pts.length) ctx.closePath();
+    ctx.stroke();
+  }
+}
+
+function tick(x,y,ang,len,col){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(ang);
+  ctx.strokeStyle=col; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,-len); ctx.lineTo(0,len); ctx.stroke();
+  ctx.restore();
+}
+
+function label(text,x,y,col,align){
+  ctx.font='600 11px "Azeret Mono", monospace';
+  ctx.textAlign=align||"left"; ctx.textBaseline="middle";
+  ctx.lineWidth=3.5; ctx.strokeStyle=COL.plate; ctx.lineJoin="round";
+  ctx.strokeText(text,x,y);
+  ctx.fillStyle=col; ctx.fillText(text,x,y);
+}
+
+function dot(x,y,r,fill,ring){
+  ctx.beginPath(); ctx.arc(x,y,r,0,7);
+  ctx.fillStyle=fill; ctx.fill();
+  ctx.lineWidth=1.8; ctx.strokeStyle=ring||COL.plate; ctx.stroke();
+}
+
+function drawConstruction(P,Q,G){
+  const sp={x:toSX(P.x),y:toSY(P.y)}, sq={x:toSX(Q.x),y:toSY(Q.y)};
+
+  if (G.infinity){
+    ctx.save();
+    ctx.strokeStyle=COL.accent; ctx.lineWidth=1.3; ctx.setLineDash([7,5]);
+    ctx.beginPath(); ctx.moveTo(sp.x,0); ctx.lineTo(sp.x,H); ctx.stroke();
+    ctx.restore();
+    label("→ O", sp.x+9, 16, COL.accent);
+  } else {
+    // Construction line, run right across the plate the way a ruler would.
+    const lx0=toWX(0), lx1=toWX(W);
+    const ly = x => P.y + G.lam*(x - P.x);
+    ctx.save();
+    ctx.strokeStyle=COL.blue; ctx.lineWidth=1.15; ctx.globalAlpha=.85;
+    ctx.beginPath();
+    ctx.moveTo(toSX(lx0), toSY(ly(lx0)));
+    ctx.lineTo(toSX(lx1), toSY(ly(lx1)));
+    ctx.stroke();
+    ctx.restore();
+
+    const ss={x:toSX(G.star.x),y:toSY(G.star.y)};
+    const su={x:toSX(G.sum.x), y:toSY(G.sum.y)};
+
+    // Reflection: extension line with end ticks, the drafting convention.
+    ctx.save();
+    ctx.strokeStyle=COL.accent; ctx.lineWidth=1.2; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(ss.x,ss.y); ctx.lineTo(su.x,su.y); ctx.stroke();
+    ctx.restore();
+    tick(ss.x,ss.y,Math.PI/2,4,COL.accent);
+    tick(su.x,su.y,Math.PI/2,4,COL.accent);
+
+    // Third intersection, hollow.
+    ctx.beginPath(); ctx.arc(ss.x,ss.y,5,0,7);
+    ctx.fillStyle=COL.plate; ctx.fill();
+    ctx.lineWidth=1.6; ctx.strokeStyle=COL.graphite; ctx.stroke();
+    label("P∗Q", ss.x+10, ss.y - (G.star.y>=G.sum.y?11:-11), COL.graphite);
+
+    // The result, marked as a found point.
+    dot(su.x,su.y,6.2,COL.accent);
+    ctx.save();
+    ctx.strokeStyle=COL.accent; ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(su.x-11,su.y); ctx.lineTo(su.x-7.5,su.y);
+    ctx.moveTo(su.x+7.5,su.y); ctx.lineTo(su.x+11,su.y);
+    ctx.moveTo(su.x,su.y-11); ctx.lineTo(su.x,su.y-7.5);
+    ctx.moveTo(su.x,su.y+7.5); ctx.lineTo(su.x,su.y+11);
+    ctx.stroke(); ctx.restore();
+    label("P+Q", su.x+13, su.y + (G.sum.y>=G.star.y?-12:12), COL.accent);
+  }
+
+  for (const [k,s,p] of [["P",sp,P],["Q",sq,Q]]){
+    const live = S.drag===k || S.hover===k || S.sel===k;
+    if (live){
+      ctx.beginPath(); ctx.arc(s.x,s.y,11,0,7);
+      ctx.strokeStyle=COL.blue; ctx.lineWidth=1; ctx.globalAlpha=.5; ctx.stroke(); ctx.globalAlpha=1;
+    }
+    dot(s.x,s.y,5.6,COL.blue);
+    label(k, s.x+12, s.y-11, COL.blue);
+  }
+}
+
+function draw(){
+  ctx.fillStyle=COL.plate; ctx.fillRect(0,0,W,H);
+  drawGrid();
+  drawCurve();
+  if (S.reveal >= 1){
+    const P=pointOf(S.P), Q=pointOf(S.Q);
+    drawConstruction(P,Q,groupAdd(S.a,P,Q));
+  }
+}
+
+/* --------------------------------------------------------------- readouts */
+
+function fmt(v,d){
+  d = d===undefined ? 3 : d;
+  if (!isFinite(v)) return "∞";
+  let s = Math.abs(v) < 5e-4 && v !== 0 ? v.toExponential(2) : v.toFixed(d);
+  if (s === "-" + (0).toFixed(d)) s = (0).toFixed(d);
+  return s.replace("-", MINUS);
+}
+const pair = p => "(" + fmt(p.x) + ", " + fmt(p.y) + ")";
+
+function sync(){
+  const P=pointOf(S.P), Q=pointOf(S.Q), G=groupAdd(S.a,P,Q);
+  document.getElementById("vP").textContent = pair(P);
+  document.getElementById("vQ").textContent = pair(Q);
+
+  const off = document.getElementById("offview");
+  if (G.infinity){
+    document.getElementById("vCase").textContent =
+      G.why === "order 2" ? "Vertical tangent" : "Vertical line";
+    document.getElementById("vLam").textContent  = "undefined";
+    document.getElementById("vStar").textContent = "O";
+    document.getElementById("vSum").textContent  = "O";
+    document.getElementById("vRes").textContent  = "not applicable";
+    off.classList.remove("on");
+  } else {
+    document.getElementById("vCase").textContent = G.kind==="tangent" ? "Tangent (doubling)" : "Chord";
+    document.getElementById("vLam").textContent  = fmt(G.lam);
+    document.getElementById("vStar").textContent = pair(G.star);
+    document.getElementById("vSum").textContent  = pair(G.sum);
+    const res = Math.abs(G.sum.y*G.sum.y - f(G.sum.x,S.a,S.b));
+    document.getElementById("vRes").textContent = res.toExponential(1);
+
+    const sx=toSX(G.sum.x), sy=toSY(G.sum.y);
+    const outside = sx<8 || sx>W-8 || sy<8 || sy>H-8;
+    off.classList.toggle("on", outside);
+    document.getElementById("offviewText").textContent =
+      "P + Q sits at " + pair(G.sum);
+  }
+
+  const d = -16*(4*S.a*S.a*S.a + 27*S.b*S.b);
+  const dEl = document.getElementById("disc");
+  dEl.classList.toggle("bad", Math.abs(d) < 1e-6);
+  document.getElementById("discV").textContent =
+    Math.abs(d) < 1e-6 ? "0, singular" : fmt(d,2);
+
+  document.getElementById("eqn").textContent =
+    "y² = x³ " + (S.a<0?MINUS:"+") + " " + Math.abs(S.a).toFixed(2) + "x " +
+    (S.b<0?MINUS:"+") + " " + Math.abs(S.b).toFixed(2);
+  document.getElementById("na").textContent = fmt(S.a,2);
+  document.getElementById("nb").textContent = fmt(S.b,2);
+}
+
+const render = () => { draw(); sync(); };
+
+/* ----------------------------------------------------------------- layout */
+
+function resize(){
+  const r = wrap.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  W = Math.max(200, Math.round(r.width));
+  H = Math.max(160, Math.round(r.height));
+  cv.width = W*dpr; cv.height = H*dpr;
+  cv.style.width = W+"px"; cv.style.height = H+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  rebuild(); render();
+}
+
+// Opening view: frame the curve and the two handles, and let the third
+// intersection fall where the geometry puts it. On a single-component curve
+// that is often far to the right, which is true and worth seeing.
+function frameCurve(){
+  const r = realRoots(S.a,S.b);
+  const P = pointOf(S.P), Q = pointOf(S.Q);
+  const x0 = Math.min(r[0], P.x, Q.x) - 0.8;
+  const x1 = Math.max(r[r.length-1], P.x, Q.x) + 1.6;
+  let span = Math.max(x1-x0, 1);
+  const needY = Math.max(Math.abs(P.y), Math.abs(Q.y)) * 1.25;
+  const half  = (H/W)*span/2;
+  if (needY > half) span *= needY/half;
+  S.view.scale = W/span;
+  S.view.cx = (x0+x1)/2;
+  S.view.cy = 0;
+  rebuild(); render();
+}
+
+function frameAll(){
+  const P=pointOf(S.P), Q=pointOf(S.Q), G=groupAdd(S.a,P,Q);
+  const r = realRoots(S.a,S.b);
+  const xs=[P.x,Q.x,r[0],r[r.length-1]], ys=[P.y,Q.y];
+  if (!G.infinity){ xs.push(G.sum.x); ys.push(G.sum.y, G.star.y); }
+  let x0=Math.min(...xs), x1=Math.max(...xs), y0=Math.min(...ys), y1=Math.max(...ys);
+  const padX=Math.max(1.2,(x1-x0)*0.18), padY=Math.max(1.2,(y1-y0)*0.18);
+  x0-=padX; x1+=padX; y0-=padY; y1+=padY;
+  S.view.scale = Math.min(W/(x1-x0), H/(y1-y0));
+  S.view.cx = (x0+x1)/2; S.view.cy = (y0+y1)/2;
+  rebuild(); render();
+}
+
+/* --------------------------------------------------------------- pointers */
+
+function local(e){
+  const r=cv.getBoundingClientRect();
+  return {x:e.clientX-r.left, y:e.clientY-r.top};
+}
+function nearestHandle(px,py){
+  let hit=null, bd=22;
+  for (const k of ["P","Q"]){
+    const p=pointOf(S[k]);
+    const d=Math.hypot(px-toSX(p.x), py-toSY(p.y));
+    if (d<bd){ bd=d; hit=k; }
+  }
+  return hit;
+}
+
+cv.addEventListener("pointerdown", e => {
+  const {x,y} = local(e);
+  let k = nearestHandle(x,y);
+  if (!k){
+    const sn = snap(x,y);
+    if (sn && sn.d < 26){
+      const dP=Math.hypot(x-toSX(pointOf(S.P).x), y-toSY(pointOf(S.P).y));
+      const dQ=Math.hypot(x-toSX(pointOf(S.Q).x), y-toSY(pointOf(S.Q).y));
+      k = dP<=dQ ? "P" : "Q";
+      S[k].ci=sn.ci; S[k].x=sn.x; S[k].s=sn.s;
+    }
+  }
+  if (!k){ S.drag="pan"; S.panFrom={x,y,cx:S.view.cx,cy:S.view.cy}; cv.style.cursor="grabbing"; }
+  else { S.drag=k; S.sel=k; }
+  cv.setPointerCapture(e.pointerId);
+  render();
+});
+
+cv.addEventListener("pointermove", e => {
+  const {x,y}=local(e);
+  if (S.drag==="pan"){
+    S.view.cx = S.panFrom.cx - (x-S.panFrom.x)/S.view.scale;
+    S.view.cy = S.panFrom.cy + (y-S.panFrom.y)/S.view.scale;
+    rebuild(); render(); return;
+  }
+  if (S.drag){
+    const sn=snap(x,y);
+    if (sn){ const p=S[S.drag]; p.ci=sn.ci; p.x=sn.x; p.s=sn.s; render(); }
+    return;
+  }
+  const h=nearestHandle(x,y);
+  cv.style.cursor = h ? "grab" : "crosshair";
+  if (h!==S.hover){ S.hover=h; render(); }
+});
+
+function endDrag(){ S.drag=null; cv.style.cursor="crosshair"; render(); }
+cv.addEventListener("pointerup", endDrag);
+cv.addEventListener("pointercancel", endDrag);
+cv.addEventListener("pointerleave", () => { if(!S.drag && S.hover){ S.hover=null; render(); } });
+
+cv.addEventListener("wheel", e => {
+  e.preventDefault();
+  const {x,y}=local(e);
+  const wx=toWX(x), wy=toWY(y);
+  const k = Math.exp(-e.deltaY*0.0016);
+  S.view.scale = Math.max(8, Math.min(900, S.view.scale*k));
+  S.view.cx = wx - (x - W/2)/S.view.scale;
+  S.view.cy = wy + (y - H/2)/S.view.scale;
+  rebuild(); render();
+}, {passive:false});
+
+wrap.addEventListener("keydown", e => {
+  if (e.key==="1"||e.key==="2"){ S.sel = e.key==="1"?"P":"Q"; render(); e.preventDefault(); return; }
+  const p=S[S.sel]; if(!p) return;
+  const step = (e.shiftKey?10:1) * 2.2/S.view.scale;
+  if (e.key==="ArrowLeft"||e.key==="ArrowRight"){
+    const c=S.comps[p.ci];
+    let nx = p.x + (e.key==="ArrowRight" ? step : -step);
+    nx = Math.max(c.lo, Math.min(c.hi===Infinity?nx:c.hi, nx));
+    p.x = nx; render(); e.preventDefault();
+  } else if (e.key==="ArrowUp"||e.key==="ArrowDown"){
+    p.s = e.key==="ArrowUp" ? 1 : -1; render(); e.preventDefault();
+  }
+});
+
+/* ---------------------------------------------------------------- widgets */
+
+const sa=document.getElementById("sa"), sb=document.getElementById("sb");
+function setCurve(a,b,refit){
+  S.a=a; S.b=b; sa.value=a; sb.value=b;
+  rebuild();
+  for (const k of ["P","Q"]){
+    const p=S[k], c=S.comps[Math.min(p.ci,S.comps.length-1)];
+    p.ci=Math.min(p.ci,S.comps.length-1);
+    p.x=Math.max(c.lo, Math.min(c.hi===Infinity?p.x:c.hi, p.x));
+  }
+  if (refit) frameAll(); else render();
+  syncChips();
+}
+sa.addEventListener("input", ()=>setCurve(parseFloat(sa.value), S.b, false));
+sb.addEventListener("input", ()=>setCurve(S.a, parseFloat(sb.value), false));
+
+// One placement path, used by start-up, the presets and reset alike.
+// Both points take the upper branch: a same-sign chord stays shallow, so the
+// third intersection lands inside the frame instead of racing off to the right.
+function applyPreset(p){
+  S.a=p.a; S.b=p.b; sa.value=p.a; sb.value=p.b;
+  rebuild();
+  const first=S.comps[0], last=S.comps[S.comps.length-1];
+  S.P = S.comps.length > 1
+    ? {ci:0, x:first.lo + 0.47*(first.hi-first.lo), s:+1}   // oval
+    : {ci:0, x:first.lo + 0.30, s:+1};                      // lone branch
+  S.Q = S.comps.length > 1
+    ? {ci:S.comps.length-1, x:last.lo + 0.75, s:+1}
+    : {ci:0, x:first.lo + 0.90, s:+1};
+  S.sel="P";
+  frameCurve();
+  syncChips();
+}
+
+const chips=document.getElementById("presets");
+PRESETS.forEach(p => {
+  const btn=document.createElement("button");
+  btn.className="chip"; btn.type="button"; btn.textContent=p.label;
+  btn.setAttribute("aria-pressed","false");
+  btn.addEventListener("click", ()=>applyPreset(p));
+  chips.appendChild(btn);
+});
+function syncChips(){
+  [...chips.children].forEach((btn,i)=>{
+    const p=PRESETS[i];
+    btn.setAttribute("aria-pressed", String(Math.abs(p.a-S.a)<1e-9 && Math.abs(p.b-S.b)<1e-9));
+  });
+}
+
+document.getElementById("dblBtn").addEventListener("click", ()=>{
+  S.Q={...S.P}; S.sel="Q"; render();
+});
+document.getElementById("swapBtn").addEventListener("click", ()=>{
+  const t=S.P; S.P=S.Q; S.Q=t; render();
+});
+document.getElementById("fitBtn").addEventListener("click", frameAll);
+document.getElementById("fitBtn2").addEventListener("click", frameAll);
+document.getElementById("resetBtn").addEventListener("click", ()=>applyPreset(PRESETS[0]));
+
+/* ------------------------------------------------------------- self-check */
+// Tolerance stated before the output is read: relative agreement < 1e-12
+// against published rational values. This is a numerical agreement check,
+// not exact rational arithmetic.
+(function selfTest(){
+  const cases=[
+    {a:0,b:-2, P:{x:3,y:5},  Q:{x:3,y:5},  want:[129/100, -383/1000]},
+    {a:0,b:17, P:{x:-1,y:4}, Q:{x:2,y:5},  want:[-8/9, -109/27]}
+  ];
+  let pass=0;
+  for (const c of cases){
+    const g=groupAdd(c.a,c.P,c.Q);
+    if (g.infinity) continue;
+    const dx=Math.abs(g.sum.x-c.want[0])/Math.max(1,Math.abs(c.want[0]));
+    const dy=Math.abs(g.sum.y-c.want[1])/Math.max(1,Math.abs(c.want[1]));
+    if (dx<1e-12 && dy<1e-12) pass++;
+  }
+  const el=document.getElementById("selfTest");
+  const ok = pass===cases.length;
+  el.className = ok ? "ok" : "fail";
+  el.textContent = "Checks against published values: " + pass + "/" + cases.length +
+                   (ok ? " pass" : " FAIL") + " · tol 1e−12";
+})();
+
+/* -------------------------------------------------------------- start-up */
+
+new ResizeObserver(resize).observe(wrap);
+resize();
+applyPreset(PRESETS[0]);
+
+if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+  S.reveal = 0;
+  const t0 = performance.now();
+  (function step(t){
+    const u = Math.min(1, (t-t0)/620);
+    S.reveal = u<1 ? 1-Math.pow(1-u,3) : 1;
+    draw();
+    if (u<1) requestAnimationFrame(step); else render();
+  })(t0);
+}
+</script>
+</body>
+</html>
