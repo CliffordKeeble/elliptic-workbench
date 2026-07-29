@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The rank-zero quotient</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&family=Azeret+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --film:#E4E8E4; --plate:#F2F4F1; --ink:#14201E; --graphite:#6E7A76;
+  --rule:#C4CCC6; --hair:#D9DFDA; --blue:#2D5F7C; --accent:#B8391E;
+  --ochre:#8A6D1F; --ok:#2D5F7C;
+  --display:"Archivo",-apple-system,"Segoe UI",sans-serif;
+  --body:"Spectral",Georgia,serif;
+  --data:"Azeret Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--film);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.sheet{max-width:1180px;margin:0 auto;padding:26px 22px 44px}
+
+.eyebrow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  font-family:var(--data);font-size:10.5px;font-weight:500;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--graphite);
+  border-bottom:1px solid var(--ink);padding-bottom:7px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5.4vw,50px);
+  line-height:1;letter-spacing:.02em;text-transform:uppercase;margin:16px 0 0}
+.standfirst{max-width:58ch;margin:11px 0 0;font-size:16.5px;font-weight:300;color:#28352F}
+.standfirst b{font-weight:400;color:var(--ink)}
+
+/* provenance strip */
+.prov{margin-top:18px;border:1px solid var(--ink);background:var(--plate);
+  display:grid;grid-template-columns:repeat(4,1fr)}
+.prov .c{border-right:1px solid var(--rule);padding:8px 11px 9px;min-width:0}
+.prov .c:last-child{border-right:0}
+.prov .k{display:block;font-family:var(--data);font-size:8.5px;font-weight:600;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--graphite);margin-bottom:4px}
+.prov .v{display:block;font-family:var(--data);font-size:11.5px;font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prov.fixture{border-color:var(--accent)}
+.prov.fixture .v{color:var(--accent)}
+.fixbar{background:var(--accent);color:var(--plate);font-family:var(--data);
+  font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  padding:7px 11px;display:none}
+.fixbar.on{display:block}
+
+/* picker */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 0}
+.chip{font-family:var(--data);font-size:10.5px;font-weight:500;letter-spacing:.07em;
+  background:transparent;color:var(--ink);border:1px solid var(--rule);
+  padding:7px 10px;cursor:pointer;line-height:1}
+.chip:hover{border-color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--plate);border-color:var(--ink)}
+.chip.bad[aria-pressed=true]{background:var(--accent);border-color:var(--accent)}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* the hero */
+.hero{margin-top:18px;border:1px solid var(--ink);background:var(--plate);padding:26px 22px 24px}
+.curveline{font-family:var(--data);font-size:13px;color:var(--blue);
+  letter-spacing:.02em;margin:0 0 20px;display:flex;flex-wrap:wrap;gap:18px}
+.curveline span{color:var(--graphite)}
+.curveline b{color:var(--blue);font-weight:600}
+.formula{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
+.sha{font-family:var(--display);font-size:clamp(26px,4.4vw,38px);font-weight:600}
+.rel{font-family:var(--display);font-size:clamp(24px,4vw,34px);font-weight:500;color:var(--accent)}
+.frac{display:inline-flex;flex-direction:column;align-items:stretch;text-align:center}
+.frac .n,.frac .d{padding:5px 14px;font-family:var(--data);font-size:clamp(12px,1.9vw,15px);
+  font-weight:500;white-space:nowrap}
+.frac .n{border-bottom:1.5px solid var(--ink)}
+.frac .sym{display:block;font-family:var(--data);font-size:10.5px;letter-spacing:.05em;
+  color:var(--graphite);margin-bottom:3px}
+.lit{text-transform:none}
+.result{font-family:var(--data);font-size:clamp(20px,3.6vw,32px);font-weight:600;
+  color:var(--accent);letter-spacing:-.02em}
+.verbnote{text-align:center;margin:18px auto 0;max-width:52ch;font-size:14.5px;
+  font-weight:300;font-style:italic;color:var(--graphite)}
+
+/* failure state */
+.blocked{border:1px solid var(--accent);background:#F3E7E3;padding:22px}
+.blocked h2{font-family:var(--display);font-size:19px;text-transform:uppercase;
+  letter-spacing:.05em;margin:0 0 8px;color:var(--accent)}
+.blocked p{margin:0 0 10px;font-size:15px;font-weight:300;max-width:60ch}
+.blocked ul{margin:0;padding-left:18px;font-family:var(--data);font-size:11.5px;color:var(--accent)}
+
+/* ingredient cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(216px,1fr));
+  gap:0;margin-top:0;border:1px solid var(--ink);border-top:0;background:var(--plate)}
+.card{border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:13px 14px 15px;min-width:0}
+.card .k{display:block;font-family:var(--data);font-size:9px;font-weight:600;
+  letter-spacing:.19em;text-transform:uppercase;color:var(--graphite);margin-bottom:6px}
+.card .v{display:block;font-family:var(--data);font-size:14px;font-weight:500;
+  word-break:break-all;margin-bottom:8px}
+.card .m{font-family:var(--data);font-size:9.5px;line-height:1.65;color:var(--graphite)}
+.tag{display:inline-block;font-family:var(--data);font-size:8.5px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;padding:2px 5px;margin:0 4px 4px 0;
+  border:1px solid currentColor}
+.tag.exact{color:var(--blue)}
+.tag.certified{color:var(--ok)}
+.tag.conditional{color:var(--ochre)}
+.tag.derived{color:var(--graphite)}
+.tag.engine{color:var(--graphite);border-style:dotted}
+
+/* sections */
+h2.sec{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--graphite);margin:30px 0 10px;
+  border-bottom:1px solid var(--rule);padding-bottom:6px}
+
+/* point counts */
+.np{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--ink);background:var(--plate)}
+.np .cell{border-right:1px solid var(--rule);padding:8px 12px;text-align:center;min-width:66px}
+.np .cell:last-child{border-right:0}
+.np .p{display:block;font-family:var(--data);font-size:9px;letter-spacing:.14em;
+  color:var(--graphite)}
+.np .n{display:block;font-family:var(--data);font-size:14px;font-weight:600;margin-top:3px}
+.np .a{display:block;font-family:var(--data);font-size:10px;color:var(--blue);margin-top:1px}
+
+/* invariants */
+.inv{border:1px solid var(--ink);background:var(--plate)}
+.inv .row{display:flex;align-items:baseline;gap:12px;padding:8px 13px;
+  border-bottom:1px solid var(--hair);font-family:var(--data);font-size:11.5px}
+.inv .row:last-child{border-bottom:0}
+.inv .st{font-weight:600;width:52px;flex:none;letter-spacing:.1em;font-size:9.5px}
+.inv .row.pass .st{color:var(--ok)}
+.inv .row.fail{background:#F3E7E3}
+.inv .row.fail .st{color:var(--accent)}
+.inv .lb{flex:1;min-width:0}
+.inv .dt{color:var(--graphite);font-size:10.5px;text-align:right;white-space:nowrap}
+
+/* conditional register */
+.cond{border:1px dashed var(--ochre);background:#F4F1E6;padding:16px 18px;margin-top:12px}
+.cond .k{font-family:var(--data);font-size:9px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ochre);display:block;margin-bottom:7px}
+.cond p{margin:0;font-size:15px;font-weight:300;max-width:64ch}
+.cond em{font-style:italic;color:var(--ochre)}
+
+.lim{font-size:14.5px;font-weight:300;color:#33403A;max-width:66ch}
+.lim p{margin:0 0 9px}
+.lim p:last-child{margin:0}
+
+/* loader */
+.load{margin-top:26px;border:1px dashed var(--rule);padding:15px 17px;background:var(--plate)}
+.load h3{font-family:var(--data);font-size:9px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--graphite);margin:0 0 8px}
+.load p{margin:0 0 11px;font-size:13.5px;font-weight:300;color:var(--graphite);max-width:64ch}
+.load input[type=file]{font-family:var(--data);font-size:11px}
+.load .err{font-family:var(--data);font-size:11px;color:var(--accent);margin-top:9px;display:none}
+.load .err.on{display:block}
+
+.foot{margin-top:26px;font-family:var(--data);font-size:9.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--graphite)}
+
+@media (max-width:720px){
+  .prov{grid-template-columns:repeat(2,1fr)}
+  .prov .c{border-bottom:1px solid var(--rule)}
+  .formula{gap:10px}
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="eyebrow">
+    <span>Elliptic workbench</span>
+    <span>Sheet 02 &middot; Rank-zero quotient</span>
+  </div>
+
+  <h1>The quotient</h1>
+  <p class="standfirst">
+    Four quantities in one formula, reached by four different routes: a rapidly convergent series,
+    an arithmetic-geometric mean, a local analysis at each bad prime, and a greatest common divisor
+    of point counts. Two of them start from the same coefficients and arrive somewhere entirely
+    different. Assemble all four and the result lands on an integer. Below is that assembly, with
+    what is <b>exact</b>, what is <b>certified</b> and what is merely <b>consistent</b> kept apart.
+  </p>
+
+  <div class="fixbar" id="fixbar">Fixture data. These are not computed values. Load the real file below.</div>
+  <div class="prov" id="prov"></div>
+
+  <div class="chips" id="chips"></div>
+
+  <div id="body"></div>
+
+  <div class="load">
+    <h3>Load data/bsd-rank0.json</h3>
+    <p>The panel reads the generator's output directly. Point it at the real file and every figure
+       above becomes an engine-computed value with its own provenance.</p>
+    <input type="file" id="file" accept=".json,application/json">
+    <div class="err" id="err"></div>
+  </div>
+
+  <p class="foot">An explainer, and a reproduction of established mathematics.</p>
+</div>
+
+<script>
+"use strict";
+
+/* Display precision, fixed here before anything renders (DoD section 5). */
+const SIG = 10;          // significant figures for L and the period
+const QDEC = 9;          // decimals for the quotient
+const DIGITS_SHOWN = Math.max(SIG, QDEC + 1);
+
+const MINUS = "\u2212";
+
+/* ---- fixture -------------------------------------------------------------
+   Deliberately synthetic. A period of exactly 1, coefficients 1..5, labels
+   that are not curve names. Nothing here should ever be mistaken for output. */
+const FIXTURE = {
+  schema: "elliptic-workbench/bsd-rank0/fixture",
+  provenance: "FIXTURE. Hand-written to exercise the panel. No engine was run.",
+  engine: { commit: "none", generated: "n/a", precisionDigits: 0 },
+  curves: [
+    mk("FIXTURE-A", 100, "0.2000000000", "1.0000000000", 5, 5, 1, 1, true),
+    mk("FIXTURE-B", 200, "0.4000000000", "0.1000000000", 1, 1, 4, 1, true),
+    mk("FIXTURE-FAIL", 300, "0.0000000000", "1.0000000000", 1, 1, 0, -1, false)
+  ]
+};
+
+function mk(label, N, L, om, T, prodc, sha, w, ok){
+  const ap = [[2,-2],[3,-1],[5,1],[7,-2],[11,1],[13,4]];
+  return {
+    label, labelProvenance: "fixture, not a curve name",
+    weierstrass: {a1:1,a2:2,a3:3,a4:4,a6:5}, conductor: N, badPrimes: [2],
+    rank: 0,
+    pointCounts: ap.map(([p,a]) => ({p, ap:a, Np: p+1-a})),
+    lValue: { value:L, method:"smoothed Dirichlet series", termsUsed: ok?500:10,
+              termsRequired: ok?454:454, certifiedDigits: ok?80:2,
+              digitsEmitted:10, q:"0.5", tailBound:"1e-80", seriesVerified: ok },
+    period: { value: om, method:"AGM", digits: 80 },
+    regulator: { value:"1", note:"rank 0" },
+    tamagawa: { product: prodc, discriminant:"-1", discriminantIsMinimal:true,
+                allSemistable: true,
+                perPrime:[{p:2,vpDelta:prodc,ap:1,kodaira:"I"+prodc,
+                           reduction:"split multiplicative",cp:prodc,semistable:true}],
+                perPrimeProvenance:"derived in generator from minimal discriminant and a_p" },
+    torsion: { value:T, exact:false, method:"gcd bound", gcdPrimes:[3,5,7], excludesTwo:true,
+               note:"gcd of #E(F_p) over odd good primes" },
+    rootNumber: { available:true, value:w },
+    nonVanishing: { lValue:L, tailBound:"1e-80", ratio: ok?"1e79":"0", gate: ok?"pass":"fail" },
+    quotient: { value: sha.toFixed(QDEC), relation:"upper bound",
+                formula:"|Sha| = L(E,1)*|tor|^2 / (Omega * prod cp)" },
+    conditionalChecks: { quotientRoundsToSquare:
+      { rounded: sha, isSquare: isSquare(sha), class:"conditional",
+        assumes:"BSD at rank 0 for integrality; Cassels via Kolyvagin finiteness, given L != 0" } }
+  };
+}
+function isSquare(n){ const r = Math.round(Math.sqrt(n)); return n >= 0 && r*r === n; }
+
+/* Granting the conjecture, Q = |Sha| * k^2 where k is the factor by which the gcd
+   torsion bound overshoots. |Sha| is a square by Cassels, so sqrt(Q) = s*k with
+   |Sha| = s^2. Enumerate the ways sqrt(Q) can split. Unique only when Q = 1. */
+function sharpen(qStr){
+  const n = Math.round(parseFloat(qStr));
+  if (!(n > 0) || !isSquare(n)) return null;
+  const r = Math.round(Math.sqrt(n));
+  const opts = [];
+  for (let s = 1; s <= r; s++) if (r % s === 0) opts.push({ sha: s*s, k: r/s });
+  return { n, opts };
+}
+
+/* ---- state --------------------------------------------------------------- */
+let DATA = FIXTURE, IDX = 0;
+
+/* ---- formatting ---------------------------------------------------------- */
+function sig(str, n){
+  const v = parseFloat(str);
+  if (!isFinite(v)) return String(str);
+  let s = v.toPrecision(n);
+  if (s.includes("e")) return s.replace("-", MINUS);
+  if (s.includes(".")) s = s.replace(/0+$/, "").replace(/\.$/, "");
+  return s.replace("-", MINUS);
+}
+const dec = (str,n) => {
+  const v = parseFloat(str);
+  return isFinite(v) ? v.toFixed(n).replace("-", MINUS) : String(str);
+};
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function eqn(w){
+  const t = (c, s) => c === 0 ? "" :
+    " " + (c < 0 ? MINUS : "+") + " " + (Math.abs(c) === 1 && s ? "" : Math.abs(c)) + s;
+  return "y&sup2;" + t(w.a1,"xy") + t(w.a3,"y") + " = x&sup3;" + t(w.a2,"x&sup2;") + t(w.a4,"x") + t(w.a6,"");
+}
+
+/* ---- invariants (DoD section 4) ------------------------------------------
+   A failed invariant means the panel shows the failure, not the number. */
+const INVARIANTS = [
+  { l:"termsUsed \u2265 termsRequired",
+    t:c=>c.lValue.termsUsed >= c.lValue.termsRequired,
+    d:c=>c.lValue.termsUsed + " \u2265 " + c.lValue.termsRequired },
+  { l:"digitsShown \u2264 certifiedDigits",
+    t:c=>DIGITS_SHOWN <= c.lValue.certifiedDigits,
+    d:c=>DIGITS_SHOWN + " \u2264 " + c.lValue.certifiedDigits },
+  { l:"root number = +1 (catches odd analytic rank)",
+    t:c=>c.rootNumber && c.rootNumber.value === 1,
+    d:c=>"w = " + (c.rootNumber ? (c.rootNumber.value > 0 ? "+1" : MINUS+"1") : "absent") },
+  { l:"|L| clears the certified tail (catches even rank \u2265 2)",
+    t:c=>c.nonVanishing && c.nonVanishing.gate === "pass",
+    d:c=>"ratio " + (c.nonVanishing ? c.nonVanishing.ratio : "absent") },
+  { l:"quotient rounds to a perfect square",
+    t:c=>c.conditionalChecks.quotientRoundsToSquare.isSquare,
+    d:c=>"round = " + c.conditionalChecks.quotientRoundsToSquare.rounded, cls:"conditional" },
+  { l:"semistable at every Tamagawa prime, \u0394 minimal",
+    t:c=>c.tamagawa.allSemistable === true && c.tamagawa.discriminantIsMinimal === true,
+    d:c=>c.tamagawa.allSemistable ? "\u0394 minimal" : "not semistable" },
+  { l:"gcd excludes p = 2",
+    t:c=>c.torsion.excludesTwo === true,
+    d:c=>"primes " + (c.torsion.gcdPrimes||[]).join(", ") }
+];
+
+/* ---- render -------------------------------------------------------------- */
+const isFixture = () => /fixture/i.test(DATA.schema || "") || /FIXTURE/.test(DATA.provenance || "");
+
+function renderProv(){
+  const isFix = isFixture();
+  document.getElementById("fixbar").classList.toggle("on", isFix);
+  const p = document.getElementById("prov");
+  p.classList.toggle("fixture", isFix);
+  const cells = [
+    ["Schema", DATA.schema || "unknown"],
+    ["Engine commit", (DATA.engine && DATA.engine.commit) || "unknown"],
+    ["Generated", (DATA.engine && DATA.engine.generated) || "unknown"],
+    ["Curves", (DATA.curves || []).length]
+  ];
+  p.innerHTML = cells.map(([k,v]) =>
+    `<div class="c"><span class="k">${esc(k)}</span><span class="v" title="${esc(v)}">${esc(v)}</span></div>`).join("");
+}
+
+function renderChips(){
+  const el = document.getElementById("chips");
+  el.innerHTML = "";
+  (DATA.curves||[]).forEach((c,i) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (/FAIL/i.test(c.label) ? " bad" : "");
+    b.type = "button"; b.textContent = c.label;
+    b.setAttribute("aria-pressed", String(i === IDX));
+    b.addEventListener("click", () => { IDX = i; render(); });
+    el.appendChild(b);
+  });
+}
+
+function renderBody(){
+  const c = (DATA.curves||[])[IDX];
+  const host = document.getElementById("body");
+  if (!c){ host.innerHTML = ""; return; }
+
+  const checks = INVARIANTS.map(iv => {
+    let ok = false, detail = "";
+    try { ok = !!iv.t(c); detail = iv.d(c); } catch(e){ ok = false; detail = "field missing"; }
+    return {l:iv.l, ok, detail, cls:iv.cls};
+  });
+  const failures = checks.filter(k => !k.ok);
+
+  /* the hero, or the refusal */
+  let head;
+  if (failures.length){
+    head = `<div class="blocked">
+      <h2>Not shown</h2>
+      <p>This curve fails ${failures.length} of the load-time checks, so the quotient is withheld
+         rather than displayed. A figure rendered over a broken check is worse than no figure,
+         because it looks exactly like a working one.</p>
+      <ul>${failures.map(f=>`<li>${esc(f.l)}</li>`).join("")}</ul></div>`;
+  } else {
+    const verb = c.quotient.relation === "equality" ? "=" : "\u2264";
+    const L = c.lValue.value, om = c.period.value;
+    const T = c.torsion.value, pc = c.tamagawa.product;
+    head = `<div class="hero">
+      <p class="curveline">
+        <b>${eqn(c.weierstrass)}</b>
+        <span>conductor ${esc(c.conductor)}</span>
+        <span>rank ${esc(c.rank)}</span>
+        <span>w = ${c.rootNumber.value>0?"+1":MINUS+"1"}</span>
+      </p>
+      <div class="formula">
+        <span class="sha">|&#1064;|</span>
+        <span class="rel">${verb}</span>
+        <div class="frac">
+          <div class="n"><span class="sym">L(E,1) &middot; T&sup2;</span>
+            <span title="${esc(L)}">${sig(L,SIG)}</span> &middot; ${esc(T)}&sup2;</div>
+          <div class="d"><span class="sym">&Omega; &middot; &prod;c&#8346;</span>
+            <span title="${esc(om)}">${sig(om,SIG)}</span> &middot; ${esc(pc)}</div>
+        </div>
+        <span class="rel">=</span>
+        <span class="result">${dec(c.quotient.value, QDEC)}</span>
+      </div>
+      ${isFixture() ? '<p class="verbnote" style="color:var(--accent);font-style:normal">'
+        + 'This figure is fixture data. It was written by hand to exercise the panel and no engine '
+        + 'produced it.</p>' : ''}
+      <p class="verbnote">The relation is <b>${esc(c.quotient.relation)}</b>, taken from the file and
+        not from this page. T is a gcd bound on the torsion order and it enters squared, so the
+        quotient bounds |&#1064;| from above rather than equalling it.</p>
+    </div>`;
+  }
+
+  /* ingredient cards */
+  const lClass = c.lValue.seriesVerified ? "certified" : "derived";
+  const lTag = c.lValue.seriesVerified
+    ? `<span class="tag certified">certified ${c.lValue.certifiedDigits} digits</span>`
+    : `<span class="tag derived">not certified</span>`;
+  const cards = [
+    ["Coefficients <span class='lit'>a&#8346;</span>", (c.pointCounts||[]).length + " primes",
+     `<span class="tag exact">exact</span><span class="tag engine">engine</span>
+      <div class="m">a&#8346; is what the compiler returns, evaluated as a character sum at odd p
+      rather than by enumerating. N&#8346; = p + 1 &minus; a&#8346; is the same coefficient
+      restated as the count it measures.</div>`],
+    ["L(E,1)", sig(c.lValue.value, SIG),
+     `${lTag}<div class="m">${esc(c.lValue.method)}<br>${c.lValue.termsUsed} terms used,
+      ${c.lValue.termsRequired} required by the tail bound</div>`],
+    ["Real period &Omega;", sig(c.period.value, SIG),
+     `<span class="tag engine">engine</span><div class="m">${esc(c.period.method)} at
+      ${esc(c.period.digits)} digits</div>`],
+    ["Tamagawa <span class='lit'>&prod;c&#8346;</span>", String(c.tamagawa.product),
+     `<span class="tag engine">engine</span><span class="tag derived">per-prime derived</span>
+      <div class="m">${(c.tamagawa.perPrime||[]).map(x=>`p = ${x.p}: ${esc(x.kodaira)},
+      ${esc(x.reduction)}, c&#8346; = ${x.cp}`).join("<br>")}</div>`],
+    ["Torsion bound T", String(c.torsion.value),
+     `<span class="tag engine">engine</span><span class="tag conditional">upper bound</span>
+      <div class="m">${esc(c.torsion.method)} over ${(c.torsion.gcdPrimes||[]).join(", ")}.
+      Not known to be tight, which is why the quotient carries &le;.</div>`]
+  ];
+
+  const npStrip = (c.pointCounts||[]).slice(0,10).map(x =>
+    `<div class="cell"><span class="p">p = ${x.p}</span>
+     <span class="n">${x.Np !== undefined ? x.Np : (x.p + 1 - x.ap)}</span>
+     <span class="a">a&#8346; = ${x.ap<0?MINUS+Math.abs(x.ap):x.ap}</span></div>`).join("");
+
+  const sh = sharpen(c.quotient.value);
+  let condHtml = "";
+  if (sh){
+    const lead = `Granting the conjecture, the quotient is |&#1064;| multiplied by the square of the
+      factor k by which the gcd torsion bound overshoots. Both are squares, so the root of the
+      displayed value splits into those two.`;
+    if (sh.opts.length === 1){
+      condHtml = `<p>${lead} Here it is ${sh.n}, and the split is unique:
+        <em>|&#1064;| = 1 and k = 1</em>, so the bound would be an equality and the torsion bound
+        tight. At exactly 1 the &le; sharpens to = on its own.</p>`;
+    } else {
+      condHtml = `<p>${lead} Here it is ${sh.n}, and the split is <em>not</em> unique:</p>
+        <ul style="margin:8px 0 0;padding-left:20px;font-family:var(--data);font-size:12px">
+        ${sh.opts.map(o=>`<li>|&#1064;| = ${o.sha}, torsion bound ${o.k===1?"tight":"overshooting by "+o.k}</li>`).join("")}
+        </ul>
+        <p style="margin-top:8px">The quotient alone cannot tell these apart, which is precisely
+        what a curve with a known loose bound would look like.</p>`;
+    }
+    condHtml += `<p style="margin-top:8px">This is what would follow if the conjecture holds. It is
+      not evidence that it does.</p>`;
+  }
+
+  host.innerHTML = head +
+    `<div class="grid">${cards.map(([k,v,m]) =>
+      `<div class="card"><span class="k">${k}</span><span class="v">${v}</span>${m}</div>`).join("")}</div>
+
+    <h2 class="sec">Counting points &middot; the exact class
+      <span style="float:right;text-transform:none;letter-spacing:.05em;font-family:var(--data);
+      font-size:10px">showing ${Math.min(10,(c.pointCounts||[]).length)} of
+      ${(c.pointCounts||[]).length}</span></h2>
+    <div class="np">${npStrip}</div>
+    <p class="lim" style="margin-top:9px;font-size:13.5px">Over F&#8346; the curve has finitely many
+    points, and a&#8346; measures how far that total sits from p + 1. This is the one quantity here
+    that is exact and checkable by hand. Note the compiler evaluates a&#8346; as a character sum at
+    odd p and never forms the total there, so the count shown is a&#8346; restated rather than
+    something separately computed. At p = 2, the cell on the left, it does count directly.</p>
+
+    <h2 class="sec">Load-time checks</h2>
+    <div class="inv">${checks.map(k =>
+      `<div class="row ${k.ok?"pass":"fail"}"><span class="st">${k.ok?"pass":"fail"}</span>
+       <span class="lb">${esc(k.l)}${k.cls?' <span class="tag conditional">conditional</span>':""}</span>
+       <span class="dt">${esc(k.detail)}</span></div>`).join("")}</div>
+
+    <div class="cond"><span class="k">A conditional consequence, not a result</span>
+      ${condHtml}</div>
+
+    <h2 class="sec">What this panel cannot show</h2>
+    <div class="lim">
+      <p>Every curve currently in the file has a torsion bound that appears tight, so every quotient
+      lands cleanly. A reader could conclude the pipeline produces integers. It does not: it produces
+      an upper bound that happens to be tight here.</p>
+      <p>The per-prime Tamagawa numbers are derived from the minimal discriminant and a&#8346;, not
+      returned by the compiler, and are labelled accordingly above.</p>
+      <p>The perfect-square check assumes the conjecture for integrality and Cassels for squareness.
+      It is a bug detector, not a verification.</p>
+    </div>`;
+}
+
+function render(){ renderProv(); renderChips(); renderBody(); }
+
+/* ---- loading the real file ------------------------------------------------ */
+document.getElementById("file").addEventListener("change", ev => {
+  const f = ev.target.files && ev.target.files[0];
+  const err = document.getElementById("err");
+  err.classList.remove("on");
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const j = JSON.parse(r.result);
+      if (!j || !Array.isArray(j.curves) || !j.curves.length) throw new Error("no curves array");
+      DATA = j; IDX = 0; render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    } catch(e){
+      err.textContent = "Could not read that file: " + e.message;
+      err.classList.add("on");
+    }
+  };
+  r.onerror = () => { err.textContent = "Could not read that file."; err.classList.add("on"); };
+  r.readAsText(f);
+});
+
+render();
+</script>
+</body>
+</html>
