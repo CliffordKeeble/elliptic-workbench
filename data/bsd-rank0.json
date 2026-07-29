@@ -1,11 +1,12 @@
 {
-  "schema": "elliptic-workbench/bsd-rank0/v1",
+  "schema": "elliptic-workbench/bsd-rank0/v2",
   "engine": {
-    "commit": "a1d0ace",
-    "generated": "2026-07-28",
+    "commit": "16aed62",
+    "generated": "2026-07-29",
     "precisionDigits": 80
   },
-  "provenance": "All real quantities computed by Elliptic.Bsd on this run at working precision 512 bits (validated against a 640-bit run). Labels are internal bench names, NOT pulled from LMFDB (W-107). No value here is a frozen constant or a published-table lookup.",
+  "provenance": "All real quantities computed by Elliptic.Bsd on this run at 512-bit working precision. L uses the Fizz-certified term count (inversion); the certified sum is cross-checked against the engine\u0027s own L-value, and the whole pipeline against a 640-bit run. Labels are internal bench names, NOT LMFDB pulls (W-107). No value is a frozen constant or a published-table lookup.",
+  "certificate": "Fizz tail bound: |tail| \u003C= 4 q^(M\u002B1)/(1-q), q = exp(-2\u03C0/\u221AN), via |a_n/n| \u003C= 2 (Hasse \u002B divisor bound, bad primes included). Series verified against the engine (brief 03 \u00A72): leading 2, exp(-2\u03C0n/\u221AN), a_{p^k}=a_p^k at bad primes.",
   "curves": [
     {
       "label": "11a1",
@@ -147,83 +148,33 @@
           "p": 97,
           "Np": 105,
           "ap": -7
-        },
-        {
-          "p": 101,
-          "Np": 100,
-          "ap": 2
-        },
-        {
-          "p": 103,
-          "Np": 120,
-          "ap": -16
-        },
-        {
-          "p": 107,
-          "Np": 90,
-          "ap": 18
-        },
-        {
-          "p": 109,
-          "Np": 100,
-          "ap": 10
-        },
-        {
-          "p": 113,
-          "Np": 105,
-          "ap": 9
-        },
-        {
-          "p": 127,
-          "Np": 120,
-          "ap": 8
-        },
-        {
-          "p": 131,
-          "Np": 150,
-          "ap": -18
-        },
-        {
-          "p": 137,
-          "Np": 145,
-          "ap": -7
-        },
-        {
-          "p": 139,
-          "Np": 130,
-          "ap": 10
-        },
-        {
-          "p": 149,
-          "Np": 160,
-          "ap": -10
-        },
-        {
-          "p": 151,
-          "Np": 150,
-          "ap": 2
-        },
-        {
-          "p": 157,
-          "Np": 165,
-          "ap": -7
         }
       ],
       "lValue": {
         "value": "0.25384186085591068433775892335090946104389844836612173359342738424608166772255554",
         "method": "smoothed Dirichlet series",
-        "termsUsed": 162,
-        "termBound": null,
-        "achievedBound": null,
-        "_boundsNote": "Engine computes no L-series truncation error bound. Term count is fixed a-priori by Analytic.TermsFor(N,digits) = ceil(digits\u00B7ln10\u00B7sqrt(N)/(2\u03C0)) \u002B 64. Exposing an a-posteriori bound would be an engine change (stop-and-conversation)."
+        "termsUsed": 99,
+        "termsRule": "inversion of Fizz tail bound at D digits: ceil((D\u00B7ln10 \u002B ln(4/(1-q)))/(-ln q))",
+        "q": "0.150400784679068670582321652286444695326998174782244961187646",
+        "tailBound": "2.4995E-082",
+        "certifiedDigits": 81,
+        "digitsEmitted": 80,
+        "seriesVerified": true,
+        "_termsUsedOld": 162,
+        "_engineAgreeDigits": 82
+      },
+      "nonVanishing": {
+        "lValue": "0.25384186085591068434",
+        "tailBound": "2.4995E-082",
+        "ratio": "1.0156E\u002B081",
+        "gate": "pass",
+        "note": "w catches odd analytic rank; this catches even rank \u003E= 2 (|L| certified clear of the tail)."
       },
       "period": {
         "value": "1.26920930427955342168879461675454730521949224183060866796713692123040833861277772",
         "method": "AGM",
-        "iterations": null,
         "digits": 80,
-        "_iterationsNote": "Reals.Agm does not return its iteration count (converges quadratically, breaks on a.Mag - d.Mag \u003E Precision). Exposing the count is a one-line engine change (stop-and-conversation).",
-        "_methodNote": "RealPeriod uses the AGM for both Delta\u003E0 and Delta\u003C0 (incl. the 27606c1 \u0027spike\u0027 case). There is no quadrature branch in the engine."
+        "note": "AGM in BOTH discriminant branches (incl. 27606c1\u0027s spike case); no quadrature branch in the engine."
       },
       "regulator": {
         "value": "1",
@@ -231,21 +182,42 @@
       },
       "tamagawa": {
         "product": 5,
+        "discriminant": "-161051",
+        "discriminantIsMinimal": true,
+        "_minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
         "perPrime": [
           {
             "p": 11,
-            "cp": 5,
+            "vpDelta": 5,
+            "ap": 1,
             "kodaira": "I5",
-            "reduction": "split multiplicative"
+            "reduction": "split multiplicative",
+            "cp": 5,
+            "semistable": true
           }
         ],
-        "perPrimeProvenance": "derived in generator from public primitives (EllipticCurve.Ord, .Delta, a_p), mirroring TamagawaProduct\u0027s own rule; NOT a direct engine output. Cross-checked: product(cp) == engine TamagawaProduct = OK"
+        "allSemistable": true,
+        "perPrimeProvenance": "derived in generator from public primitives (Ord, \u0394, a_p) per the (v_p(\u0394),a_p) recipe; product cross-checked against engine TamagawaProduct = OK"
       },
       "torsion": {
         "value": 5,
         "exact": false,
         "method": "gcd bound",
-        "_note": "EllipticCurve.TorsionBound is a gcd upper bound over #E(F_p) at small good primes, NOT Nagell-Lutz. It enters |Sha| squared, so |Sha| is an upper bound. (Paper 145 \u00A74.1 describes Nagell-Lutz; the shipped code does not implement it.)"
+        "gcdPrimes": [
+          3,
+          5,
+          7,
+          13,
+          17,
+          19,
+          23,
+          29,
+          31,
+          37
+        ],
+        "excludesTwo": true,
+        "_gcdCrosscheck": "OK",
+        "_note": "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz."
       },
       "rootNumber": {
         "available": true,
@@ -254,13 +226,26 @@
       "quotient": {
         "value": "1.00000000000000000000000000000000000000000000000000000000000000000000000000000000",
         "relation": "upper bound",
-        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)"
+        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)",
+        "_engineAgreeDigits": 82
       },
-      "_digitsStable": {
-        "lValue": 92,
-        "period": 92,
-        "quotient": 92,
-        "note": "fractional digits that agree between 512-bit and 640-bit runs; all \u003E= 80 emitted"
+      "conditionalChecks": {
+        "quotientRoundsToSquare": {
+          "rounded": 1,
+          "isSquare": true,
+          "class": "conditional",
+          "assumes": "BSD at rank 0 for integrality; Cassels via Kolyvagin finiteness, given L != 0"
+        }
+      },
+      "precisionCheck": {
+        "workingBits": 512,
+        "checkBits": 640,
+        "digitsStable": {
+          "lValue": 95,
+          "period": 95,
+          "quotient": 95
+        },
+        "note": "fractional digits agreeing between the two working precisions at the same term count M (tests the implementation)"
       }
     },
     {
@@ -3576,23 +3561,78 @@
           "p": 4933,
           "Np": 4900,
           "ap": 34
+        },
+        {
+          "p": 4937,
+          "Np": 4893,
+          "ap": 45
+        },
+        {
+          "p": 4943,
+          "Np": 4855,
+          "ap": 89
+        },
+        {
+          "p": 4951,
+          "Np": 5029,
+          "ap": -77
+        },
+        {
+          "p": 4957,
+          "Np": 4995,
+          "ap": -37
+        },
+        {
+          "p": 4967,
+          "Np": 4988,
+          "ap": -20
+        },
+        {
+          "p": 4969,
+          "Np": 4867,
+          "ap": 103
+        },
+        {
+          "p": 4973,
+          "Np": 4941,
+          "ap": 33
+        },
+        {
+          "p": 4987,
+          "Np": 4872,
+          "ap": 116
+        },
+        {
+          "p": 4993,
+          "Np": 5131,
+          "ap": -137
         }
       ],
       "lValue": {
         "value": "6.45703069175610572800722541680812816127193437817794863565820266999631901964761207",
         "method": "smoothed Dirichlet series",
-        "termsUsed": 4936,
-        "termBound": null,
-        "achievedBound": null,
-        "_boundsNote": "Engine computes no L-series truncation error bound. Term count is fixed a-priori by Analytic.TermsFor(N,digits) = ceil(digits\u00B7ln10\u00B7sqrt(N)/(2\u03C0)) \u002B 64. Exposing an a-posteriori bound would be an engine change (stop-and-conversation)."
+        "termsUsed": 4995,
+        "termsRule": "inversion of Fizz tail bound at D digits: ceil((D\u00B7ln10 \u002B ln(4/(1-q)))/(-ln q))",
+        "q": "0.962889883639215104716064990018761775803822519727341334919420",
+        "tailBound": "9.5803E-081",
+        "certifiedDigits": 80,
+        "digitsEmitted": 80,
+        "seriesVerified": true,
+        "_termsUsedOld": 4936,
+        "_engineAgreeDigits": 82
+      },
+      "nonVanishing": {
+        "lValue": "6.45703069175610572801",
+        "tailBound": "9.5803E-081",
+        "ratio": "6.7399E\u002B080",
+        "gate": "pass",
+        "note": "w catches odd analytic rank; this catches even rank \u003E= 2 (|L| certified clear of the tail)."
       },
       "period": {
         "value": "0.53808589097967547733393545140067734677266119818149571963818355583302658497063434",
         "method": "AGM",
-        "iterations": null,
         "digits": 80,
-        "_iterationsNote": "Reals.Agm does not return its iteration count (converges quadratically, breaks on a.Mag - d.Mag \u003E Precision). Exposing the count is a one-line engine change (stop-and-conversation).",
-        "_methodNote": "RealPeriod uses the AGM for both Delta\u003E0 and Delta\u003C0 (incl. the 27606c1 \u0027spike\u0027 case). There is no quadrature branch in the engine."
+        "note": "AGM in BOTH discriminant branches (incl. 27606c1\u0027s spike case); no quadrature branch in the engine."
       },
       "regulator": {
         "value": "1",
@@ -3600,39 +3640,69 @@
       },
       "tamagawa": {
         "product": 3,
+        "discriminant": "-459391446",
+        "discriminantIsMinimal": true,
+        "_minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
         "perPrime": [
           {
             "p": 2,
-            "cp": 1,
+            "vpDelta": 1,
+            "ap": 1,
             "kodaira": "I1",
-            "reduction": "split multiplicative"
+            "reduction": "split multiplicative",
+            "cp": 1,
+            "semistable": true
           },
           {
             "p": 3,
-            "cp": 3,
+            "vpDelta": 3,
+            "ap": 1,
             "kodaira": "I3",
-            "reduction": "split multiplicative"
+            "reduction": "split multiplicative",
+            "cp": 3,
+            "semistable": true
           },
           {
             "p": 43,
-            "cp": 1,
+            "vpDelta": 3,
+            "ap": -1,
             "kodaira": "I3",
-            "reduction": "nonsplit multiplicative"
+            "reduction": "nonsplit multiplicative",
+            "cp": 1,
+            "semistable": true
           },
           {
             "p": 107,
-            "cp": 1,
+            "vpDelta": 1,
+            "ap": 1,
             "kodaira": "I1",
-            "reduction": "split multiplicative"
+            "reduction": "split multiplicative",
+            "cp": 1,
+            "semistable": true
           }
         ],
-        "perPrimeProvenance": "derived in generator from public primitives (EllipticCurve.Ord, .Delta, a_p), mirroring TamagawaProduct\u0027s own rule; NOT a direct engine output. Cross-checked: product(cp) == engine TamagawaProduct = OK"
+        "allSemistable": true,
+        "perPrimeProvenance": "derived in generator from public primitives (Ord, \u0394, a_p) per the (v_p(\u0394),a_p) recipe; product cross-checked against engine TamagawaProduct = OK"
       },
       "torsion": {
         "value": 1,
         "exact": false,
         "method": "gcd bound",
-        "_note": "EllipticCurve.TorsionBound is a gcd upper bound over #E(F_p) at small good primes, NOT Nagell-Lutz. It enters |Sha| squared, so |Sha| is an upper bound. (Paper 145 \u00A74.1 describes Nagell-Lutz; the shipped code does not implement it.)"
+        "gcdPrimes": [
+          5,
+          7,
+          11,
+          13,
+          17,
+          19,
+          23,
+          29,
+          31,
+          37
+        ],
+        "excludesTwo": true,
+        "_gcdCrosscheck": "OK",
+        "_note": "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz."
       },
       "rootNumber": {
         "available": true,
@@ -3641,18 +3711,31 @@
       "quotient": {
         "value": "4.00000000000000000000000000000000000000000000000000000000000000000000000000000000",
         "relation": "upper bound",
-        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)"
+        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)",
+        "_engineAgreeDigits": 82
       },
-      "_digitsStable": {
-        "lValue": 92,
-        "period": 92,
-        "quotient": 92,
-        "note": "fractional digits that agree between 512-bit and 640-bit runs; all \u003E= 80 emitted"
+      "conditionalChecks": {
+        "quotientRoundsToSquare": {
+          "rounded": 4,
+          "isSquare": true,
+          "class": "conditional",
+          "assumes": "BSD at rank 0 for integrality; Cassels via Kolyvagin finiteness, given L != 0"
+        }
+      },
+      "precisionCheck": {
+        "workingBits": 512,
+        "checkBits": 640,
+        "digitsStable": {
+          "lValue": 95,
+          "period": 95,
+          "quotient": 95
+        },
+        "note": "fractional digits agreeing between the two working precisions at the same term count M (tests the implementation)"
       }
     },
     {
       "label": "n233-reg",
-      "labelProvenance": "internal regression curve (v1.0.1 Finding-1), conductor 233; no bench/LMFDB label assigned",
+      "labelProvenance": "internal regression curve (v1.0.1 Finding-1), conductor 233; no bench/LMFDB label",
       "weierstrass": {
         "a1": 1,
         "a2": 3,
@@ -4100,73 +4183,33 @@
           "p": 449,
           "Np": 432,
           "ap": 18
-        },
-        {
-          "p": 457,
-          "Np": 448,
-          "ap": 10
-        },
-        {
-          "p": 461,
-          "Np": 420,
-          "ap": 42
-        },
-        {
-          "p": 463,
-          "Np": 458,
-          "ap": 6
-        },
-        {
-          "p": 467,
-          "Np": 496,
-          "ap": -28
-        },
-        {
-          "p": 479,
-          "Np": 476,
-          "ap": 4
-        },
-        {
-          "p": 487,
-          "Np": 446,
-          "ap": 42
-        },
-        {
-          "p": 491,
-          "Np": 492,
-          "ap": 0
-        },
-        {
-          "p": 499,
-          "Np": 508,
-          "ap": -8
-        },
-        {
-          "p": 503,
-          "Np": 528,
-          "ap": -24
-        },
-        {
-          "p": 509,
-          "Np": 492,
-          "ap": 18
         }
       ],
       "lValue": {
         "value": "1.39213359856611966544927262569263499820226726528088898258980588729748033217130903",
         "method": "smoothed Dirichlet series",
-        "termsUsed": 512,
-        "termBound": null,
-        "achievedBound": null,
-        "_boundsNote": "Engine computes no L-series truncation error bound. Term count is fixed a-priori by Analytic.TermsFor(N,digits) = ceil(digits\u00B7ln10\u00B7sqrt(N)/(2\u03C0)) \u002B 64. Exposing an a-posteriori bound would be an engine change (stop-and-conversation)."
+        "termsUsed": 454,
+        "termsRule": "inversion of Fizz tail bound at D digits: ceil((D\u00B7ln10 \u002B ln(4/(1-q)))/(-ln q))",
+        "q": "0.662572591162598363296904695123208370741980075338213139101059",
+        "tailBound": "5.4338E-081",
+        "certifiedDigits": 80,
+        "digitsEmitted": 80,
+        "seriesVerified": true,
+        "_termsUsedOld": 512,
+        "_engineAgreeDigits": 82
+      },
+      "nonVanishing": {
+        "lValue": "1.39213359856611966545",
+        "tailBound": "5.4338E-081",
+        "ratio": "2.5620E\u002B080",
+        "gate": "pass",
+        "note": "w catches odd analytic rank; this catches even rank \u003E= 2 (|L| certified clear of the tail)."
       },
       "period": {
         "value": "5.56853439426447866179709050277053999280906906112355593035922354918992132868523613",
         "method": "AGM",
-        "iterations": null,
         "digits": 80,
-        "_iterationsNote": "Reals.Agm does not return its iteration count (converges quadratically, breaks on a.Mag - d.Mag \u003E Precision). Exposing the count is a one-line engine change (stop-and-conversation).",
-        "_methodNote": "RealPeriod uses the AGM for both Delta\u003E0 and Delta\u003C0 (incl. the 27606c1 \u0027spike\u0027 case). There is no quadrature branch in the engine."
+        "note": "AGM in BOTH discriminant branches (incl. 27606c1\u0027s spike case); no quadrature branch in the engine."
       },
       "regulator": {
         "value": "1",
@@ -4174,21 +4217,43 @@
       },
       "tamagawa": {
         "product": 1,
+        "discriminant": "233",
+        "discriminantIsMinimal": true,
+        "_minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
         "perPrime": [
           {
             "p": 233,
-            "cp": 1,
+            "vpDelta": 1,
+            "ap": 1,
             "kodaira": "I1",
-            "reduction": "split multiplicative"
+            "reduction": "split multiplicative",
+            "cp": 1,
+            "semistable": true
           }
         ],
-        "perPrimeProvenance": "derived in generator from public primitives (EllipticCurve.Ord, .Delta, a_p), mirroring TamagawaProduct\u0027s own rule; NOT a direct engine output. Cross-checked: product(cp) == engine TamagawaProduct = OK"
+        "allSemistable": true,
+        "perPrimeProvenance": "derived in generator from public primitives (Ord, \u0394, a_p) per the (v_p(\u0394),a_p) recipe; product cross-checked against engine TamagawaProduct = OK"
       },
       "torsion": {
         "value": 2,
         "exact": false,
         "method": "gcd bound",
-        "_note": "EllipticCurve.TorsionBound is a gcd upper bound over #E(F_p) at small good primes, NOT Nagell-Lutz. It enters |Sha| squared, so |Sha| is an upper bound. (Paper 145 \u00A74.1 describes Nagell-Lutz; the shipped code does not implement it.)"
+        "gcdPrimes": [
+          3,
+          5,
+          7,
+          11,
+          13,
+          17,
+          19,
+          23,
+          29,
+          31,
+          37
+        ],
+        "excludesTwo": true,
+        "_gcdCrosscheck": "OK",
+        "_note": "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz."
       },
       "rootNumber": {
         "available": true,
@@ -4197,13 +4262,26 @@
       "quotient": {
         "value": "1.00000000000000000000000000000000000000000000000000000000000000000000000000000000",
         "relation": "upper bound",
-        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)"
+        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)",
+        "_engineAgreeDigits": 82
       },
-      "_digitsStable": {
-        "lValue": 92,
-        "period": 92,
-        "quotient": 92,
-        "note": "fractional digits that agree between 512-bit and 640-bit runs; all \u003E= 80 emitted"
+      "conditionalChecks": {
+        "quotientRoundsToSquare": {
+          "rounded": 1,
+          "isSquare": true,
+          "class": "conditional",
+          "assumes": "BSD at rank 0 for integrality; Cassels via Kolyvagin finiteness, given L != 0"
+        }
+      },
+      "precisionCheck": {
+        "workingBits": 512,
+        "checkBits": 640,
+        "digitsStable": {
+          "lValue": 95,
+          "period": 95,
+          "quotient": 95
+        },
+        "note": "fractional digits agreeing between the two working precisions at the same term count M (tests the implementation)"
       }
     }
   ]
