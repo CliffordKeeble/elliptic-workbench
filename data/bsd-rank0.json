@@ -1,13 +1,9 @@
 {
-  "schema": "elliptic-workbench/bsd-rank0/v3",
+  "schema": "elliptic-workbench/bsd-rank0/v4",
   "engine": {
-    "commit": "c3d3e42",
+    "commit": "68fbe03",
     "generated": "2026-07-29",
     "precisionDigits": 80
-  },
-  "coverage": {
-    "allQuotientsRoundToSquare": true,
-    "note": "Every quotient in the file rounds to a perfect square (1, 4, 1). Consistent with the gcd torsion bound being tight on all curves present, but the pipeline produces an UPPER bound whose looseness is exhibited by no curve currently in the file. Until a non-tight-torsion curve (e.g. 30a1: gcd bound 12 vs true order 6) is in the picker, the upper-bound nature is shown in words only."
   },
   "provenance": "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, Tamagawa product, torsion, root number, quotient), computed at 512-bit working precision with the term count set via digits so the engine\u0027s own TermsFor clears the Fizz-certified floor M. The generator only chooses the term count, computes the certificate (q, tail bound, certified digits), and DERIVES quantities the engine does not itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the engine computes. Cross-checked against a 640-bit run. Labels are internal bench names, NOT LMFDB pulls (W-107).",
   "certificate": "Fizz tail bound: |tail| \u003C= 4 q^(M\u002B1)/(1-q), q = exp(-2\u03C0/\u221AN), via |a_n/n| \u003C= 2 (Hasse \u002B divisor bound, bad primes included). Series verified against the engine (brief 03 \u00A72): leading 2, exp(-2\u03C0n/\u221AN), a_{p^k}=a_p^k at bad primes.",

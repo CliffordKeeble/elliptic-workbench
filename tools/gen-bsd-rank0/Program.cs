@@ -74,7 +74,6 @@ static bool IsSquare(long v) { if (v < 0) return false; long r = (long)Math.Roun
 static long Gcd(long a, long b) { a = Math.Abs(a); b = Math.Abs(b); while (b != 0) (a, b) = (b, a % b); return a; }
 
 var curvesJson = new JsonArray();
-var squareFlags = new List<bool>();     // per-curve round(quotient)-is-square, for the coverage observable
 Console.WriteLine($"{"curve",-10} {"M(req)",7} {"digits",7} {"termsUsed",10} {"certDig",7} {"gate",5} {"sq",4} {"stableL/Ω/Q"}");
 
 foreach (var d in defs)
@@ -102,7 +101,6 @@ foreach (var d in defs)
     // ---- conditional square check (labelled conditional) ----
     long rounded = (long)Math.Round(rep.ShaEstimate.ToDouble(), MidpointRounding.AwayFromZero);
     bool isSq = IsSquare(rounded);
-    squareFlags.Add(isSq);
 
     // ---- precision self-check (section 9): same call at 640 bits ----
     BigFloat.Precision = CheckBits;
@@ -232,23 +230,10 @@ foreach (var d in defs)
     });
 }
 
-bool allQuotientsRoundToSquare = squareFlags.All(x => x);
-
 var root = new JsonObject
 {
-    ["schema"] = "elliptic-workbench/bsd-rank0/v3",
+    ["schema"] = "elliptic-workbench/bsd-rank0/v4",
     ["engine"] = new JsonObject { ["commit"] = engineCommit, ["generated"] = generated, ["precisionDigits"] = OutDigits },
-    ["coverage"] = new JsonObject
-    {
-        // Named for the OBSERVABLE, not for tightness — the engine has only the gcd bound T, never the
-        // true torsion order, so it cannot establish tightness. What it can show: every quotient rounds
-        // to a perfect square.
-        ["allQuotientsRoundToSquare"] = allQuotientsRoundToSquare,
-        ["note"] = "Every quotient in the file rounds to a perfect square (1, 4, 1). Consistent with the gcd torsion "
-                 + "bound being tight on all curves present, but the pipeline produces an UPPER bound whose looseness "
-                 + "is exhibited by no curve currently in the file. Until a non-tight-torsion curve (e.g. 30a1: gcd "
-                 + "bound 12 vs true order 6) is in the picker, the upper-bound nature is shown in words only.",
-    },
     ["provenance"] = "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, "
                    + "Tamagawa product, torsion, root number, quotient), computed at " + WorkBits + "-bit working precision with the term "
                    + "count set via digits so the engine's own TermsFor clears the Fizz-certified floor M. The generator only chooses the "
