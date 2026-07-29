@@ -63,7 +63,7 @@ carries its own `nuget.config` re-enabling nuget.org for the xUnit packages.
 ## Build and run
 
 ```
-dotnet build elliptic-workbench.sln
+dotnet build elliptic-workbench.slnx
 dotnet run --project app/Elliptic.Bsd.Acceptance   # prints results; exit 0 on all-pass
 dotnet test tests/Elliptic.Bsd.Tests
 ```
@@ -72,4 +72,4 @@ Requires the .NET 10 SDK.
 
 ## Licence
 
-Not yet specified.
+MIT — see [LICENSE](LICENSE).
