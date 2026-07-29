@@ -1,7 +1,7 @@
 {
-  "schema": "elliptic-workbench/bsd-rank0/v4",
+  "schema": "elliptic-workbench/bsd-rank0/v5",
   "engine": {
-    "commit": "68fbe03",
+    "commit": "a434870",
     "generated": "2026-07-29",
     "precisionDigits": 80
   },
@@ -262,6 +262,8 @@
         "value": 5,
         "exact": false,
         "method": "gcd bound",
+        "trueOrder": 5,
+        "trueOrderSource": "LMFDB 11.a2 (https://www.lmfdb.org/EllipticCurve/Q/11a1/): a-invariants [0,-1,1,-10,-20] match; torsion Z/5Z, order 5; pulled 2026-07-29",
         "gcdPrimes": [
           3,
           5,
@@ -3745,8 +3747,384 @@
         "value": 1,
         "exact": false,
         "method": "gcd bound",
+        "trueOrder": 1,
+        "trueOrderSource": "LMFDB 27606.c1 (https://www.lmfdb.org/EllipticCurve/Q/27606c1/): a-invariants [1,0,0,-10289707,12703497719] match; torsion trivial, order 1; pulled 2026-07-29",
         "gcdPrimes": [
           5,
+          7,
+          11,
+          13,
+          17,
+          19,
+          23,
+          29,
+          31,
+          37
+        ],
+        "excludesTwo": true,
+        "gcdCrosscheck": "OK",
+        "note": "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz."
+      },
+      "rootNumber": {
+        "available": true,
+        "value": 1
+      },
+      "quotient": {
+        "value": "4.00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "relation": "upper bound",
+        "formula": "|Sha| = L(E,1)\u00B7|tor|^2 / (\u03A9\u00B7\u220Fcp)"
+      },
+      "conditionalChecks": {
+        "quotientRoundsToSquare": {
+          "rounded": 4,
+          "isSquare": true,
+          "class": "conditional",
+          "assumes": "BSD at rank 0 for integrality; Cassels via Kolyvagin finiteness, given L != 0"
+        }
+      },
+      "precisionCheck": {
+        "workingBits": 512,
+        "checkBits": 640,
+        "digitsStable": {
+          "lValue": 95,
+          "period": 95,
+          "quotient": 95
+        },
+        "note": "fractional digits agreeing between the two working precisions (same engine call); tests the implementation"
+      }
+    },
+    {
+      "label": "30a1",
+      "labelProvenance": "internal bench name (xUnit Finding-2 curve); NOT pulled from LMFDB",
+      "weierstrass": {
+        "a1": 1,
+        "a2": 0,
+        "a3": 1,
+        "a4": 1,
+        "a6": 2
+      },
+      "conductor": 30,
+      "badPrimes": [
+        2,
+        3,
+        5
+      ],
+      "rank": 0,
+      "pointCounts": [
+        {
+          "p": 2,
+          "Np": 4,
+          "ap": -1
+        },
+        {
+          "p": 3,
+          "Np": 3,
+          "ap": 1
+        },
+        {
+          "p": 5,
+          "Np": 7,
+          "ap": -1
+        },
+        {
+          "p": 7,
+          "Np": 12,
+          "ap": -4
+        },
+        {
+          "p": 11,
+          "Np": 12,
+          "ap": 0
+        },
+        {
+          "p": 13,
+          "Np": 12,
+          "ap": 2
+        },
+        {
+          "p": 17,
+          "Np": 12,
+          "ap": 6
+        },
+        {
+          "p": 19,
+          "Np": 24,
+          "ap": -4
+        },
+        {
+          "p": 23,
+          "Np": 24,
+          "ap": 0
+        },
+        {
+          "p": 29,
+          "Np": 36,
+          "ap": -6
+        },
+        {
+          "p": 31,
+          "Np": 24,
+          "ap": 8
+        },
+        {
+          "p": 37,
+          "Np": 36,
+          "ap": 2
+        },
+        {
+          "p": 41,
+          "Np": 48,
+          "ap": -6
+        },
+        {
+          "p": 43,
+          "Np": 48,
+          "ap": -4
+        },
+        {
+          "p": 47,
+          "Np": 48,
+          "ap": 0
+        },
+        {
+          "p": 53,
+          "Np": 60,
+          "ap": -6
+        },
+        {
+          "p": 59,
+          "Np": 60,
+          "ap": 0
+        },
+        {
+          "p": 61,
+          "Np": 72,
+          "ap": -10
+        },
+        {
+          "p": 67,
+          "Np": 72,
+          "ap": -4
+        },
+        {
+          "p": 71,
+          "Np": 72,
+          "ap": 0
+        },
+        {
+          "p": 73,
+          "Np": 72,
+          "ap": 2
+        },
+        {
+          "p": 79,
+          "Np": 72,
+          "ap": 8
+        },
+        {
+          "p": 83,
+          "Np": 72,
+          "ap": 12
+        },
+        {
+          "p": 89,
+          "Np": 72,
+          "ap": 18
+        },
+        {
+          "p": 97,
+          "Np": 96,
+          "ap": 2
+        },
+        {
+          "p": 101,
+          "Np": 84,
+          "ap": 18
+        },
+        {
+          "p": 103,
+          "Np": 108,
+          "ap": -4
+        },
+        {
+          "p": 107,
+          "Np": 120,
+          "ap": -12
+        },
+        {
+          "p": 109,
+          "Np": 120,
+          "ap": -10
+        },
+        {
+          "p": 113,
+          "Np": 132,
+          "ap": -18
+        },
+        {
+          "p": 127,
+          "Np": 108,
+          "ap": 20
+        },
+        {
+          "p": 131,
+          "Np": 132,
+          "ap": 0
+        },
+        {
+          "p": 137,
+          "Np": 132,
+          "ap": 6
+        },
+        {
+          "p": 139,
+          "Np": 144,
+          "ap": -4
+        },
+        {
+          "p": 149,
+          "Np": 156,
+          "ap": -6
+        },
+        {
+          "p": 151,
+          "Np": 144,
+          "ap": 8
+        },
+        {
+          "p": 157,
+          "Np": 156,
+          "ap": 2
+        },
+        {
+          "p": 163,
+          "Np": 168,
+          "ap": -4
+        },
+        {
+          "p": 167,
+          "Np": 168,
+          "ap": 0
+        },
+        {
+          "p": 173,
+          "Np": 156,
+          "ap": 18
+        },
+        {
+          "p": 179,
+          "Np": 156,
+          "ap": 24
+        },
+        {
+          "p": 181,
+          "Np": 168,
+          "ap": 14
+        },
+        {
+          "p": 191,
+          "Np": 216,
+          "ap": -24
+        },
+        {
+          "p": 193,
+          "Np": 216,
+          "ap": -22
+        },
+        {
+          "p": 197,
+          "Np": 204,
+          "ap": -6
+        },
+        {
+          "p": 199,
+          "Np": 192,
+          "ap": 8
+        },
+        {
+          "p": 211,
+          "Np": 192,
+          "ap": 20
+        },
+        {
+          "p": 223,
+          "Np": 204,
+          "ap": 20
+        }
+      ],
+      "lValue": {
+        "value": "0.55865804320691607490803802232404058128158496656254021706836725152411912031170816",
+        "method": "smoothed Dirichlet series",
+        "termsUsed": 225,
+        "termsRequired": 163,
+        "termsRule": "engine LValueRankZero at digits chosen so its TermsFor \u003E= M; M = ceil((D\u00B7ln10 \u002B ln(4/(1-q)))/(-ln q))",
+        "q": "0.317541283633808671011097154294891696351409212023269131795185",
+        "tailBound": "1.4956E-112",
+        "certifiedDigits": 111,
+        "digitsEmitted": 80,
+        "seriesVerified": true
+      },
+      "nonVanishing": {
+        "lValue": "0.55865804320691607491",
+        "tailBound": "1.4956E-112",
+        "ratio": "3.7352E\u002B111",
+        "gate": "pass",
+        "note": "w catches odd analytic rank; this catches even rank \u003E= 2 (|L| certified clear of the tail)."
+      },
+      "period": {
+        "value": "3.35194825924149644944822813394424348768950979937524130241020350914471472187024895",
+        "method": "AGM",
+        "digits": 80,
+        "note": "AGM in BOTH discriminant branches (incl. 27606c1\u0027s spike case); no quadrature branch in the engine."
+      },
+      "regulator": {
+        "value": "1",
+        "note": "rank 0"
+      },
+      "tamagawa": {
+        "product": 6,
+        "discriminant": "-2160",
+        "discriminantIsMinimal": true,
+        "minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
+        "perPrime": [
+          {
+            "p": 2,
+            "vpDelta": 4,
+            "ap": -1,
+            "kodaira": "I4",
+            "reduction": "nonsplit multiplicative",
+            "cp": 2,
+            "semistable": true
+          },
+          {
+            "p": 3,
+            "vpDelta": 3,
+            "ap": 1,
+            "kodaira": "I3",
+            "reduction": "split multiplicative",
+            "cp": 3,
+            "semistable": true
+          },
+          {
+            "p": 5,
+            "vpDelta": 1,
+            "ap": -1,
+            "kodaira": "I1",
+            "reduction": "nonsplit multiplicative",
+            "cp": 1,
+            "semistable": true
+          }
+        ],
+        "allSemistable": true,
+        "perPrimeProvenance": "derived in generator from public primitives (Ord, \u0394, a_p) per the (v_p(\u0394),a_p) recipe; the engine computes only the product, so nothing is duplicated. Product cross-checked against engine TamagawaProduct = OK"
+      },
+      "torsion": {
+        "value": 12,
+        "exact": false,
+        "method": "gcd bound",
+        "trueOrder": 6,
+        "trueOrderSource": "LMFDB 30.a8 (https://www.lmfdb.org/EllipticCurve/Q/30a1/): a-invariants [1,0,1,1,2] match; torsion Z/6Z, order 6; pulled 2026-07-29",
+        "gcdPrimes": [
           7,
           11,
           13,
@@ -4343,6 +4721,8 @@
         "value": 2,
         "exact": false,
         "method": "gcd bound",
+        "trueOrder": null,
+        "trueOrderSource": "HELD (CinC brief 05 stop-and-report): LMFDB lists conductor 233 as minimal model [1,0,1,-5,3] = 233.a1 (torsion Z/2Z). Our model [1,3,0,-1,0] shares c4=217, c6=-3133, Delta=233 with it (same curve), but that identification is our own invariant computation, not a direct LMFDB a-invariant match. trueOrder withheld pending CinC\u0027s ruling.",
         "gcdPrimes": [
           3,
           5,
