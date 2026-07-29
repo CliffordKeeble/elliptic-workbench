@@ -39,7 +39,7 @@ var defs = new (string Label, string Prov, long A1, long A2, long A3, long A4, l
     ("30a1",    "internal bench name (xUnit Finding-2 curve); NOT pulled from LMFDB", 1, 0, 1, 1, 2, 30, new long[] { 2, 3, 5 },
         6, "LMFDB 30.a8 (https://www.lmfdb.org/EllipticCurve/Q/30a1/): a-invariants [1,0,1,1,2] match; torsion Z/6Z, order 6; pulled 2026-07-29"),
     ("n233-reg","internal regression curve (v1.0.1 Finding-1), conductor 233; no bench/LMFDB label", 1, 3, 0, -1, 0, 233, new long[] { 233 },
-        null, "HELD (CinC brief 05 stop-and-report): LMFDB lists conductor 233 as minimal model [1,0,1,-5,3] = 233.a1 (torsion Z/2Z). Our model [1,3,0,-1,0] shares c4=217, c6=-3133, Delta=233 with it (same curve), but that identification is our own invariant computation, not a direct LMFDB a-invariant match. trueOrder withheld pending CinC's ruling."),
+        null, "NULL BY CinC RULING (brief 05). LMFDB lists conductor 233 as minimal model [1,0,1,-5,3] = 233.a1 (torsion Z/2Z). Our model [1,3,0,-1,0] is the same curve: matching c4=217, c6=-3133, Delta=233 fixes it up to isomorphism over Q and torsion order is an isomorphism invariant, so the identification is a theorem, not a guess. It is left null anyway: the value would only make n233 a fourth tight example, whereas the null is a visible instance of the provenance rule declining (source-displayed accepted; derived-by-us, however sound, not). Reasoning recorded so the value is one step away if ever needed."),
 };
 
 // Fizz inversion: for D certified digits, M = ceil((D·ln10 + ln(4/(1-q))) / (-ln q)), q = exp(-2π/√N).

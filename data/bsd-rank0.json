@@ -1,7 +1,7 @@
 {
   "schema": "elliptic-workbench/bsd-rank0/v5",
   "engine": {
-    "commit": "a434870",
+    "commit": "daf25e7",
     "generated": "2026-07-29",
     "precisionDigits": 80
   },
@@ -4722,7 +4722,7 @@
         "exact": false,
         "method": "gcd bound",
         "trueOrder": null,
-        "trueOrderSource": "HELD (CinC brief 05 stop-and-report): LMFDB lists conductor 233 as minimal model [1,0,1,-5,3] = 233.a1 (torsion Z/2Z). Our model [1,3,0,-1,0] shares c4=217, c6=-3133, Delta=233 with it (same curve), but that identification is our own invariant computation, not a direct LMFDB a-invariant match. trueOrder withheld pending CinC\u0027s ruling.",
+        "trueOrderSource": "NULL BY CinC RULING (brief 05). LMFDB lists conductor 233 as minimal model [1,0,1,-5,3] = 233.a1 (torsion Z/2Z). Our model [1,3,0,-1,0] is the same curve: matching c4=217, c6=-3133, Delta=233 fixes it up to isomorphism over Q and torsion order is an isomorphism invariant, so the identification is a theorem, not a guess. It is left null anyway: the value would only make n233 a fourth tight example, whereas the null is a visible instance of the provenance rule declining (source-displayed accepted; derived-by-us, however sound, not). Reasoning recorded so the value is one step away if ever needed.",
         "gcdPrimes": [
           3,
           5,
