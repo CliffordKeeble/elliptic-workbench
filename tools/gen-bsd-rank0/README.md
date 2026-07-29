@@ -35,7 +35,10 @@ What it does beyond taking engine outputs:
 dotnet run -c Release --project tools/gen-bsd-rank0 -- <engineCommit> <YYYY-MM-DD> <outPath>
 ```
 
-Example (regenerate in place):
+`engineCommit` must be a git short SHA (7–40 hex): the generator refuses to run otherwise, so a
+mis-parsed or unexpanded argument fails loudly instead of stamping a bogus commit into the file.
+
+Regenerate in place (bash or PowerShell, which expand `$(...)`; in cmd.exe pass the SHA literally):
 
 ```
 dotnet run -c Release --project tools/gen-bsd-rank0 -- $(git rev-parse --short HEAD) 2026-07-29 data/bsd-rank0.json

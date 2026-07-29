@@ -11,6 +11,14 @@ string engineCommit = args.Length > 0 ? args[0] : "unknown";
 string generated    = args.Length > 1 ? args[1] : DateTime.UtcNow.ToString("yyyy-MM-dd");
 string outPath      = args.Length > 2 ? args[2] : "bsd-rank0.json";
 
+// sha guard: refuse to stamp the file with a non-sha commit (e.g. an unexpanded "$(git ...").
+if (!System.Text.RegularExpressions.Regex.IsMatch(engineCommit, "^[0-9a-fA-F]{7,40}$"))
+{
+    Console.Error.WriteLine($"gen: refusing to run — engineCommit '{engineCommit}' is not a git sha (7-40 hex). "
+        + "Pass an explicit short SHA as arg 1 (e.g. `git rev-parse --short HEAD`). Nothing written.");
+    return 1;
+}
+
 const int OutDigits = 80;    // certified decimal digits emitted for real quantities
 const int WorkBits  = 512;   // primary working precision
 const int CheckBits = 640;   // second precision, to test the implementation (section 9)
@@ -66,6 +74,7 @@ static bool IsSquare(long v) { if (v < 0) return false; long r = (long)Math.Roun
 static long Gcd(long a, long b) { a = Math.Abs(a); b = Math.Abs(b); while (b != 0) (a, b) = (b, a % b); return a; }
 
 var curvesJson = new JsonArray();
+var squareFlags = new List<bool>();     // per-curve round(quotient)-is-square, for the coverage observable
 Console.WriteLine($"{"curve",-10} {"M(req)",7} {"digits",7} {"termsUsed",10} {"certDig",7} {"gate",5} {"sq",4} {"stableL/Ω/Q"}");
 
 foreach (var d in defs)
@@ -93,6 +102,7 @@ foreach (var d in defs)
     // ---- conditional square check (labelled conditional) ----
     long rounded = (long)Math.Round(rep.ShaEstimate.ToDouble(), MidpointRounding.AwayFromZero);
     bool isSq = IsSquare(rounded);
+    squareFlags.Add(isSq);
 
     // ---- precision self-check (section 9): same call at 640 bits ----
     BigFloat.Precision = CheckBits;
@@ -177,7 +187,7 @@ foreach (var d in defs)
             ["product"] = prod,                                  // engine output
             ["discriminant"] = e.Delta.ToString(),               // engine field
             ["discriminantIsMinimal"] = true,
-            ["_minimalityBasis"] = "engine constructor enforces the necessary u^12 minimality test (p^12|Δ ∧ p^4|c4 ∧ p^6|c6 rejected)",
+            ["minimalityBasis"] = "engine constructor enforces the necessary u^12 minimality test (p^12|Δ ∧ p^4|c4 ∧ p^6|c6 rejected)",
             ["perPrime"] = perPrime,
             ["allSemistable"] = allSemistable,
             ["perPrimeProvenance"] = "derived in generator from public primitives (Ord, Δ, a_p) per the (v_p(Δ),a_p) recipe; the engine "
@@ -191,9 +201,9 @@ foreach (var d in defs)
             ["method"] = "gcd bound",
             ["gcdPrimes"] = new JsonArray(gcdPrimes.Select(x => (JsonNode)x).ToArray()),  // derived: the engine gives only the gcd value
             ["excludesTwo"] = excludesTwo,
-            ["_gcdCrosscheck"] = torCrosscheck ? "OK" : "MISMATCH",
-            ["_note"] = "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). "
-                      + "Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz.",
+            ["gcdCrosscheck"] = torCrosscheck ? "OK" : "MISMATCH",
+            ["note"] = "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). "
+                     + "Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz.",
         },
         ["rootNumber"] = new JsonObject { ["available"] = true, ["value"] = w },   // engine output
         ["quotient"] = new JsonObject
@@ -222,10 +232,23 @@ foreach (var d in defs)
     });
 }
 
+bool allQuotientsRoundToSquare = squareFlags.All(x => x);
+
 var root = new JsonObject
 {
-    ["schema"] = "elliptic-workbench/bsd-rank0/v2",
+    ["schema"] = "elliptic-workbench/bsd-rank0/v3",
     ["engine"] = new JsonObject { ["commit"] = engineCommit, ["generated"] = generated, ["precisionDigits"] = OutDigits },
+    ["coverage"] = new JsonObject
+    {
+        // Named for the OBSERVABLE, not for tightness — the engine has only the gcd bound T, never the
+        // true torsion order, so it cannot establish tightness. What it can show: every quotient rounds
+        // to a perfect square.
+        ["allQuotientsRoundToSquare"] = allQuotientsRoundToSquare,
+        ["note"] = "Every quotient in the file rounds to a perfect square (1, 4, 1). Consistent with the gcd torsion "
+                 + "bound being tight on all curves present, but the pipeline produces an UPPER bound whose looseness "
+                 + "is exhibited by no curve currently in the file. Until a non-tight-torsion curve (e.g. 30a1: gcd "
+                 + "bound 12 vs true order 6) is in the picker, the upper-bound nature is shown in words only.",
+    },
     ["provenance"] = "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, "
                    + "Tamagawa product, torsion, root number, quotient), computed at " + WorkBits + "-bit working precision with the term "
                    + "count set via digits so the engine's own TermsFor clears the Fizz-certified floor M. The generator only chooses the "
@@ -239,3 +262,4 @@ var root = new JsonObject
 
 File.WriteAllText(outPath, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine($"\nWrote {outPath}");
+return 0;

@@ -1,9 +1,13 @@
 {
-  "schema": "elliptic-workbench/bsd-rank0/v2",
+  "schema": "elliptic-workbench/bsd-rank0/v3",
   "engine": {
-    "commit": "bb799c3",
+    "commit": "c3d3e42",
     "generated": "2026-07-29",
     "precisionDigits": 80
+  },
+  "coverage": {
+    "allQuotientsRoundToSquare": true,
+    "note": "Every quotient in the file rounds to a perfect square (1, 4, 1). Consistent with the gcd torsion bound being tight on all curves present, but the pipeline produces an UPPER bound whose looseness is exhibited by no curve currently in the file. Until a non-tight-torsion curve (e.g. 30a1: gcd bound 12 vs true order 6) is in the picker, the upper-bound nature is shown in words only."
   },
   "provenance": "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, Tamagawa product, torsion, root number, quotient), computed at 512-bit working precision with the term count set via digits so the engine\u0027s own TermsFor clears the Fizz-certified floor M. The generator only chooses the term count, computes the certificate (q, tail bound, certified digits), and DERIVES quantities the engine does not itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the engine computes. Cross-checked against a 640-bit run. Labels are internal bench names, NOT LMFDB pulls (W-107).",
   "certificate": "Fizz tail bound: |tail| \u003C= 4 q^(M\u002B1)/(1-q), q = exp(-2\u03C0/\u221AN), via |a_n/n| \u003C= 2 (Hasse \u002B divisor bound, bad primes included). Series verified against the engine (brief 03 \u00A72): leading 2, exp(-2\u03C0n/\u221AN), a_{p^k}=a_p^k at bad primes.",
@@ -243,7 +247,7 @@
         "product": 5,
         "discriminant": "-161051",
         "discriminantIsMinimal": true,
-        "_minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
+        "minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
         "perPrime": [
           {
             "p": 11,
@@ -275,8 +279,8 @@
           37
         ],
         "excludesTwo": true,
-        "_gcdCrosscheck": "OK",
-        "_note": "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz."
+        "gcdCrosscheck": "OK",
+        "note": "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz."
       },
       "rootNumber": {
         "available": true,
@@ -3699,7 +3703,7 @@
         "product": 3,
         "discriminant": "-459391446",
         "discriminantIsMinimal": true,
-        "_minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
+        "minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
         "perPrime": [
           {
             "p": 2,
@@ -3758,8 +3762,8 @@
           37
         ],
         "excludesTwo": true,
-        "_gcdCrosscheck": "OK",
-        "_note": "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz."
+        "gcdCrosscheck": "OK",
+        "note": "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz."
       },
       "rootNumber": {
         "available": true,
@@ -4324,7 +4328,7 @@
         "product": 1,
         "discriminant": "233",
         "discriminantIsMinimal": true,
-        "_minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
+        "minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
         "perPrime": [
           {
             "p": 233,
@@ -4357,8 +4361,8 @@
           37
         ],
         "excludesTwo": true,
-        "_gcdCrosscheck": "OK",
-        "_note": "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz."
+        "gcdCrosscheck": "OK",
+        "note": "gcd of #E(F_p) over odd good primes only (reduction injective on torsion there; not guaranteed at p=2). Upper bound, enters |Sha| squared, so |Sha| is an upper bound. Not Nagell-Lutz."
       },
       "rootNumber": {
         "available": true,
