@@ -163,4 +163,27 @@ tolerance problem.
 6. Swap bench → published + provenance in `Program.cs`; run; report any red as a finding.
 7. The torsion-bound benchmark curve.
 
-Findings from the conversion run are appended below as it proceeds.
+# Tolerance rule (step 5 — pinned before any comparison)
+
+- **Integer quantities** (root number, Tamagawa product, torsion, |Ш| as integer): compared **exactly**.
+- **Decimal quantities** (real period, L(E,1)): compared at **LMFDB's published precision** — the number
+  of decimal places LMFDB displays — with tolerance **½ unit in the last published place**.
+- The comparison is performed **in decimal**: the engine value is rendered to the published number of
+  places and compared against LMFDB's decimal string as scaled `BigInteger`s. **No binary-double round
+  trip** — parsing to `double` would silently eat the tolerance (CinC caution).
+- The tolerance derives **only** from the source's precision. The engine must compute to at least the
+  published precision; where the harness's digit target is lower, the shortfall is **reported as a
+  finding**, never absorbed by widening the tolerance or lowering the compare precision.
+- **Torsion** is validated as "engine bound is tight and equals the published order" on the five tight
+  curves; the benchmark curve (step 7) documents the non-tight case.
+
+n233 identity is **confirmed at the invariant level** (two independent computations: ours and CinC's
+re-derivation; c₄=217, c₆=−3133, Δ=233, and c₄³−c₆²=1728·233 checks). Equal (c₄,c₆) over ℚ is the same
+curve up to isomorphism; the two are translation-equivalent minimal models, ours not in LMFDB reduced
+form. Direct a-invariant comparison is not applicable; both computations are cited; both true labels are
+carried (Cremona 233a2 / LMFDB 233.a1). Model normalisation to reduced form is **parked** (would move
+every curated point — a candidate future job). Identifiers stay as-is; labels live in provenance only.
+
+# Findings from the conversion run
+
+_Appended below as the conversion proceeds._
