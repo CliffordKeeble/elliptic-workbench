@@ -86,4 +86,81 @@ the disease this job cures.
 6. Swap bench → published + provenance; run; report every red as a finding, diagnosed, none tuned. Fixes go in separate follow-on commits.
 7. Add the torsion-bound benchmark curve (published order vs bound-derived), with rationale.
 
-Findings (conversions, deltas, reds and diagnoses) are appended below as the job proceeds.
+---
+
+# Provenance — pulled from LMFDB (steps 2–4)
+
+**Route.** Values pulled from the **LMFDB API** — `ec_curvedata` (labels, a-invariants,
+conductor, rank, `analytic_rank`, torsion order, `sha`) and `ec_mwbsd` (`real_period`,
+`special_value` = L(E,1), `tamagawa_product`, `sha_an`). **Access date: 2026-07-30**
+(LMFDB API response timestamp). The citation is the LMFDB curve page,
+`https://www.lmfdb.org/EllipticCurve/Q/<Cremona>/`.
+
+**Root number.** LMFDB carries no separate "root number" field; the functional-equation
+sign is `(−1)^analytic_rank` from the published `analytic_rank` (0 for the three rank-0
+curves → +1).
+
+**Methodology finding — the narrative fetch was unreliable.** A prose WebFetch of the
+same pages misreported the root number as −1 for all three rank-0 curves; it returned a
+*local* sign at a bad prime, not the *global* sign, which for a rank-0 curve is
+necessarily +1. Every value here is taken from the structured API, not the summariser.
+
+## Identity verified (step 2) and both labels (step 3)
+
+| curve (bench) | Cremona | LMFDB | LMFDB a-invariants | workbench a-invariants | identity |
+|---|---|---|---|---|---|
+| 11a1    | 11a1    | 11.a2     | [0,−1,1,−10,−20]                  | [0,−1,1,−10,−20]              | ✓ direct |
+| 27606c1 | 27606c1 | 27606.c1  | [1,0,0,−10289707,12703497719]     | [1,0,0,−10289707,12703497719] | ✓ direct |
+| 37a1    | 37a1    | 37.a1     | [0,0,1,−1,0]                      | [0,0,1,−1,0]                  | ✓ direct |
+| 389a1   | 389a1   | 389.a1    | [0,1,1,−2,0]                      | [0,1,1,−2,0]                  | ✓ direct |
+| n233    | **233a2** | 233.a1  | [1,0,1,−5,3] (minimal)            | [1,3,0,−1,0]                  | same curve (c₄=217, c₆=−3133, Δ=233), **models differ — FLAG** |
+
+Two label surprises, taken from the page not assumed: Cremona `11a1` = LMFDB `11.**a2**`
+(the numberings differ), and n233 is Cremona **233a2** (not 233a1) = LMFDB 233.a1 — the
+workbench's generic "n233" matches neither Cremona nor LMFDB label. **Flag for CinC:** n233's
+identity is our own c₄/c₆/Δ computation (models differ on the page), not a direct a-invariant
+display — the same provenance caveat as its `trueOrder`.
+
+## Published values (step 4) and delta to bench
+
+| # | curve | quantity → LMFDB field | bench value | LMFDB published value | Δ |
+|---|---|---|---|---|---|
+| 1  | 11a1    | root number → sign         | +1                                | +1                                                | 0 |
+| 2  | 11a1    | ∏cₚ → tamagawa_product     | 5                                 | 5                                                 | 0 |
+| 3  | 11a1    | torsion bound → order †     | 5                                 | 5                                                 | 0 |
+| 4  | 11a1    | Ω → real_period            | 1.26920930427955342168879461675   | 1.2692093042795534216887946168 (28 sf)            | agree to LMFDB precision |
+| 5  | 11a1    | L(E,1) → special_value     | 0.253841860855910                 | 0.25384186085591068433775892335043887465 (38 sf)  | bench is a matching prefix |
+| 6  | 11a1    | \|Ш\| → sha_an             | 1                                 | 1                                                 | 0 |
+| 7  | 27606c1 | root number → sign         | +1                                | +1                                                | 0 |
+| 8  | 27606c1 | ∏cₚ → tamagawa_product     | 3                                 | 3                                                 | 0 |
+| 9  | 27606c1 | torsion bound → order †     | 1                                 | 1                                                 | 0 |
+| 10 | 27606c1 | Ω → real_period            | 0.538085890979675477333935451400  | 0.53808589097967547733393545140 (29 sf)           | agree to LMFDB precision |
+| 11 | 27606c1 | L(E,1) → special_value     | 6.45703069175610                  | 6.4570306917561057280072254168078748568 (38 sf)   | bench is a matching prefix |
+| 12 | 27606c1 | \|Ш\| → sha_an             | 4                                 | 4                                                 | 0 |
+| 13 | 37a1    | Ω → real_period            | 5.986917292463919259664019958     | 5.9869172924639192596640199589 (29 sf)            | agree to LMFDB precision |
+| 14 | 389a1   | Ω → real_period            | 4.980425121710110150642715583     | 4.9804251217101101506427155839 (29 sf)            | agree to LMFDB precision |
+| 15 | n233    | root number → sign         | +1                                | +1                                                | 0 |
+| 16 | n233    | ∏cₚ → tamagawa_product     | 1                                 | 1                                                 | 0 |
+| 17 | n233    | torsion bound → order †     | 2                                 | 2                                                 | 0 |
+| 18 | n233    | \|Ш\| → sha_an             | 1                                 | 1                                                 | 0 |
+
+**Finding: all 18 constants agree with the LMFDB published values.** The bench values were
+accurate; they were simply not independently sourced. Attaching the citation turns the suite
+from a regression suite wearing a validation costume into an actual validation suite. The
+conversion (step 6) is therefore expected to stay green; any red will still be reported as a
+finding, but none is anticipated on these five curves. The divergence the job exists to
+surface — bound ≠ order — is real only off the tight patch, and is deferred to the step-7
+benchmark curve.
+
+† The bench asserts the gcd **bound**; LMFDB gives the true **order**. They coincide for all
+five (tight), so the conversion compares "bound = published order". Where they differ (the
+benchmark curve) the bound exceeds the order and the difference is a documented defect, not a
+tolerance problem.
+
+## Still to do (own commits)
+
+5. Pin the tolerance rule (integers exact; decimals at LMFDB's published precision, ½ ulp) — committed *before* the conversion.
+6. Swap bench → published + provenance in `Program.cs`; run; report any red as a finding.
+7. The torsion-bound benchmark curve.
+
+Findings from the conversion run are appended below as it proceeds.
