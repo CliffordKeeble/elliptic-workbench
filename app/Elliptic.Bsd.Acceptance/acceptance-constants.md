@@ -192,19 +192,35 @@ Swapped the bench values for LMFDB published values + provenance and ran the sui
 untouched; only the harness constants and the comparator changed. **16 of 18 pass** at
 LMFDB's published precision. **Two reds, both L(E,1):**
 
-| red | published (LMFDB) | engine agrees to | DIFF | diagnosis |
+| red | published (LMFDB) | engine (= Ω/5) | agree to | DIFF |
 |---|---|---|---|---|
-| 11a1 L(E,1) @ 38 dp | 0.253841…04388**7465** | ~30 dp | ≈ 4.7×10⁻³¹ | harness digit-target |
-| 27606c1 L(E,1) @ 37 dp | 6.457030…16807**48568** | ~30 dp | ≈ 2.5×10⁻³¹ | harness digit-target |
+| 11a1 L(E,1) @ 38 dp | 0.…9233504388746500 | 0.…9233509094610439 | 30 dp | ≈ 4.7×10⁻³¹ |
+| 27606c1 L(E,1) @ 37 dp | 6.…254168078748568 | 6.…254168081281631 | 30 dp | ≈ 2.5×10⁻³¹ |
 
-**Diagnosis — harness digit-target, not a value defect or a source error.** The engine
-computes L(E,1) via the smoothed series truncated at `TermsFor(N, 34)`; at `digits=34` it
-agrees with LMFDB only to ~30 places, below the published 38/37. The frozen bench hid this by
-validating L at just 15 digits. This is the honest suite catching the under-precision the
-costume concealed. **No value is tuned and the compare precision stays at the source's.**
+**Diagnosis — a GENUINE numerical gap. (First read "harness digit-target": RETRACTED.)** At
+`digits=34` the engine already sums ~106 terms with tail bound ≈ 10⁻⁸⁸, so L(E,1) is accurate to
+~88 places, not 34. Confirmed empirically: the engine's L is **identical at digits = 34, 50, 70**
+(converged — raising the target changes nothing), **stable to 95 digits** under the 512-vs-640
+self-check, and **equals Ω/5 exactly to 40 digits** — Ω via the independent AGM route, Ω/5
+BSD-exact for |Ш|=1. Two independent engine methods agree to 40 digits. The engine and LMFDB agree
+to 30 digits and **disagree at digit 31**:
 
-The other 16 constants validate at published precision: root numbers, Tamagawa products,
+```
+engine (= Ω/5): 0.253841860855910684337758923350 9094610439…
+LMFDB special:  0.253841860855910684337758923350 4388746500
+```
+
+This is neither truncation nor a value tuned to pass.
+
+**Cannot be settled at the bench — FLAGGED to CinC/Cliff.** Both sides claim accuracy past digit
+31 (engine by two-method agreement; LMFDB `special_value` prec = 133 bits). The evidence points at
+the engine: its L equals its independently-computed Ω/5, and its Ω matches LMFDB's `real_period` to
+all 28 published digits — which would make LMFDB's displayed 38-digit L **accurate to fewer places
+than shown** (LMFDB's own real_period is 28 digits / 100 bits, so its L is not internally checkable
+past ~28). But asserting a trusted database is imprecise is not a bench call. **The two L checks
+stay red; precision not lowered, no value tuned, pending a ruling.** Candidate resolutions for
+CinC: (a) confirm the true L(E,1) with an independent engine (Pari/GP, Sage, Magma); (b) compare L
+at LMFDB's self-consistent precision (~28 dp) rather than the displayed 38.
+
+The other 16 constants validate at LMFDB's published precision: root numbers, Tamagawa products,
 torsion (bound = published order, all tight), all four real periods, and |Ш| (analytic order).
-
-**Fix (follow-on commit, after this is banked):** raise the rank-0 curves' digit target so the
-engine computes L to at least the published precision, then the two L checks green at 38/37 dp.
