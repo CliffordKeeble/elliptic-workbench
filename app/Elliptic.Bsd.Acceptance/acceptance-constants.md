@@ -186,4 +186,25 @@ every curated point — a candidate future job). Identifiers stay as-is; labels 
 
 # Findings from the conversion run
 
-_Appended below as the conversion proceeds._
+## Conversion run (step 6) — 16 pass, 2 fail
+
+Swapped the bench values for LMFDB published values + provenance and ran the suite. Engine
+untouched; only the harness constants and the comparator changed. **16 of 18 pass** at
+LMFDB's published precision. **Two reds, both L(E,1):**
+
+| red | published (LMFDB) | engine agrees to | DIFF | diagnosis |
+|---|---|---|---|---|
+| 11a1 L(E,1) @ 38 dp | 0.253841…04388**7465** | ~30 dp | ≈ 4.7×10⁻³¹ | harness digit-target |
+| 27606c1 L(E,1) @ 37 dp | 6.457030…16807**48568** | ~30 dp | ≈ 2.5×10⁻³¹ | harness digit-target |
+
+**Diagnosis — harness digit-target, not a value defect or a source error.** The engine
+computes L(E,1) via the smoothed series truncated at `TermsFor(N, 34)`; at `digits=34` it
+agrees with LMFDB only to ~30 places, below the published 38/37. The frozen bench hid this by
+validating L at just 15 digits. This is the honest suite catching the under-precision the
+costume concealed. **No value is tuned and the compare precision stays at the source's.**
+
+The other 16 constants validate at published precision: root numbers, Tamagawa products,
+torsion (bound = published order, all tight), all four real periods, and |Ш| (analytic order).
+
+**Fix (follow-on commit, after this is banked):** raise the rank-0 curves' digit target so the
+engine computes L to at least the published precision, then the two L checks green at 38/37 dp.
