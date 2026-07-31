@@ -332,3 +332,69 @@ The parked label findings (Cremona `11a1` = LMFDB `11.a2`; `n233` = Cremona `233
 LMFDB-label-lookup brief reads it as a **design input** rather than rediscovering it as a bug: the
 two divergences with instances, the identity being invariant-level (c₄, c₆ / j) not nominal, and
 model normalisation deliberately parked because it would move every curated point.
+
+---
+
+# Second follow-on — three small things (CinC, 31 July 2026)
+
+## The middle link — constants pinned to their archived source
+
+The archive integrity check proves *archive == manifest*; the engine checks prove
+*engine == constant*. Neither proved *constant == archive* — the eighteen delta-zero
+conversions were a one-time prose comparison in the table above, not a standing test. The gap
+matters: if a constant were an oracle-after **copied from the engine** rather than from LMFDB,
+`engine == constant` would pass while proving nothing (W-107, the exact failure this suite exists
+to avoid). Closed with a standing **"Constants vs archive — the middle link"** block. Each of the
+18 constants is now declared once as a named variable, asserted equal to the independent archived
+field it was drawn from, and **the same variable is fed to the engine check** — so the suite
+establishes `engine == constant == archive`, i.e. genuine `engine == archive`. Source field per
+constant:
+
+| constant | archived source field | file | compare |
+|---|---|---|---|
+| root number ε | `analytic_rank` → ε = (−1)^ar | curvedata | integer |
+| ∏c_p | `tamagawa_product` | mwbsd | integer |
+| torsion order | `torsion` | curvedata | integer |
+| Ω | `real_period.data` | mwbsd | string-identical |
+| L(E,1) | `special_value.data` | mwbsd | string-identical |
+| \|Ш\| | `sha_an.data` (stored "N.000…0") | mwbsd | numeric (×10²⁸) |
+
+**All 18 pass** — the six decimals are byte-for-byte identical to their archived `.data`
+strings, the integers equal, `sha_an` numerically equal. Suite now **50 passed, 0 failed**
+(12 integrity + 18 middle-link + 20 engine). The 30a1 benchmark is out of scope here — its
+asserted values are the *defective* engine outputs (12, 4), not archive-drawn constants.
+
+## README provenance sweep
+
+The README "Acceptance constants" section was false about its own provenance after Brief 03 —
+it still described the constants as "frozen internal bench values … not fetched from any external
+database … not external validation against published tables." Rewritten to state what is now true
+(LMFDB published values, archived, integrity-checked, middle-link-pinned, never fed to the
+pipeline), preserving the L(E,1) precision-seam wording. **Swept for others:** the `Compiler.cs`
+class docstring likewise referenced "the frozen 3 July 2026 bench values appear only in the
+acceptance suite" — those were replaced by LMFDB published values in Brief 03; corrected. The
+**before-photograph at the top of this note is correct history**, not stale, and is left intact.
+**Flagged, not edited (Mr Sketch's domain):** the panel generator's "internal bench name; NOT
+pulled from LMFDB" notes (`tools/gen-bsd-rank0`, `data/bsd-rank0.json`) — literally still true (the
+generator hardcodes bench names and does not pull them) but the label *correspondence* is now
+documented in `LABEL-CONVENTIONS.md`, so Sketch may want to soften the "provenance unknown"
+implication.
+
+## The precision anchor of the |Ш| ratio (CinC's question)
+
+**Q:** In `sha = L·tor²/(Ω·∏c_p)`, which of L and Ω are engine-computed and which are sourced from
+LMFDB, and what is the weakest precision among them?
+
+**A: both L and Ω are engine-computed; nothing in the ratio is sourced.** `BsdCompiler.RunRankZero`
+computes `l = Analytic.LValueRankZero(e, digits, …)` (the smoothed Dirichlet series) and
+`omega = Analytic.RealPeriod(e)` (AGM), together with `tam` and `tor`, **from the curve's
+coefficients alone**. The class docstring is explicit: "no external data anywhere in the pipeline …
+LMFDB … appear[s] only in the acceptance suite, as oracles-after." LMFDB values are comparison
+targets in the harness, never inputs to `ShaEstimate`. So the weakest precision is the **engine's
+own working precision**, set by `digits` (34 for the 30a1 benchmark): both the series L (tail bound
+~10⁻⁸⁸ at digits 34) and the AGM Ω (quadratic convergence) resolve well past 34 significant
+figures, and the ratio is a near-unit rational so there is no catastrophic cancellation. **The 20-dp
+stake in the pre-registration is correctly anchored to the engine's floor — because the engine's
+floor is the only floor in the ratio.** The answer *confirms* the stake's justification rather than
+changing it, so per CinC's instruction **no companion note is filed beside the pre-registration**
+and it stays frozen and unedited. Recorded here only.
