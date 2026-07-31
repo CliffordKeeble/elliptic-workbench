@@ -1,4 +1,6 @@
 using System.Numerics;
+using System.Security.Cryptography;
+using System.Text.Json.Nodes;
 using Elliptic.Bsd;
 using Elliptic.Numerics;
 
@@ -24,6 +26,12 @@ void CheckLong(string name, long got, long want, string src)
 {
     bool ok = got == want;
     Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {name}: got {got}, want {want}  [{src}]");
+    if (ok) pass++; else fail++;
+}
+
+void CheckBool(string name, bool ok, string detail)
+{
+    Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {name}  {detail}");
     if (ok) pass++; else fail++;
 }
 
@@ -73,6 +81,45 @@ static BigInteger RoundScaled(string s, int d)
 }
 
 Console.WriteLine("Elliptic.Bsd v1 acceptance — rank-0 channel, constants validated against LMFDB\n");
+
+// ── Archive integrity — the LMFDB evidence base (follow-on item 1) ──────────
+// Verify the archive BEFORE validating constants against it: each record's own label
+// field equals the requested label (catches a wrong-curve record), every field a
+// constant draws is present and non-null, and the content hash matches the manifest
+// (catches a silent re-fetch or edit). A generic "parses as JSON" would pass all three.
+Console.WriteLine("Archive integrity — LMFDB evidence base");
+string lmfdbDir = Path.Combine(AppContext.BaseDirectory, "lmfdb");
+var manifest = JsonNode.Parse(File.ReadAllText(Path.Combine(lmfdbDir, "manifest.json")))!;
+var realLit = manifest["realLiteralFields"]!.AsArray().Select(n => n!.GetValue<string>()).ToHashSet();
+foreach (var e in manifest["files"]!.AsArray())
+{
+    string file = e!["file"]!.GetValue<string>();
+    string exp = e["expectedLabel"]!.GetValue<string>();
+    var problems = new List<string>();
+    byte[] bytes = File.ReadAllBytes(Path.Combine(lmfdbDir, file));
+    if (Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant() != e["sha256"]!.GetValue<string>())
+        problems.Add("sha256 mismatch");
+    JsonNode? rec = null;
+    try { var data = JsonNode.Parse(bytes)!["data"]; rec = data is JsonArray arr ? arr[0] : data; }
+    catch { problems.Add("not JSON"); }
+    if (rec is null) problems.Add("no data record");
+    else
+    {
+        string lf = e["labelField"]!.GetValue<string>();
+        string? got = rec[lf]?.GetValue<string>();
+        if (got != exp) problems.Add($"label {lf}={got ?? "absent"} != {exp}");
+        foreach (var rfn in e["requiredFields"]!.AsArray())
+        {
+            string rf = rfn!.GetValue<string>();
+            var v = rec[rf];
+            if (v is null) problems.Add($"{rf} absent");
+            else if (realLit.Contains(rf) && (v as JsonObject)?["data"] is null) problems.Add($"{rf}.data null");
+        }
+    }
+    CheckBool($"archive {file} ({exp})", problems.Count == 0,
+              problems.Count == 0 ? "label✓ fields✓ hash✓" : "FAIL: " + string.Join("; ", problems));
+}
+Console.WriteLine();
 
 // ── 11a1 = LMFDB 11.a2 = [0,−1,1,−10,−20], N = 11 ───────────────────────────
 Console.WriteLine("11a1  (LMFDB 11.a2)  y² + y = x³ − x² − 10x − 20");

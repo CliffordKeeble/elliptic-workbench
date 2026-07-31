@@ -1,0 +1,174 @@
+{
+    "note":  "LMFDB API responses archived as source evidence for the acceptance constants (Brief 03). Integrity-checked by the acceptance suite: label field == expected, required fields present+non-null, sha256 == this manifest. realLiteralFields carry their value in a data sub-field.",
+    "accessDate":  "2026-07-30",
+    "realLiteralFields":  [
+                              "real_period",
+                              "special_value",
+                              "sha_an"
+                          ],
+    "files":  [
+                  {
+                      "file":  "ec_curvedata_11a1.json",
+                      "collection":  "ec_curvedata",
+                      "url":  "https://www.lmfdb.org/api/ec_curvedata/?Clabel=11a1\u0026_format=json",
+                      "labelField":  "Clabel",
+                      "expectedLabel":  "11a1",
+                      "requiredFields":  [
+                                             "ainvs",
+                                             "conductor",
+                                             "rank",
+                                             "analytic_rank",
+                                             "torsion"
+                                         ],
+                      "sha256":  "68ace3d0db21c3317b1ec82eab9ceb08a496dba8e36b5b57e92075d9471553f1"
+                  },
+                  {
+                      "file":  "ec_mwbsd_11.a2.json",
+                      "collection":  "ec_mwbsd",
+                      "url":  "https://www.lmfdb.org/api/ec_mwbsd/?lmfdb_label=11.a2\u0026_format=json",
+                      "labelField":  "lmfdb_label",
+                      "expectedLabel":  "11.a2",
+                      "requiredFields":  [
+                                             "real_period",
+                                             "special_value",
+                                             "tamagawa_product",
+                                             "sha_an"
+                                         ],
+                      "sha256":  "fd962cbcdbdf61dc0365ed5fd4664e604edb7a782bce0def704c700e155f37f3"
+                  },
+                  {
+                      "file":  "ec_curvedata_27606c1.json",
+                      "collection":  "ec_curvedata",
+                      "url":  "https://www.lmfdb.org/api/ec_curvedata/?Clabel=27606c1\u0026_format=json",
+                      "labelField":  "Clabel",
+                      "expectedLabel":  "27606c1",
+                      "requiredFields":  [
+                                             "ainvs",
+                                             "conductor",
+                                             "rank",
+                                             "analytic_rank",
+                                             "torsion"
+                                         ],
+                      "sha256":  "d5e75e0fe4461e46f6a2f8e55106a3ecf75f032db4b38747dce9a7a712b03cf1"
+                  },
+                  {
+                      "file":  "ec_mwbsd_27606.c1.json",
+                      "collection":  "ec_mwbsd",
+                      "url":  "https://www.lmfdb.org/api/ec_mwbsd/?lmfdb_label=27606.c1\u0026_format=json",
+                      "labelField":  "lmfdb_label",
+                      "expectedLabel":  "27606.c1",
+                      "requiredFields":  [
+                                             "real_period",
+                                             "special_value",
+                                             "tamagawa_product",
+                                             "sha_an"
+                                         ],
+                      "sha256":  "3155c95584364f59aedf8f4fcc78707b60e9c6e1cec1a05eea15b0bb7c4f4e0a"
+                  },
+                  {
+                      "file":  "ec_curvedata_37a1.json",
+                      "collection":  "ec_curvedata",
+                      "url":  "https://www.lmfdb.org/api/ec_curvedata/?Clabel=37a1\u0026_format=json",
+                      "labelField":  "Clabel",
+                      "expectedLabel":  "37a1",
+                      "requiredFields":  [
+                                             "ainvs",
+                                             "conductor",
+                                             "rank",
+                                             "analytic_rank",
+                                             "torsion"
+                                         ],
+                      "sha256":  "b9bfda0e12b7746b2c09eac783b72c6a609b24fa8252748a1e79ec55a3c0ac60"
+                  },
+                  {
+                      "file":  "ec_mwbsd_37.a1.json",
+                      "collection":  "ec_mwbsd",
+                      "url":  "https://www.lmfdb.org/api/ec_mwbsd/?lmfdb_label=37.a1\u0026_format=json",
+                      "labelField":  "lmfdb_label",
+                      "expectedLabel":  "37.a1",
+                      "requiredFields":  [
+                                             "real_period"
+                                         ],
+                      "sha256":  "efc447d0dc6fb3b0c0c8abe85caa4525822d5f39e95723b61e18b52ba8c1c981"
+                  },
+                  {
+                      "file":  "ec_curvedata_389a1.json",
+                      "collection":  "ec_curvedata",
+                      "url":  "https://www.lmfdb.org/api/ec_curvedata/?Clabel=389a1\u0026_format=json",
+                      "labelField":  "Clabel",
+                      "expectedLabel":  "389a1",
+                      "requiredFields":  [
+                                             "ainvs",
+                                             "conductor",
+                                             "rank",
+                                             "analytic_rank",
+                                             "torsion"
+                                         ],
+                      "sha256":  "7296d858141ef08a892f3bb679a35b2b24d11c46f2b5502d69f9828c27bbb414"
+                  },
+                  {
+                      "file":  "ec_mwbsd_389.a1.json",
+                      "collection":  "ec_mwbsd",
+                      "url":  "https://www.lmfdb.org/api/ec_mwbsd/?lmfdb_label=389.a1\u0026_format=json",
+                      "labelField":  "lmfdb_label",
+                      "expectedLabel":  "389.a1",
+                      "requiredFields":  [
+                                             "real_period"
+                                         ],
+                      "sha256":  "2a7b3cf4b74a1a09256067160bbb217553660fdf138ae026943c4a1f4e3eedcb"
+                  },
+                  {
+                      "file":  "ec_curvedata_233a2.json",
+                      "collection":  "ec_curvedata",
+                      "url":  "https://www.lmfdb.org/api/ec_curvedata/?Clabel=233a2\u0026_format=json",
+                      "labelField":  "Clabel",
+                      "expectedLabel":  "233a2",
+                      "requiredFields":  [
+                                             "ainvs",
+                                             "conductor",
+                                             "rank",
+                                             "analytic_rank",
+                                             "torsion"
+                                         ],
+                      "sha256":  "c7d97d08d4b3f5964976e8c2f927bb63bc60cb80b690537120f78ef912e5a3c7"
+                  },
+                  {
+                      "file":  "ec_mwbsd_233.a1.json",
+                      "collection":  "ec_mwbsd",
+                      "url":  "https://www.lmfdb.org/api/ec_mwbsd/?lmfdb_label=233.a1\u0026_format=json",
+                      "labelField":  "lmfdb_label",
+                      "expectedLabel":  "233.a1",
+                      "requiredFields":  [
+                                             "tamagawa_product",
+                                             "sha_an"
+                                         ],
+                      "sha256":  "2c48ac42be55f6afea8abe8d565ecac29cfda94c18048a5dbf0c430d1e5fa23c"
+                  },
+                  {
+                      "file":  "ec_curvedata_30a1.json",
+                      "collection":  "ec_curvedata",
+                      "url":  "https://www.lmfdb.org/api/ec_curvedata/?Clabel=30a1\u0026_format=json",
+                      "labelField":  "Clabel",
+                      "expectedLabel":  "30a1",
+                      "requiredFields":  [
+                                             "ainvs",
+                                             "conductor",
+                                             "rank",
+                                             "analytic_rank",
+                                             "torsion"
+                                         ],
+                      "sha256":  "efcf67524e2174a6a64a137d632c3025f78dae22c633a7434cedb83caebf9ae3"
+                  },
+                  {
+                      "file":  "ec_mwbsd_30.a8.json",
+                      "collection":  "ec_mwbsd",
+                      "url":  "https://www.lmfdb.org/api/ec_mwbsd/?lmfdb_label=30.a8\u0026_format=json",
+                      "labelField":  "lmfdb_label",
+                      "expectedLabel":  "30.a8",
+                      "requiredFields":  [
+                                             "sha_an"
+                                         ],
+                      "sha256":  "bd293b4db513a4cd133ddb727238077472b44f4dfa3360ae5801ff506a87d6b0"
+                  }
+              ]
+}

@@ -1,0 +1,141 @@
+{
+  "table": "ec_curvedata",
+  "timestamp": "2026-07-31T13:35:57.621448",
+  "data": [
+    {
+      "id": 49,
+      "Ciso": "30a",
+      "Clabel": "30a1",
+      "Cnumber": 1,
+      "abc_quality": 0.9968917246282063,
+      "absD": 2160,
+      "adelic_genus": 5,
+      "adelic_index": 384,
+      "adelic_level": 120,
+      "ainvs": [
+        1,
+        0,
+        1,
+        1,
+        2
+      ],
+      "analytic_rank": 0,
+      "bad_primes": [
+        2,
+        3,
+        5
+      ],
+      "class_deg": 12,
+      "class_size": 8,
+      "cm": 0,
+      "conductor": 30,
+      "degree": 2,
+      "elladic_images": [
+        "8.12.0.12",
+        "3.8.0.1"
+      ],
+      "faltings_height": {
+        "__RealLiteral__": 0,
+        "data": "-0.67828733967764847482561241836",
+        "prec": 107
+      },
+      "faltings_index": 0,
+      "faltings_ratio": 1,
+      "intrinsic_torsion": 2,
+      "iso_nlabel": 0,
+      "isogeny_degrees": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        12
+      ],
+      "jinv": [
+        357911,
+        2160
+      ],
+      "lmfdb_iso": "30.a",
+      "lmfdb_label": "30.a8",
+      "lmfdb_number": 8,
+      "manin_constant": 1,
+      "min_quad_twist_ainvs": [
+        1,
+        0,
+        1,
+        1,
+        2
+      ],
+      "min_quad_twist_disc": 1,
+      "modell_images": [
+        "2B",
+        "3B.1.1"
+      ],
+      "modm_images": [
+        "2.3.0.a.1",
+        "3.8.0-3.a.1.2",
+        "4.6.0.c.1",
+        "6.24.0-6.a.1.4",
+        "8.12.0-4.c.1.2",
+        "12.96.0-12.c.2.7",
+        "20.12.0-4.c.1.2",
+        "24.192.1-24.dh.3.2",
+        "30.48.0-30.b.1.4",
+        "40.24.0-40.bb.1.9",
+        "60.192.1-60.n.4.4",
+        "120.384.5.?"
+      ],
+      "nonmax_primes": [
+        2,
+        3
+      ],
+      "nonmax_rad": 6,
+      "num_bad_primes": 3,
+      "num_int_pts": 5,
+      "optimality": 1,
+      "potential_good_reduction": false,
+      "rank": 0,
+      "regulator": 1,
+      "semistable": true,
+      "serre_invariants": [
+        [
+          2,
+          4,
+          15
+        ],
+        [
+          3,
+          4,
+          10
+        ],
+        [
+          5,
+          6,
+          6
+        ]
+      ],
+      "sha": 1,
+      "sha_primes": [],
+      "signD": -1,
+      "stable_faltings_height": {
+        "__RealLiteral__": 0,
+        "data": "-0.67828733967764847482561241836",
+        "prec": 107
+      },
+      "szpiro_ratio": 4.419554787227392,
+      "torsion": 6,
+      "torsion_primes": [
+        2,
+        3
+      ],
+      "torsion_structure": [
+        6
+      ]
+    }
+  ],
+  "start": 0,
+  "offset": 1,
+  "query": "/api/ec_curvedata/?Clabel=30a1&_format=json&_offset=0",
+  "next": "/api/ec_curvedata/?Clabel=30a1&_format=json&_offset=1",
+  "rec_id": "lmfdb_label"
+}

@@ -8,4 +8,8 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Elliptic.Bsd/Elliptic.Bsd.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- archived LMFDB source evidence + manifest, integrity-checked at runtime -->
+    <Content Include="lmfdb\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
