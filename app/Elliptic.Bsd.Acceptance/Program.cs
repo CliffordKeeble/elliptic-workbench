@@ -121,36 +121,111 @@ foreach (var e in manifest["files"]!.AsArray())
 }
 Console.WriteLine();
 
+// ── Acceptance constants — each pinned to its archived source in the block below ──
+// Declared once here, asserted equal to the archive next, then fed to the engine checks.
+// 11a1 = LMFDB 11.a2
+long root11 = +1, tam11 = 5, tor11 = 5;
+string omega11 = "1.2692093042795534216887946168";
+string lval11 = "0.25384186085591068433775892335043887465";
+string sha11 = "1";
+// 27606c1 = LMFDB 27606.c1
+long root27 = +1, tam27 = 3, tor27 = 1;
+string omega27 = "0.53808589097967547733393545140";
+string lval27 = "6.4570306917561057280072254168078748568";
+string sha27 = "4";
+// 37a1 / 389a1 (period-only, Δ > 0 branch)
+string omega37 = "5.9869172924639192596640199589";
+string omega389 = "4.9804251217101101506427155839";
+// n233 = LMFDB 233.a1 (Cremona 233a2)
+long root233 = +1, tam233 = 1, tor233 = 2;
+string sha233 = "1";
+
+// ── Constants vs archive — the middle link (CinC follow-on) ─────────────────
+// The engine checks below prove engine == constant; the integrity block above proves
+// archive == manifest. Neither proves constant == archive — and if a constant were an
+// oracle-after copied from the engine rather than from LMFDB, engine == constant would
+// pass while proving nothing (W-107). This block pins each constant to its independent
+// archived source field, so engine == constant == archive gives real engine == archive.
+// The SAME variables asserted here are the ones fed to the engine comparison below.
+Console.WriteLine("Constants vs archive — the middle link");
+var recs = new Dictionary<string, JsonNode>();
+JsonNode Rec(string file)
+{
+    if (!recs.TryGetValue(file, out var r))
+    {
+        var dn = JsonNode.Parse(File.ReadAllText(Path.Combine(lmfdbDir, file)))!["data"];
+        r = (dn is JsonArray a ? a[0]! : dn)!;
+        recs[file] = r;
+    }
+    return r;
+}
+long AInt(string file, string field) => Rec(file)[field]!.GetValue<long>();
+string ALit(string file, string field) => Rec(file)[field]!["data"]!.GetValue<string>();
+long RootOf(long ar) => ar % 2 == 0 ? +1 : -1;               // ε = (−1)^analytic_rank
+void EqInt(string name, long c, long a) =>
+    CheckBool(name, c == a, c == a ? $"{c} = archive {a}" : $"constant {c} != archive {a}");
+void EqStr(string name, string c, string a) =>
+    CheckBool(name, c == a, c == a ? $"= {a}" : $"constant {c} != archive {a}");
+void EqSha(string name, string c, string file)              // sha_an is stored as "N.000…0"
+{
+    string a = ALit(file, "sha_an");
+    bool ok = BigInteger.Parse(c) * BigInteger.Pow(10, 28) == Scaled(a, 28);
+    CheckBool(name, ok, ok ? $"{c} = archive sha_an {a}" : $"constant {c} != archive sha_an {a}");
+}
+
+EqInt("11a1 root ε ← (−1)^analytic_rank", root11, RootOf(AInt("ec_curvedata_11a1.json", "analytic_rank")));
+EqInt("11a1 ∏c_p ← tamagawa_product",     tam11,   AInt("ec_mwbsd_11.a2.json", "tamagawa_product"));
+EqInt("11a1 torsion ← curvedata torsion", tor11,   AInt("ec_curvedata_11a1.json", "torsion"));
+EqStr("11a1 Ω ← real_period",             omega11, ALit("ec_mwbsd_11.a2.json", "real_period"));
+EqStr("11a1 L(E,1) ← special_value",      lval11,  ALit("ec_mwbsd_11.a2.json", "special_value"));
+EqSha("11a1 |Sha| ← sha_an",              sha11,   "ec_mwbsd_11.a2.json");
+
+EqInt("27606c1 root ε ← (−1)^analytic_rank", root27, RootOf(AInt("ec_curvedata_27606c1.json", "analytic_rank")));
+EqInt("27606c1 ∏c_p ← tamagawa_product",     tam27,   AInt("ec_mwbsd_27606.c1.json", "tamagawa_product"));
+EqInt("27606c1 torsion ← curvedata torsion", tor27,   AInt("ec_curvedata_27606c1.json", "torsion"));
+EqStr("27606c1 Ω ← real_period",             omega27, ALit("ec_mwbsd_27606.c1.json", "real_period"));
+EqStr("27606c1 L(E,1) ← special_value",      lval27,  ALit("ec_mwbsd_27606.c1.json", "special_value"));
+EqSha("27606c1 |Sha| ← sha_an",              sha27,   "ec_mwbsd_27606.c1.json");
+
+EqStr("37a1 Ω ← real_period",  omega37,  ALit("ec_mwbsd_37.a1.json", "real_period"));
+EqStr("389a1 Ω ← real_period", omega389, ALit("ec_mwbsd_389.a1.json", "real_period"));
+
+EqInt("n233 root ε ← (−1)^analytic_rank", root233, RootOf(AInt("ec_curvedata_233a2.json", "analytic_rank")));
+EqInt("n233 ∏c_p ← tamagawa_product",     tam233,  AInt("ec_mwbsd_233.a1.json", "tamagawa_product"));
+EqInt("n233 torsion ← curvedata torsion", tor233,  AInt("ec_curvedata_233a2.json", "torsion"));
+EqSha("n233 |Sha| ← sha_an",              sha233,  "ec_mwbsd_233.a1.json");
+Console.WriteLine();
+
 // ── 11a1 = LMFDB 11.a2 = [0,−1,1,−10,−20], N = 11 ───────────────────────────
 Console.WriteLine("11a1  (LMFDB 11.a2)  y² + y = x³ − x² − 10x − 20");
 var e11 = new EllipticCurve(0, -1, 1, -10, -20, 11, new long[] { 11 });
 var r11 = BsdCompiler.RunRankZero(e11, digits: 34);
-CheckLong("root number ε (sign = (−1)^analytic_rank, ar=0)", r11.RootNumber, +1, "LMFDB 11.a2");
-CheckLong("∏c_p (tamagawa_product)", r11.TamagawaProduct, 5, "LMFDB 11.a2");
-CheckLong("torsion — bound = published order 5 (tight)", r11.TorsionBound, 5, "LMFDB 11.a2 order");
-CheckDecimal("Ω (real_period)", r11.Omega, "1.2692093042795534216887946168", "LMFDB 11.a2");
-CheckDecimal("L(E,1) (special_value)", r11.LValue, "0.25384186085591068433775892335043887465", "LMFDB 11.a2", atDp: 28);
-CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r11.ShaEstimate, "1", "LMFDB 11.a2");
+CheckLong("root number ε (sign = (−1)^analytic_rank, ar=0)", r11.RootNumber, root11, "LMFDB 11.a2");
+CheckLong("∏c_p (tamagawa_product)", r11.TamagawaProduct, tam11, "LMFDB 11.a2");
+CheckLong("torsion — bound = published order 5 (tight)", r11.TorsionBound, tor11, "LMFDB 11.a2 order");
+CheckDecimal("Ω (real_period)", r11.Omega, omega11, "LMFDB 11.a2");
+CheckDecimal("L(E,1) (special_value)", r11.LValue, lval11, "LMFDB 11.a2", atDp: 28);
+CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r11.ShaEstimate, sha11, "LMFDB 11.a2");
 Console.WriteLine();
 
 // ── 27606c1 = LMFDB 27606.c1 = [1,0,0,−10289707,12703497719] ─────────────────
 Console.WriteLine("27606c1  (LMFDB 27606.c1)  y² + xy = x³ − 10289707x + 12703497719");
 var e27 = new EllipticCurve(1, 0, 0, -10289707, 12703497719, 27606, new long[] { 2, 3, 43, 107 });
 var r27 = BsdCompiler.RunRankZero(e27, digits: 34);
-CheckLong("root number ε (ar=0)", r27.RootNumber, +1, "LMFDB 27606.c1");
-CheckLong("∏c_p (tamagawa_product)", r27.TamagawaProduct, 3, "LMFDB 27606.c1");
-CheckLong("torsion — bound = published order 1 (tight)", r27.TorsionBound, 1, "LMFDB 27606.c1 order");
-CheckDecimal("Ω (real_period)", r27.Omega, "0.53808589097967547733393545140", "LMFDB 27606.c1");
-CheckDecimal("L(E,1) (special_value)", r27.LValue, "6.4570306917561057280072254168078748568", "LMFDB 27606.c1", atDp: 28);
-CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r27.ShaEstimate, "4", "LMFDB 27606.c1");
+CheckLong("root number ε (ar=0)", r27.RootNumber, root27, "LMFDB 27606.c1");
+CheckLong("∏c_p (tamagawa_product)", r27.TamagawaProduct, tam27, "LMFDB 27606.c1");
+CheckLong("torsion — bound = published order 1 (tight)", r27.TorsionBound, tor27, "LMFDB 27606.c1 order");
+CheckDecimal("Ω (real_period)", r27.Omega, omega27, "LMFDB 27606.c1");
+CheckDecimal("L(E,1) (special_value)", r27.LValue, lval27, "LMFDB 27606.c1", atDp: 28);
+CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r27.ShaEstimate, sha27, "LMFDB 27606.c1");
 Console.WriteLine();
 
 // ── Period-only cross-checks, Δ > 0 branch (rank ≥ 1) ───────────────────────
 Console.WriteLine("Δ > 0 period branch (rank ≥ 1; L-machinery is rank-0 only)");
 var e37 = new EllipticCurve(0, 0, 1, -1, 0, 37, new long[] { 37 });
-CheckDecimal("Ω(37a1) (LMFDB 37.a1 real_period)", Analytic.RealPeriod(e37), "5.9869172924639192596640199589", "LMFDB 37.a1");
+CheckDecimal("Ω(37a1) (LMFDB 37.a1 real_period)", Analytic.RealPeriod(e37), omega37, "LMFDB 37.a1");
 var e389 = new EllipticCurve(0, 1, 1, -2, 0, 389, new long[] { 389 });
-CheckDecimal("Ω(389a1) (LMFDB 389.a1 real_period)", Analytic.RealPeriod(e389), "4.9804251217101101506427155839", "LMFDB 389.a1");
+CheckDecimal("Ω(389a1) (LMFDB 389.a1 real_period)", Analytic.RealPeriod(e389), omega389, "LMFDB 389.a1");
 Console.WriteLine();
 
 // ── n233 = LMFDB 233.a1 (Cremona 233a2); workbench model [1,3,0,−1,0] ────────
@@ -159,10 +234,10 @@ Console.WriteLine();
 Console.WriteLine("n233  (LMFDB 233.a1 / Cremona 233a2)  workbench model y² + xy = x³ + 3x² − x, N = 233");
 var e233 = new EllipticCurve(1, 3, 0, -1, 0, 233, new long[] { 233 });
 var r233 = BsdCompiler.RunRankZero(e233, digits: 30);
-CheckLong("root number ε (ar=0)", r233.RootNumber, +1, "LMFDB 233.a1");
-CheckLong("∏c_p (tamagawa_product)", r233.TamagawaProduct, 1, "LMFDB 233.a1");
-CheckLong("torsion — bound = published order 2 (tight)", r233.TorsionBound, 2, "LMFDB 233.a1 order");
-CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r233.ShaEstimate, "1", "LMFDB 233.a1");
+CheckLong("root number ε (ar=0)", r233.RootNumber, root233, "LMFDB 233.a1");
+CheckLong("∏c_p (tamagawa_product)", r233.TamagawaProduct, tam233, "LMFDB 233.a1");
+CheckLong("torsion — bound = published order 2 (tight)", r233.TorsionBound, tor233, "LMFDB 233.a1 order");
+CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r233.ShaEstimate, sha233, "LMFDB 233.a1");
 Console.WriteLine();
 
 // ── 30a1 = LMFDB 30.a8 — torsion-bound benchmark (Brief 03 step 7) ───────────
