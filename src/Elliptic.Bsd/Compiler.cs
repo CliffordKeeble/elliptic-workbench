@@ -21,8 +21,9 @@ public sealed record RankZeroReport(
 /// <summary>
 /// v1 of the BSD compiler: the rank-0 channel (ε = +1, semistable, minimal model).
 /// Five Weierstrass coefficients in, the BSD quotient out; no external data anywhere in the
-/// pipeline (LMFDB and the frozen 3 July 2026 bench values appear only in the acceptance
-/// suite, as oracles-after — the discipline of Paper 144 §4.3).
+/// pipeline (LMFDB published values appear only in the acceptance suite, as oracles-after —
+/// the discipline of Paper 144 §4.3; the frozen 3 July 2026 bench values they replaced in
+/// Brief 03 are recorded in acceptance-constants.md).
 /// v2 (derivative engine: Γ*, η(s), Richardson — Papers 140/142) and v3 (full Tate at p = 2, 3)
 /// extend this class; see the Mr Code brief.
 /// </summary>

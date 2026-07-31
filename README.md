@@ -39,13 +39,24 @@ whose torsion is independently known. Certified torsion (Lutz–Nagell) is futur
 
 ## Acceptance constants
 
-`Elliptic.Bsd.Acceptance` checks the pipeline against a fixed set of reference
-values. These are **frozen internal bench values**, cross-validated by independent
-methods within this project. They are named after the corresponding curves in the
-standard classification (11a1, 27606c1, 37a1, 389a1) but are **not fetched from any
-external database**; they are hard-coded oracles-after and never feed the pipeline.
-They are not, and should not be described as, external validation against published
-tables. Cross-checking against published values is a separate, future task.
+`Elliptic.Bsd.Acceptance` validates the pipeline against **published reference values
+from LMFDB** (`ec_curvedata` + `ec_mwbsd`, accessed 2026-07-30), each curve citing its
+LMFDB label. The raw API responses are archived under
+`app/Elliptic.Bsd.Acceptance/lmfdb/` and **integrity-checked at the start of every run**
+— label field, required fields, and a per-file SHA-256 against `lmfdb/manifest.json`.
+Each acceptance constant is then **pinned to the archived field it was drawn from**, so
+the suite establishes engine = constant = archive rather than engine = a hard-coded
+oracle of unknown provenance.
+
+The reference values **never feed the pipeline** — the engine computes L(E,1), Ω, ∏c_p,
+the torsion bound and the root number from the curve's coefficients alone (see
+`Compiler.cs`); LMFDB appears only in the acceptance suite, as an oracle-after. 37a1 and
+389a1 are period-only cross-checks (the Δ > 0 AGM branch at rank ≥ 1). For L(E,1),
+LMFDB's `special_value` is compared at its self-consistent precision (~28 dp): its
+display carries more digits than it is internally consistent to — a **precision seam,
+not an error**. Provenance, per-constant deltas, the tolerance rule, and that seam are
+documented in
+[acceptance-constants.md](app/Elliptic.Bsd.Acceptance/acceptance-constants.md).
 
 ## Layout
 
