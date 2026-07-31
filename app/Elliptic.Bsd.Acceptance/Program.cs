@@ -118,5 +118,19 @@ CheckLong("torsion — bound = published order 2 (tight)", r233.TorsionBound, 2,
 CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r233.ShaEstimate, "1", "LMFDB 233.a1");
 Console.WriteLine();
 
+// ── 30a1 = LMFDB 30.a8 — torsion-bound benchmark (Brief 03 step 7) ───────────
+// KNOWN DEFECT, LIVE. The engine's TorsionBound is a gcd upper bound, not the true order.
+// Published torsion order (LMFDB 30.a8) = 6; the engine's gcd bound = 12 (overshoots by k=2).
+// The trueOrder work added a DATA field; it did not cure the engine's TorsionBound. Documented
+// under the known-defect convention: the checks assert the CURRENT (defective) engine values so a
+// future Nagell–Lutz cure flips these lines visibly. The published order 6 is the target. The
+// cure is parked (candidate future brief); this pass documents, it does not fix.
+Console.WriteLine("30a1  (LMFDB 30.a8)  torsion-bound benchmark — KNOWN DEFECT (live)");
+var e30 = new EllipticCurve(1, 0, 1, 1, 2, 30, new long[] { 2, 3, 5 });
+var r30 = BsdCompiler.RunRankZero(e30, digits: 34);
+CheckLong("KNOWN DEFECT — torsion: gcd bound overshoots the published order 6 (target)", r30.TorsionBound, 12, "engine gcd bound; LMFDB 30.a8 order = 6");
+CheckDecimal("KNOWN DEFECT — |Sha| estimate inflated by (bound/order)² = 4 (analytic order is 1)", r30.ShaEstimate, "4", "engine estimate; LMFDB 30.a8 analytic order = 1", atDp: 0);
+Console.WriteLine();
+
 Console.WriteLine($"{pass} passed, {fail} failed.");
 return fail == 0 ? 0 : 1;

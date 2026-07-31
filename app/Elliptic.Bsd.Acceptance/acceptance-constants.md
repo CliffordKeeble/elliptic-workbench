@@ -240,3 +240,23 @@ discovery and tuning.
 
 The other 16 constants validate at LMFDB's published precision: root numbers, Tamagawa products,
 torsion (bound = published order, all tight), all four real periods, and |Ш| (analytic order).
+
+## Step 7 — the 30a1 torsion-bound benchmark
+
+Added **30a1** (LMFDB **30.a8**, a-invariants `[1,0,1,1,2]`, conductor 30) as the benchmark for the
+non-tight case. Rationale: small conductor, a clean 2× gap, provenance already established (brief 05,
+LMFDB 30.a8 torsion order 6). The engine's gcd `TorsionBound` = **12**, the **published order = 6** —
+so the bound overshoots by k = 2, and the |Ш| *estimate* = L·12²/(Ω·∏cₚ) = **4** where the analytic
+order is **1**. The defect is **live**: the trueOrder work added a *data* field, it did not cure the
+engine's `TorsionBound` (a gcd bound, not Nagell–Lutz). Documented under the **known-defect
+convention** — the two benchmark checks assert the current (defective) engine values (12 and 4) so a
+future cure flips them visibly, with the published order / analytic order stated as the targets. The
+cure is **parked** (candidate future brief); this pass documents, it does not fix.
+
+## Job status
+
+Suite: **20 passed, 0 failed** — 18 constants validated against LMFDB published values + 2 known-defect
+benchmark checks. The two L(E,1) checks are green under the amended rule (compare at the source's
+self-consistent precision) and preserved above as the job's reds with the full discovery chain (banked
+→ retracted → three-bench verified → amended → green). Raw source responses archived under `lmfdb/`,
+access-dated. **Ready for Sketch to mark rulebook §5 discharged.**
