@@ -416,6 +416,11 @@ function renderBody(){
   const lTag = c.lValue.seriesVerified
     ? `<span class="tag certified">certified ${c.lValue.certifiedDigits} digits</span>`
     : `<span class="tag derived">not certified</span>`;
+  /* K = how far the gcd torsion bound overshoots (needs trueOrder); sh = the sharpening
+     enumeration. Both are read inside the cards below, so they must be declared first —
+     as const they are in a temporal dead zone until this point, not hoisted. */
+  const K = overshoot(c.torsion);
+  const sh = sharpen(c.quotient.value, K);
   const cards = [
     ["Coefficients <span class='lit'>a&#8346;</span>", (c.pointCounts||[]).length + " primes",
      `<span class="tag exact">exact</span><span class="tag engine">engine</span>
@@ -449,8 +454,6 @@ function renderBody(){
      <span class="n">${x.Np !== undefined ? x.Np : (x.p + 1 - x.ap)}</span>
      <span class="a">a&#8346; = ${x.ap<0?MINUS+Math.abs(x.ap):x.ap}</span></div>`).join("");
 
-  const K = overshoot(c.torsion);
-  const sh = sharpen(c.quotient.value, K);
   let condHtml = "";
   if (sh){
     const lead = `Granting the conjecture, the quotient is |&#1064;| multiplied by the square of the
@@ -551,7 +554,22 @@ document.getElementById("file").addEventListener("change", ev => {
   r.readAsText(f);
 });
 
-render();
+/* ---- boot: auto-load the generator's real output; fixture as fallback ------
+   Served over http, the panel fetches data/bsd-rank0.json and every figure becomes
+   an engine-computed value with its own provenance. Opened from file:// (no server)
+   the fetch fails and the fixture renders instead, so the panel still works
+   standalone. The manual loader above stays as an override. A single render, after
+   the fetch settles, so there is no fixture flash on the served path. */
+(function boot(){
+  fetch("../data/bsd-rank0.json", { cache: "no-store" })
+    .then(res => { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+    .then(j => {
+      if (!j || !Array.isArray(j.curves) || !j.curves.length) throw new Error("no curves array");
+      DATA = j; IDX = 0;
+    })
+    .catch(() => { /* keep FIXTURE: file://, 404, or offline */ })
+    .finally(() => render());
+})();
 </script>
 </body>
 </html>
