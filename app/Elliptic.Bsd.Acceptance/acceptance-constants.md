@@ -174,6 +174,12 @@ tolerance problem.
 - The tolerance derives **only** from the source's precision. The engine must compute to at least the
   published precision; where the harness's digit target is lower, the shortfall is **reported as a
   finding**, never absorbed by widening the tolerance or lowering the compare precision.
+- **Amendment (29 Jul, own commit).** Where a source field's *display* precision exceeds its
+  *self-consistent* precision, the comparison runs at the self-consistent precision. This applies to
+  `special_value` — displayed at 38 dp but self-consistent to ~28 dp (anchored by `real_period`'s 28
+  dp), the true value verified at three benches (conversion findings below). This is **not** lowering
+  the tolerance to pass: it is comparing at the precision the source is actually right to; the display
+  overrun is documented, not honoured.
 - **Torsion** is validated as "engine bound is tight and equals the published order" on the five tight
   curves; the benchmark curve (step 7) documents the non-tight case.
 
@@ -212,15 +218,25 @@ LMFDB special:  0.253841860855910684337758923350 4388746500
 
 This is neither truncation nor a value tuned to pass.
 
-**Cannot be settled at the bench — FLAGGED to CinC/Cliff.** Both sides claim accuracy past digit
-31 (engine by two-method agreement; LMFDB `special_value` prec = 133 bits). The evidence points at
-the engine: its L equals its independently-computed Ω/5, and its Ω matches LMFDB's `real_period` to
-all 28 published digits — which would make LMFDB's displayed 38-digit L **accurate to fewer places
-than shown** (LMFDB's own real_period is 28 digits / 100 bits, so its L is not internally checkable
-past ~28). But asserting a trusted database is imprecise is not a bench call. **The two L checks
-stay red; precision not lowered, no value tuned, pending a ruling.** Candidate resolutions for
-CinC: (a) confirm the true L(E,1) with an independent engine (Pari/GP, Sage, Magma); (b) compare L
-at LMFDB's self-consistent precision (~28 dp) rather than the displayed 38.
+**Resolved (CinC ruling, 29 Jul) — a precision seam, verified at three benches.** The true value
+of L(E,1) is confirmed independently:
+
+- **PARI/GP 2.15.4**, `lfun(ellinit([0,-1,1,-10,-20]), 1)` at 100 digits:
+  `0.2538418608559106843377589233509094610438984483661217335934273842460816677225555445380724611843025215`,
+  with L − Ω/5 = 2.3×10⁻⁹⁷ (the BSD identity to the working floor).
+- **CinC's independent mpmath build** (aₚ from brute-force point counts on the curve equation;
+  a₁₁ = 1 from the nonsingular count, not a table; smoothed series at 70 digits): agrees with PARI
+  to 1.4×10⁻⁷¹.
+- **This engine**: its 40-digit value is the correct rounding of the above.
+
+So LMFDB's `special_value` is **correct to its actual precision (~digit 30)** — consistent with its
+own `real_period` being published at 28 digits — and the displayed tail beyond that is conversion
+junk from the stored representation. **This is a precision seam, not an error: LMFDB is right to the
+precision it computes; the display overstates it.** Under the amended tolerance rule (compare at the
+source's self-consistent precision) the two L checks **pass at 28 dp**. They are preserved here as
+the job's reds with the full chain — banked red (b243ac3) → first diagnosis retracted (dc73d53) →
+three-bench verification → registered amendment → green. That chain is the difference between
+discovery and tuning.
 
 The other 16 constants validate at LMFDB's published precision: root numbers, Tamagawa products,
 torsion (bound = published order, all tight), all four real periods, and |Ш| (analytic order).

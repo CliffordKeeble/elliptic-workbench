@@ -27,20 +27,25 @@ void CheckLong(string name, long got, long want, string src)
     if (ok) pass++; else fail++;
 }
 
-// Decimal comparison per the tolerance rule: engine value rendered to the published
-// number of places, compared to LMFDB's decimal string as scaled integers, ½ ulp.
-void CheckDecimal(string name, BigFloat got, string lmfdb, string src)
+// Decimal comparison per the tolerance rule (with the 29-Jul amendment): compare at the
+// source's SELF-CONSISTENT precision, ½ ulp, in decimal (scaled BigInteger, no double).
+// atDp overrides the compare precision where a field's DISPLAY precision exceeds its
+// self-consistent precision (special_value: displayed 38 dp, self-consistent ~28 dp,
+// anchored by real_period's 28 dp — see acceptance-constants.md and the amendment commit).
+void CheckDecimal(string name, BigFloat got, string lmfdb, string src, int atDp = -1)
 {
     int dot = lmfdb.IndexOf('.');
-    int d = dot >= 0 ? lmfdb.Length - dot - 1 : 0;         // published fractional places
+    int shown = dot >= 0 ? lmfdb.Length - dot - 1 : 0;     // digits the source displays
+    int d = atDp >= 0 ? atDp : shown;                      // compare precision
     int hi = d + 12;                                       // extra guard from the engine
-    BigInteger pub = Scaled(lmfdb, hi);
+    BigInteger pub = RoundScaled(lmfdb, d) * BigInteger.Pow(10, hi - d);  // source rounded to compare precision
     BigInteger eng = Scaled(got.ToDecimalString(hi), hi);
     BigInteger halfUlp = 5 * BigInteger.Pow(10, hi - d - 1);
     BigInteger diff = BigInteger.Abs(eng - pub);
     bool ok = diff <= halfUlp;
-    Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {name}  (@ {d} dp, ±½ulp)  [{src}]");
-    Console.WriteLine($"         got  {got.ToDecimalString(d + 2)}");
+    string tag = (atDp >= 0 && atDp < shown) ? $"@ {d} dp (amended; display {shown} dp)" : $"@ {d} dp";
+    Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {name}  {tag}, ±½ulp  [{src}]");
+    Console.WriteLine($"         got  {got.ToDecimalString(Math.Min(shown, d) + 2)}");
     Console.WriteLine($"         want {lmfdb}");
     if (!ok) Console.WriteLine($"         DIFF {diff} × 10^-{hi}  exceeds ½ulp {halfUlp} × 10^-{hi}");
     if (ok) pass++; else fail++;
@@ -57,6 +62,16 @@ static BigInteger Scaled(string s, int frac)
     return neg ? -v : v;
 }
 
+// Round decimal string s to d fractional places (half up), returned as value × 10^d.
+static BigInteger RoundScaled(string s, int d)
+{
+    var v = Scaled(s, d + 1);
+    bool neg = v.Sign < 0; v = BigInteger.Abs(v);
+    var q = BigInteger.DivRem(v, 10, out var rem);
+    if (rem >= 5) q += 1;
+    return neg ? -q : q;
+}
+
 Console.WriteLine("Elliptic.Bsd v1 acceptance — rank-0 channel, constants validated against LMFDB\n");
 
 // ── 11a1 = LMFDB 11.a2 = [0,−1,1,−10,−20], N = 11 ───────────────────────────
@@ -67,7 +82,7 @@ CheckLong("root number ε (sign = (−1)^analytic_rank, ar=0)", r11.RootNumber, 
 CheckLong("∏c_p (tamagawa_product)", r11.TamagawaProduct, 5, "LMFDB 11.a2");
 CheckLong("torsion — bound = published order 5 (tight)", r11.TorsionBound, 5, "LMFDB 11.a2 order");
 CheckDecimal("Ω (real_period)", r11.Omega, "1.2692093042795534216887946168", "LMFDB 11.a2");
-CheckDecimal("L(E,1) (special_value)", r11.LValue, "0.25384186085591068433775892335043887465", "LMFDB 11.a2");
+CheckDecimal("L(E,1) (special_value)", r11.LValue, "0.25384186085591068433775892335043887465", "LMFDB 11.a2", atDp: 28);
 CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r11.ShaEstimate, "1", "LMFDB 11.a2");
 Console.WriteLine();
 
@@ -79,7 +94,7 @@ CheckLong("root number ε (ar=0)", r27.RootNumber, +1, "LMFDB 27606.c1");
 CheckLong("∏c_p (tamagawa_product)", r27.TamagawaProduct, 3, "LMFDB 27606.c1");
 CheckLong("torsion — bound = published order 1 (tight)", r27.TorsionBound, 1, "LMFDB 27606.c1 order");
 CheckDecimal("Ω (real_period)", r27.Omega, "0.53808589097967547733393545140", "LMFDB 27606.c1");
-CheckDecimal("L(E,1) (special_value)", r27.LValue, "6.4570306917561057280072254168078748568", "LMFDB 27606.c1");
+CheckDecimal("L(E,1) (special_value)", r27.LValue, "6.4570306917561057280072254168078748568", "LMFDB 27606.c1", atDp: 28);
 CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r27.ShaEstimate, "4", "LMFDB 27606.c1");
 Console.WriteLine();
 
