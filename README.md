@@ -70,6 +70,13 @@ dotnet test tests/Elliptic.Bsd.Tests
 
 Requires the .NET 10 SDK.
 
+## Curve labels
+
+Cremona, LMFDB, and the workbench's own identifiers do **not** agree nominally, and
+"same curve" is an invariant-level (c₄, c₆ / j) fact, not a label match. Anyone adding
+label lookup should read [LABEL-CONVENTIONS.md](LABEL-CONVENTIONS.md) first — it records
+the known divergences (e.g. Cremona `11a1` = LMFDB `11.a2`) as design inputs, not bugs.
+
 ## Licence
 
 MIT — see [LICENSE](LICENSE).
