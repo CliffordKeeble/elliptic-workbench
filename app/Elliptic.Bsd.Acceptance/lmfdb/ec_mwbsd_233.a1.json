@@ -1,0 +1,54 @@
+{
+  "table": "ec_mwbsd",
+  "timestamp": "2026-07-31T09:46:25.436511",
+  "data": [
+    {
+      "id": 892,
+      "area": {
+        "__RealLiteral__": 0,
+        "data": "4.5643483784550732649693904155",
+        "prec": 100
+      },
+      "conductor": 233,
+      "gens": [],
+      "heights": [],
+      "lmfdb_label": "233.a1",
+      "ngens": 0,
+      "rank_bounds": [
+        0,
+        0
+      ],
+      "real_period": {
+        "__RealLiteral__": 0,
+        "data": "5.5685343942644786617970905028",
+        "prec": 100
+      },
+      "sha_an": {
+        "__RealLiteral__": 0,
+        "data": "1.0000000000000000000000000000",
+        "prec": 100
+      },
+      "special_value": {
+        "__RealLiteral__": 0,
+        "data": "1.3921335985661196654492726256926551267",
+        "prec": 130
+      },
+      "tamagawa_product": 1,
+      "torsion_generators": [
+        [
+          1,
+          -1,
+          1
+        ]
+      ],
+      "xcoord_integral_points": [
+        1
+      ]
+    }
+  ],
+  "start": 0,
+  "offset": 1,
+  "query": "/api/ec_mwbsd/?lmfdb_label=233.a1&_format=json&_offset=0",
+  "next": "/api/ec_mwbsd/?lmfdb_label=233.a1&_format=json&_offset=1",
+  "rec_id": "lmfdb_label"
+}
