@@ -260,3 +260,75 @@ benchmark checks. The two L(E,1) checks are green under the amended rule (compar
 self-consistent precision) and preserved above as the job's reds with the full discovery chain (banked
 → retracted → three-bench verified → amended → green). Raw source responses archived under `lmfdb/`,
 access-dated. **Ready for Sketch to mark rulebook §5 discharged.**
+
+---
+
+# Follow-on pass to Brief 03 (CinC, 31 July 2026)
+
+Three items arising from the close-out pass, none of them a re-opening of it.
+
+## Item 1 — the archive is now integrity-checked, not just parsed
+
+The old check was "every file parses as JSON". That is weaker than the thing it stood in for:
+a well-formed API error parses, and a correct-format record for the **wrong curve** parses
+perfectly (W-111 at retrieval depth). Replaced by a **field-level integrity check** that runs
+as part of the acceptance suite (`Program.cs`, first block; the archive is copied to the build
+output via a `<Content>` item in the `.csproj`, so it is checked every time the suite runs, not
+in a one-off shell). Per archived response, three assertions, driven by
+[`lmfdb/manifest.json`](lmfdb/manifest.json):
+
+1. **The record's own label field equals the requested label.** `Clabel` for `ec_curvedata`,
+   `lmfdb_label` for `ec_mwbsd`, each checked against the label the file was fetched for — the
+   assertion that catches a wrong-curve record.
+2. **Every field an acceptance constant is drawn from is present, non-null, and of the right
+   shape** — named explicitly per file in the manifest's `requiredFields`, not a generic
+   non-empty test. For the real-literal fields (`real_period`, `special_value`, `sha_an`) the
+   check descends into `.data` (where LMFDB carries the value + `prec`), so a field present but
+   hollow still fails.
+3. **A SHA-256 content hash per file matches the manifest**, recorded alongside the access date
+   (`2026-07-30`), so a later silent re-fetch or hand-edit is detectable rather than assumed
+   absent.
+
+**Result — all 12 files pass** (the 10 from Brief 03 plus the two 30a1 evidence files
+`ec_curvedata_30a1.json` / `ec_mwbsd_30.a8.json`, now committed with the manifest):
+
+| file | expected label | label | fields | hash |
+|---|---|---|---|---|
+| ec_curvedata_11a1.json    | 11a1    | ✓ | ✓ | ✓ |
+| ec_mwbsd_11.a2.json       | 11.a2   | ✓ | ✓ | ✓ |
+| ec_curvedata_27606c1.json | 27606c1 | ✓ | ✓ | ✓ |
+| ec_mwbsd_27606.c1.json    | 27606.c1| ✓ | ✓ | ✓ |
+| ec_curvedata_37a1.json    | 37a1    | ✓ | ✓ | ✓ |
+| ec_mwbsd_37.a1.json       | 37.a1   | ✓ | ✓ | ✓ |
+| ec_curvedata_389a1.json   | 389a1   | ✓ | ✓ | ✓ |
+| ec_mwbsd_389.a1.json      | 389.a1  | ✓ | ✓ | ✓ |
+| ec_curvedata_233a2.json   | 233a2   | ✓ | ✓ | ✓ |
+| ec_mwbsd_233.a1.json      | 233.a1  | ✓ | ✓ | ✓ |
+| ec_curvedata_30a1.json    | 30a1    | ✓ | ✓ | ✓ |
+| ec_mwbsd_30.a8.json       | 30.a8   | ✓ | ✓ | ✓ |
+
+No file failed; nothing was re-fetched or repaired. The suite is now **32 passed, 0 failed**
+(12 integrity + 20 constants). The evidence base is checked rather than believed, and the check
+runs whenever the suite does.
+
+## Item 2 — the 30a1 defect hypothesis: confirmed alive, prediction frozen
+
+CinC's reading is that the two 30a1 defect numbers (torsion bound 12 vs order 6; |Ш| estimate 4
+vs analytic 1) are **one defect seen twice** — torsion enters the BSD ratio squared, so a bound
+too large by k = 2 inflates |Ш| by exactly 4. Step 1 (does |Ш| draw on the *same* torsion
+quantity?) is **confirmed**: `Compiler.cs` computes `sha = L·(tor·tor)/(Ω·∏c_p)` with
+`tor = e.TorsionBound()` — the same gcd bound, squared, no independent torsion source. Hypothesis
+alive. Per CinC's instruction the **prediction is now frozen before any cure runs**, in
+[`30a1-torsion-cure-prereg.md`](30a1-torsion-cure-prereg.md): TorsionBound 12→6, |Ш| → **exactly
+1** at a 20-dp / ½-ulp tolerance with the residual reported (replacing the current 0-dp window),
+with kill conditions stated. **The cure stays parked** — it is not green under standing trust and
+waits for Cliff to unpark it.
+
+## Item 3 — the label divergence, made inheritable
+
+The parked label findings (Cremona `11a1` = LMFDB `11.a2`; `n233` = Cremona `233a2` / LMFDB
+`233.a1`) are written up as an explicit inheritance note at the repo root,
+[`LABEL-CONVENTIONS.md`](../../LABEL-CONVENTIONS.md), linked from the README so the future
+LMFDB-label-lookup brief reads it as a **design input** rather than rediscovering it as a bug: the
+two divergences with instances, the identity being invariant-level (c₄, c₆ / j) not nominal, and
+model normalisation deliberately parked because it would move every curated point.
