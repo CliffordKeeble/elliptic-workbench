@@ -159,41 +159,67 @@ JsonNode Rec(string file)
     }
     return r;
 }
-long AInt(string file, string field) => Rec(file)[field]!.GetValue<long>();
-string ALit(string file, string field) => Rec(file)[field]!["data"]!.GetValue<string>();
+long AInt(JsonNode rec, string field) => rec[field]!.GetValue<long>();
+string ALit(JsonNode rec, string field) => rec[field]!["data"]!.GetValue<string>();
 long RootOf(long ar) => ar % 2 == 0 ? +1 : -1;               // ε = (−1)^analytic_rank
 void EqInt(string name, long c, long a) =>
     CheckBool(name, c == a, c == a ? $"{c} = archive {a}" : $"constant {c} != archive {a}");
 void EqStr(string name, string c, string a) =>
     CheckBool(name, c == a, c == a ? $"= {a}" : $"constant {c} != archive {a}");
-void EqSha(string name, string c, string file)              // sha_an is stored as "N.000…0"
+void EqSha(string name, string c, JsonNode mw)              // sha_an is stored as "N.000…0"
 {
-    string a = ALit(file, "sha_an");
+    string a = ALit(mw, "sha_an");
     bool ok = BigInteger.Parse(c) * BigInteger.Pow(10, 28) == Scaled(a, 28);
     CheckBool(name, ok, ok ? $"{c} = archive sha_an {a}" : $"constant {c} != archive sha_an {a}");
 }
+JsonNode? TryRec(string file) { try { return Rec(file); } catch { return null; } }
 
-EqInt("11a1 root ε ← (−1)^analytic_rank", root11, RootOf(AInt("ec_curvedata_11a1.json", "analytic_rank")));
-EqInt("11a1 ∏c_p ← tamagawa_product",     tam11,   AInt("ec_mwbsd_11.a2.json", "tamagawa_product"));
-EqInt("11a1 torsion ← curvedata torsion", tor11,   AInt("ec_curvedata_11a1.json", "torsion"));
-EqStr("11a1 Ω ← real_period",             omega11, ALit("ec_mwbsd_11.a2.json", "real_period"));
-EqStr("11a1 L(E,1) ← special_value",      lval11,  ALit("ec_mwbsd_11.a2.json", "special_value"));
-EqSha("11a1 |Sha| ← sha_an",              sha11,   "ec_mwbsd_11.a2.json");
+// Resolve a curve's two archive records from its Cremona label alone (Brief 06 §3). The
+// Cremona↔LMFDB correspondence is taken from the ec_curvedata record's own lmfdb_label —
+// NOT a hardcoded pairing, which would be a bench constant with no source (W-107 one level up,
+// inside the artefact built to close it). Assert at BOTH hops that each record's own label
+// matches the file it was opened by, so a mis-named file cannot pass the map off as sourced
+// from a filename. This deliberately does not lean on the manifest's expectedLabel (hand-typed).
+(JsonNode cd, JsonNode mw) MapCurve(string clabel)
+{
+    var cd = Rec($"ec_curvedata_{clabel}.json");             // presence integrity-guaranteed
+    string cdLabel    = cd["Clabel"]!.GetValue<string>();
+    string lmfdbLabel = cd["lmfdb_label"]!.GetValue<string>();
+    var mw = TryRec($"ec_mwbsd_{lmfdbLabel}.json");
+    string mwLabel = mw?["lmfdb_label"]?.GetValue<string>() ?? "(absent)";
+    bool ok = cdLabel == clabel && mw is not null && mwLabel == lmfdbLabel;
+    CheckBool($"map {clabel} → {lmfdbLabel} (Cremona↔LMFDB from the ec_curvedata record, not hardcoded)", ok,
+        ok ? "curvedata Clabel✓, derived mwbsd lmfdb_label✓"
+           : $"MISMATCH: curvedata Clabel={cdLabel} (want {clabel}); mwbsd for '{lmfdbLabel}' lmfdb_label={mwLabel}");
+    return (cd, mw ?? cd);
+}
 
-EqInt("27606c1 root ε ← (−1)^analytic_rank", root27, RootOf(AInt("ec_curvedata_27606c1.json", "analytic_rank")));
-EqInt("27606c1 ∏c_p ← tamagawa_product",     tam27,   AInt("ec_mwbsd_27606.c1.json", "tamagawa_product"));
-EqInt("27606c1 torsion ← curvedata torsion", tor27,   AInt("ec_curvedata_27606c1.json", "torsion"));
-EqStr("27606c1 Ω ← real_period",             omega27, ALit("ec_mwbsd_27606.c1.json", "real_period"));
-EqStr("27606c1 L(E,1) ← special_value",      lval27,  ALit("ec_mwbsd_27606.c1.json", "special_value"));
-EqSha("27606c1 |Sha| ← sha_an",              sha27,   "ec_mwbsd_27606.c1.json");
+var (cd11, mw11) = MapCurve("11a1");
+EqInt("11a1 root ε ← (−1)^analytic_rank", root11, RootOf(AInt(cd11, "analytic_rank")));
+EqInt("11a1 ∏c_p ← tamagawa_product",     tam11,   AInt(mw11, "tamagawa_product"));
+EqInt("11a1 torsion ← curvedata torsion", tor11,   AInt(cd11, "torsion"));
+EqStr("11a1 Ω ← real_period",             omega11, ALit(mw11, "real_period"));
+EqStr("11a1 L(E,1) ← special_value",      lval11,  ALit(mw11, "special_value"));
+EqSha("11a1 |Sha| ← sha_an",              sha11,   mw11);
 
-EqStr("37a1 Ω ← real_period",  omega37,  ALit("ec_mwbsd_37.a1.json", "real_period"));
-EqStr("389a1 Ω ← real_period", omega389, ALit("ec_mwbsd_389.a1.json", "real_period"));
+var (cd27, mw27) = MapCurve("27606c1");
+EqInt("27606c1 root ε ← (−1)^analytic_rank", root27, RootOf(AInt(cd27, "analytic_rank")));
+EqInt("27606c1 ∏c_p ← tamagawa_product",     tam27,   AInt(mw27, "tamagawa_product"));
+EqInt("27606c1 torsion ← curvedata torsion", tor27,   AInt(cd27, "torsion"));
+EqStr("27606c1 Ω ← real_period",             omega27, ALit(mw27, "real_period"));
+EqStr("27606c1 L(E,1) ← special_value",      lval27,  ALit(mw27, "special_value"));
+EqSha("27606c1 |Sha| ← sha_an",              sha27,   mw27);
 
-EqInt("n233 root ε ← (−1)^analytic_rank", root233, RootOf(AInt("ec_curvedata_233a2.json", "analytic_rank")));
-EqInt("n233 ∏c_p ← tamagawa_product",     tam233,  AInt("ec_mwbsd_233.a1.json", "tamagawa_product"));
-EqInt("n233 torsion ← curvedata torsion", tor233,  AInt("ec_curvedata_233a2.json", "torsion"));
-EqSha("n233 |Sha| ← sha_an",              sha233,  "ec_mwbsd_233.a1.json");
+var (_, mw37) = MapCurve("37a1");
+EqStr("37a1 Ω ← real_period",  omega37,  ALit(mw37, "real_period"));
+var (_, mw389) = MapCurve("389a1");
+EqStr("389a1 Ω ← real_period", omega389, ALit(mw389, "real_period"));
+
+var (cd233, mw233) = MapCurve("233a2");
+EqInt("n233 root ε ← (−1)^analytic_rank", root233, RootOf(AInt(cd233, "analytic_rank")));
+EqInt("n233 ∏c_p ← tamagawa_product",     tam233,  AInt(mw233, "tamagawa_product"));
+EqInt("n233 torsion ← curvedata torsion", tor233,  AInt(cd233, "torsion"));
+EqSha("n233 |Sha| ← sha_an",              sha233,  mw233);
 Console.WriteLine();
 
 // ── 11a1 = LMFDB 11.a2 = [0,−1,1,−10,−20], N = 11 ───────────────────────────

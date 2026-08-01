@@ -18,7 +18,8 @@
                                              "conductor",
                                              "rank",
                                              "analytic_rank",
-                                             "torsion"
+                                             "torsion",
+                                             "lmfdb_label"
                                          ],
                       "sha256":  "68ace3d0db21c3317b1ec82eab9ceb08a496dba8e36b5b57e92075d9471553f1"
                   },
@@ -47,7 +48,8 @@
                                              "conductor",
                                              "rank",
                                              "analytic_rank",
-                                             "torsion"
+                                             "torsion",
+                                             "lmfdb_label"
                                          ],
                       "sha256":  "d5e75e0fe4461e46f6a2f8e55106a3ecf75f032db4b38747dce9a7a712b03cf1"
                   },
@@ -76,7 +78,8 @@
                                              "conductor",
                                              "rank",
                                              "analytic_rank",
-                                             "torsion"
+                                             "torsion",
+                                             "lmfdb_label"
                                          ],
                       "sha256":  "b9bfda0e12b7746b2c09eac783b72c6a609b24fa8252748a1e79ec55a3c0ac60"
                   },
@@ -102,7 +105,8 @@
                                              "conductor",
                                              "rank",
                                              "analytic_rank",
-                                             "torsion"
+                                             "torsion",
+                                             "lmfdb_label"
                                          ],
                       "sha256":  "7296d858141ef08a892f3bb679a35b2b24d11c46f2b5502d69f9828c27bbb414"
                   },
@@ -128,7 +132,8 @@
                                              "conductor",
                                              "rank",
                                              "analytic_rank",
-                                             "torsion"
+                                             "torsion",
+                                             "lmfdb_label"
                                          ],
                       "sha256":  "c7d97d08d4b3f5964976e8c2f927bb63bc60cb80b690537120f78ef912e5a3c7"
                   },
@@ -155,7 +160,8 @@
                                              "conductor",
                                              "rank",
                                              "analytic_rank",
-                                             "torsion"
+                                             "torsion",
+                                             "lmfdb_label"
                                          ],
                       "sha256":  "efcf67524e2174a6a64a137d632c3025f78dae22c633a7434cedb83caebf9ae3"
                   },
