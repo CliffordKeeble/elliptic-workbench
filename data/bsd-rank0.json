@@ -1,16 +1,29 @@
 {
-  "schema": "elliptic-workbench/bsd-rank0/v5",
+  "schema": "elliptic-workbench/bsd-rank0/v6",
   "engine": {
-    "commit": "daf25e7",
-    "generated": "2026-07-29",
+    "commit": "2a113bf",
+    "generated": "2026-08-01",
     "precisionDigits": 80
   },
-  "provenance": "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, Tamagawa product, torsion, root number, quotient), computed at 512-bit working precision with the term count set via digits so the engine\u0027s own TermsFor clears the Fizz-certified floor M. The generator only chooses the term count, computes the certificate (q, tail bound, certified digits), and DERIVES quantities the engine does not itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the engine computes. Cross-checked against a 640-bit run. Labels are internal bench names, NOT LMFDB pulls (W-107).",
+  "provenance": "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, Tamagawa product, torsion, root number, quotient), computed at 512-bit working precision with the term count set via digits so the engine\u0027s own TermsFor clears the Fizz-certified floor M. The generator only chooses the term count, computes the certificate (q, tail bound, certified digits), and DERIVES quantities the engine does not itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the engine computes. Cross-checked against a 640-bit run. Workbench ids are internal names; each curve\u0027s labels block carries its Cremona and LMFDB labels sourced from the archived ec_curvedata record (pulled 2026-07-30), with the model-to-published-curve attachment named per curve (Brief 06).",
   "certificate": "Fizz tail bound: |tail| \u003C= 4 q^(M\u002B1)/(1-q), q = exp(-2\u03C0/\u221AN), via |a_n/n| \u003C= 2 (Hasse \u002B divisor bound, bad primes included). Series verified against the engine (brief 03 \u00A72): leading 2, exp(-2\u03C0n/\u221AN), a_{p^k}=a_p^k at bad primes.",
+  "modelAttachmentValues": [
+    "a-invariants-match",
+    "invariant-match",
+    "unverified"
+  ],
   "curves": [
     {
       "label": "11a1",
       "labelProvenance": "internal bench name; NOT pulled from LMFDB",
+      "labels": {
+        "workbenchId": "11a1",
+        "clabel": "11a1",
+        "lmfdbLabel": "11.a2",
+        "labelSource": "ec_curvedata_11a1.json fields Clabel/lmfdb_label, archive pulled 2026-07-30",
+        "modelAttachment": "a-invariants-match",
+        "modelAttachmentNote": null
+      },
       "weierstrass": {
         "a1": 0,
         "a2": -1,
@@ -311,6 +324,14 @@
     {
       "label": "27606c1",
       "labelProvenance": "internal bench name; NOT pulled from LMFDB",
+      "labels": {
+        "workbenchId": "27606c1",
+        "clabel": "27606c1",
+        "lmfdbLabel": "27606.c1",
+        "labelSource": "ec_curvedata_27606c1.json fields Clabel/lmfdb_label, archive pulled 2026-07-30",
+        "modelAttachment": "a-invariants-match",
+        "modelAttachmentNote": null
+      },
       "weierstrass": {
         "a1": 1,
         "a2": 0,
@@ -3796,6 +3817,14 @@
     {
       "label": "30a1",
       "labelProvenance": "internal bench name (xUnit Finding-2 curve); NOT pulled from LMFDB",
+      "labels": {
+        "workbenchId": "30a1",
+        "clabel": "30a1",
+        "lmfdbLabel": "30.a8",
+        "labelSource": "ec_curvedata_30a1.json fields Clabel/lmfdb_label, archive pulled 2026-07-30",
+        "modelAttachment": "a-invariants-match",
+        "modelAttachmentNote": null
+      },
       "weierstrass": {
         "a1": 1,
         "a2": 0,
@@ -4170,6 +4199,14 @@
     {
       "label": "n233-reg",
       "labelProvenance": "internal regression curve (v1.0.1 Finding-1), conductor 233; no bench/LMFDB label",
+      "labels": {
+        "workbenchId": "n233-reg",
+        "clabel": "233a2",
+        "lmfdbLabel": "233.a1",
+        "labelSource": "ec_curvedata_233a2.json fields Clabel/lmfdb_label, archive pulled 2026-07-30",
+        "modelAttachment": "invariant-match",
+        "modelAttachmentNote": "LABEL-CONVENTIONS.md \u2014 the workbench model is non-minimal; identity to the published curve rests on a c4/c6/\u0394 match (ours, not the archive\u0027s)"
+      },
       "weierstrass": {
         "a1": 1,
         "a2": 3,
