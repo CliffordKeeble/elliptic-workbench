@@ -1,0 +1,4 @@
+# The CI build script is executed by `sh` on the Linux runner. Keep shell
+# scripts LF regardless of the platform's core.autocrlf, so a CRLF checkout
+# cannot break the deploy. (Brief 07 §1 documents the CRLF/LF hazard here.)
+*.sh text eol=lf

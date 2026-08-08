@@ -46,3 +46,6 @@ Thumbs.db
 __pycache__/
 *.pyc
 .venv/
+
+## Deploy output
+_site/

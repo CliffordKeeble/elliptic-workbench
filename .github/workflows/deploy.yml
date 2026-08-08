@@ -1,0 +1,36 @@
+name: deploy
+
+on:
+  workflow_dispatch:
+  # push trigger added in a follow-up commit, once a manual run is green:
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'index.html'
+  #     - 'web/**'
+  #     - 'data/bsd-rank0.json'
+  #     - 'tools/build-site.sh'
+  #     - '.github/workflows/deploy.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the site
+        run: sh tools/build-site.sh
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy _site --project-name=elliptic-workbench --branch=main
