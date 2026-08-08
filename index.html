@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elliptic workbench</title>
+<style>
+:root{
+  --film:#E4E8E4; --plate:#F2F4F1; --ink:#14201E; --graphite:#6E7A76;
+  --rule:#C4CCC6; --hair:#D9DFDA; --blue:#2D5F7C; --accent:#B8391E; --ochre:#8A6D1F;
+  --display:"Archivo",-apple-system,"Segoe UI",sans-serif;
+  --body:"Spectral",Georgia,serif;
+  --data:"Azeret Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--film);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.sheet{max-width:880px;margin:0 auto;padding:26px 22px 44px}
+
+.eyebrow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  font-family:var(--data);font-size:10.5px;font-weight:500;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--graphite);
+  border-bottom:1px solid var(--ink);padding-bottom:7px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5.6vw,50px);
+  line-height:1;letter-spacing:.02em;text-transform:uppercase;margin:16px 0 0}
+.standfirst{max-width:60ch;margin:12px 0 0;font-size:16.5px;font-weight:300;color:#28352F}
+.standfirst b{font-weight:400;color:var(--ink)}
+
+/* the two panels */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:26px;
+  border:1px solid var(--ink);background:var(--plate)}
+.panels a{display:block;text-decoration:none;color:var(--ink);
+  border-right:1px solid var(--rule);padding:20px 20px 22px}
+.panels a:last-child{border-right:0}
+.panels a:hover{background:#EBEEEA}
+.panels a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.pk{font-family:var(--data);font-size:9px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--graphite)}
+.pt{font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:.02em;
+  text-transform:uppercase;margin:7px 0 0}
+.pd{margin:9px 0 0;font-size:14.5px;font-weight:300;color:#33403A}
+.pgo{font-family:var(--data);font-size:11px;color:var(--blue);margin:12px 0 0;letter-spacing:.03em}
+
+/* provenance + limits register */
+.reg{margin-top:24px;border:1px solid var(--rule);background:var(--plate)}
+.reg .row{display:flex;gap:14px;padding:12px 15px;border-bottom:1px solid var(--hair);
+  font-size:14.5px;font-weight:300;color:#28352F}
+.reg .row:last-child{border-bottom:0}
+.reg .k{flex:none;width:104px;font-family:var(--data);font-size:9px;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--graphite);padding-top:3px}
+.reg b{font-weight:400;color:var(--ink)}
+
+.foot{margin-top:24px;font-family:var(--data);font-size:9.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--graphite);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (max-width:640px){
+  .panels{grid-template-columns:1fr}
+  .panels a{border-right:0;border-bottom:1px solid var(--rule)}
+  .panels a:last-child{border-bottom:0}
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="eyebrow">
+    <span>Elliptic workbench</span>
+    <span>Rank-0 BSD channel</span>
+  </div>
+
+  <h1>Elliptic workbench</h1>
+
+  <p class="standfirst">
+    Given a minimal Weierstrass model of an elliptic curve over&nbsp;ℚ, the workbench assembles
+    the refined Birch&ndash;Swinnerton-Dyer quotient in the rank-zero channel: <b>L(E,1)</b> by a
+    smoothed Dirichlet series, the real period <b>&Omega;</b> by the arithmetic&ndash;geometric
+    mean, the Tamagawa product and a torsion bound by local analysis and point counts, and from
+    them an estimate of <b>|&#1064;|</b>. Two explainers below, each a reproduction of established
+    mathematics.
+  </p>
+
+  <div class="panels">
+    <a href="web/group-law.html">
+      <span class="pk">Sheet 01</span>
+      <p class="pt">The group law</p>
+      <p class="pd">The chord-and-tangent addition on an elliptic curve, drawn and worked through
+        step by step. Self-contained &mdash; no data, no dependencies.</p>
+      <p class="pgo">Open the group law &rarr;</p>
+    </a>
+    <a href="web/quotient-panel.html">
+      <span class="pk">Sheet 02</span>
+      <p class="pt">The rank-zero quotient</p>
+      <p class="pd">Four quantities reached by four different routes, assembled into the BSD
+        quotient, with what is <b>exact</b>, what is <b>certified</b> and what is merely
+        <b>consistent</b> kept apart.</p>
+      <p class="pgo">Open the quotient &rarr;</p>
+    </a>
+  </div>
+
+  <div class="reg">
+    <div class="row">
+      <span class="k">Provenance</span>
+      <span>Every figure is <b>engine-computed from the curve&rsquo;s integer coefficients alone</b>.
+        LMFDB&rsquo;s published values appear only as an oracle-after in the acceptance suite &mdash;
+        never as an input to the pipeline.</span>
+    </div>
+    <div class="row">
+      <span class="k">Limits</span>
+      <span>Rank&nbsp;0, &epsilon;&nbsp;=&nbsp;+1, semistable, minimal models. <b>|&#1064;| is an upper
+        bound</b>: the torsion is a gcd bound that enters the quotient squared, so an overshoot
+        inflates the estimate. Exact only where the torsion bound is tight.</span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>MIT &middot; Clifford Keeble</span>
+    <span>An explainer, and a reproduction of established mathematics</span>
+  </div>
+
+</div>
+</body>
+</html>
