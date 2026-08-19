@@ -7,8 +7,10 @@ on:
   #   branches: [main]
   #   paths:
   #     - 'index.html'
+  #     - '404.html'
   #     - 'web/**'
   #     - 'data/bsd-rank0.json'
+  #     - 'wrangler.jsonc'
   #     - 'tools/build-site.sh'
   #     - '.github/workflows/deploy.yml'
 
@@ -16,21 +18,22 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-pages
+  group: deploy-worker
   cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build the site
         run: sh tools/build-site.sh
 
-      - name: Publish to Cloudflare Pages
+      - name: Deploy to Cloudflare
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy _site --project-name=elliptic-workbench --branch=main
+          command: deploy
