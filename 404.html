@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Not found · Elliptic workbench</title>
+<link rel="stylesheet" href="web/fonts/fonts.css">
+<style>
+:root{
+  --film:#E4E8E4; --plate:#F2F4F1; --ink:#14201E; --graphite:#6E7A76;
+  --rule:#C4CCC6; --blue:#2D5F7C; --accent:#B8391E;
+  --display:"Archivo",-apple-system,"Segoe UI",sans-serif;
+  --body:"Spectral",Georgia,serif;
+  --data:"Azeret Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{background:var(--film);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  display:flex;align-items:center;justify-content:center;min-height:100%}
+.sheet{max-width:520px;padding:32px 24px;text-align:center}
+.eyebrow{font-family:var(--data);font-size:10.5px;font-weight:500;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--graphite)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(40px,10vw,72px);
+  line-height:1;letter-spacing:.02em;margin:14px 0 0;color:var(--accent)}
+p{margin:14px auto 0;max-width:44ch;font-weight:300;color:#28352F}
+a.home{display:inline-block;margin-top:22px;font-family:var(--data);font-size:12px;
+  letter-spacing:.04em;color:var(--blue);text-decoration:none;
+  border:1px solid var(--rule);padding:9px 14px}
+a.home:hover{border-color:var(--ink);color:var(--ink)}
+a.home:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <span class="eyebrow">Elliptic workbench &middot; 404</span>
+  <h1>Not found</h1>
+  <p>That page isn&rsquo;t here. It may have moved, or the link may be wrong.</p>
+  <a class="home" href="/">&larr; Back to the workbench</a>
+</div>
+</body>
+</html>
