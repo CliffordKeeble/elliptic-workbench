@@ -1,4 +1,16 @@
+# Repo-scale default: store LF, check out LF, so a Windows shell and a Linux
+# runner or mount cannot disagree about a file nobody edited. Added 29 August
+# 2026; see the specific rules below, which override this line.
+* text=auto eol=lf
+
 # The CI build script is executed by `sh` on the Linux runner. Keep shell
 # scripts LF regardless of the platform's core.autocrlf, so a CRLF checkout
 # cannot break the deploy. (Brief 07 §1 documents the CRLF/LF hazard here.)
+# Stated explicitly, after the blanket rule, so weakening the line above
+# cannot silently remove the deploy's protection.
 *.sh text eol=lf
+
+# 16 tracked binaries. text=auto detects them, but say it, because a corrupted
+# font or PDF is a silent failure.
+*.pdf   -text
+*.woff2 -text
