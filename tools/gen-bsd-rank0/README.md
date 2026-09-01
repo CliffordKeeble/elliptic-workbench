@@ -1,6 +1,6 @@
 # gen-bsd-rank0
 
-Producer of [`data/bsd-rank0.json`](../../data/bsd-rank0.json) (schema `bsd-rank0/v2`).
+Producer of [`data/bsd-rank0.json`](../../data/bsd-rank0.json) (schema `bsd-rank0/v6`).
 
 Runs the real `Elliptic.Bsd` engine over the rank-0 curves in the acceptance suite and
 emits the data contract for the rank-0 quotient panel. **Generator-side only** — it makes no
@@ -32,11 +32,16 @@ What it does beyond taking engine outputs:
 ## Run
 
 ```
-dotnet run -c Release --project tools/gen-bsd-rank0 -- <engineCommit> <YYYY-MM-DD> <outPath>
+dotnet run -c Release --project tools/gen-bsd-rank0 -- <engineCommit> <YYYY-MM-DD> <outPath> [<archiveDir>]
 ```
 
 `engineCommit` must be a git short SHA (7–40 hex): the generator refuses to run otherwise, so a
 mis-parsed or unexpanded argument fails loudly instead of stamping a bogus commit into the file.
+
+`archiveDir` is the LMFDB archive the `labels` block is read from, defaulting to
+`app/Elliptic.Bsd.Acceptance/lmfdb`. That default is **relative to the shell's working
+directory, not the project's** — `dotnet run --project` does not chdir to the project — so a run
+from anywhere but the repo root must pass it explicitly. CI passes it absolutely for that reason.
 
 Regenerate in place (bash or PowerShell, which expand `$(...)`; in cmd.exe pass the SHA literally):
 
@@ -45,4 +50,7 @@ dotnet run -c Release --project tools/gen-bsd-rank0 -- $(git rev-parse --short H
 ```
 
 Real quantities are emitted as JSON strings so precision beyond `double` survives the round trip.
-Labels are internal bench names, not LMFDB pulls.
+A curve's top-level `label` is an internal bench name, not an LMFDB pull; its `labels` block is the
+sourced one, carrying the Cremona and LMFDB labels read from the archived `ec_curvedata` record
+(Brief 06 §2). The two are separate on purpose — a value that feeds the panel's arithmetic must be
+sourced end to end, while a display label may name an unsourced attachment.

@@ -5,8 +5,8 @@ using System.Text.Json.Nodes;
 using Elliptic.Bsd;
 using Elliptic.Numerics;
 
-// Generator for data/bsd-rank0.json (schema v2). See tools/gen-bsd-rank0/README.md.
-// args: <engineCommit> <generatedDate> <outputPath>
+// Generator for data/bsd-rank0.json (schema v6). See tools/gen-bsd-rank0/README.md.
+// args: <engineCommit> <generatedDate> <outputPath> [<archiveDir>]
 string engineCommit = args.Length > 0 ? args[0] : "unknown";
 string generated    = args.Length > 1 ? args[1] : DateTime.UtcNow.ToString("yyyy-MM-dd");
 string outPath      = args.Length > 2 ? args[2] : "bsd-rank0.json";
