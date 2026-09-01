@@ -34,3 +34,31 @@ jobs:
 
       - name: Tests
         run: dotnet test tests/Elliptic.Bsd.Tests --configuration Release --no-build
+
+      # Catches a snapshot that no longer falls out of the engine that claims to have
+      # produced it. The banner in the panel catches a FAILED fetch; nothing caught a
+      # successful fetch of stale data, so an older engine's numbers would render as
+      # authoritative with no warning.
+      #
+      # The file's own engine.commit and engine.generated are read back OUT of the file
+      # and fed IN to the generator. This is deliberate: a bare run stamps today's date
+      # into engine.generated, so a naive regenerate-and-diff would go red every day, and
+      # a permanently red light is worse than no light. Feeding the provenance back asks
+      # the one question worth asking — do these numbers still fall out of this code?
+      #
+      # Both paths are absolute because `dotnet run --project` resolves relative paths
+      # against the SHELL's working directory, not the project's (verified 1 Sep 2026).
+      # Actions does run at the repo root, so relative would work, but the guard should
+      # not depend on that.
+      #
+      # CRs are stripped from both sides before comparing: System.Text.Json's indented
+      # writer emits Environment.NewLine, so the same bytes are CRLF on Windows and LF on
+      # Linux. Line endings are .gitattributes' job repo-wide; this guard is about content.
+      - name: Snapshot provenance guard
+        run: |
+          set -euo pipefail
+          COMMIT=$(python3 -c "import json;print(json.load(open('data/bsd-rank0.json'))['engine']['commit'])")
+          GENERATED=$(python3 -c "import json;print(json.load(open('data/bsd-rank0.json'))['engine']['generated'])")
+          dotnet run -c Release --no-build --project tools/gen-bsd-rank0 -- \
+            "$COMMIT" "$GENERATED" "$PWD/regen.json" "$PWD/app/Elliptic.Bsd.Acceptance/lmfdb"
+          diff -u <(tr -d '\r' < data/bsd-rank0.json) <(tr -d '\r' < regen.json)
