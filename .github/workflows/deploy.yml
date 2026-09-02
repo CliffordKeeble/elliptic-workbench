@@ -28,11 +28,16 @@ on:
 #   - Duplicating ci's snapshot guard into this job costs a setup-dotnet and a full
 #     regeneration on every deploy, and leaves two copies of the guard to maintain.
 #
-# The residual exposure is accepted, not overlooked: ci and deploy both fire on push to main
-# and neither waits for the other, so a commit that breaks the snapshot guard is deployed
-# while ci is still deciding. The window is one job duration (ci runs 25-36s to date), the
-# panel's load-time checks catch numerical nonsense though not a dishonest provenance stamp,
-# the remedy is a revert push, and the thing at risk is a demo site.
+# The residual exposure is accepted, not overlooked, and it is narrower than it first looks.
+# ci and deploy both fire on push to main and neither waits for the other, so a commit that
+# reds ci's snapshot guard can deploy while ci is still deciding. But the ONLY guard-relevant
+# path that is also a deploy path is data/bsd-rank0.json itself, which holds both the numbers
+# and the provenance stamp. A src/ or tools/gen-bsd-rank0/ change that shifts the numbers reds
+# the guard and triggers NO deploy at all, so the site keeps serving the unchanged committed
+# snapshot. The window therefore requires a commit that edits data/bsd-rank0.json. It is one
+# job duration wide (ci runs 25-36s to date), the panel's load-time checks catch numerical
+# nonsense though not a dishonest provenance stamp, the remedy is a revert push, and the thing
+# at risk is a demo site.
 
 permissions:
   contents: read
