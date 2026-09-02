@@ -20,6 +20,11 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+        with:
+          # The snapshot guard checks that engine.commit is an ancestor of HEAD, which needs
+          # the history it names. The default is a depth-1 clone, in which that check cannot
+          # succeed and would go red on every run.
+          fetch-depth: 0
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
@@ -54,11 +59,36 @@ jobs:
       # CRs are stripped from both sides before comparing: System.Text.Json's indented
       # writer emits Environment.NewLine, so the same bytes are CRLF on Windows and LF on
       # Linux. Line endings are .gitattributes' job repo-wide; this guard is about content.
+      #
+      # Do NOT add `git diff --quiet "$COMMIT" HEAD -- src/` to this guard. It is the obvious
+      # next thought and it is wrong twice over. It goes red on a comment-only change under
+      # src/ (0d1d5bb was exactly that), and it buys nothing the regeneration diff does not
+      # already buy - the guard runs the CURRENT generator at CURRENT HEAD, so if the engine
+      # changes such that the numbers change, the diff below goes red whatever the stamp says.
+      # Numerical drift is already fully covered. A red light people learn to ignore is worse
+      # than no light.
       - name: Snapshot provenance guard
         run: |
           set -euo pipefail
           COMMIT=$(python3 -c "import json;print(json.load(open('data/bsd-rank0.json'))['engine']['commit'])")
           GENERATED=$(python3 -c "import json;print(json.load(open('data/bsd-rank0.json'))['engine']['generated'])")
+          # The regeneration below proves the NUMBERS fall out of this code. It cannot prove the
+          # STAMP is honest, because the stamp is fed back in - so a hand-edited engine.commit
+          # naming any valid SHA would sail through. These two checks close that, and they are
+          # deliberately separate so a red badge says which thing broke.
+          if ! git cat-file -e "$COMMIT^{commit}" 2>/dev/null; then
+            echo "guard: engine.commit $COMMIT is not present in this clone."
+            echo "       This is infrastructure, not a provenance failure."
+            echo "       Is fetch-depth: 0 still set on the checkout step?"
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$COMMIT" HEAD; then
+            echo "guard: engine.commit $COMMIT is not an ancestor of HEAD."
+            echo "       The snapshot's provenance stamp names a commit outside this history."
+            echo "       Either the stamp is wrong, or history was rewritten under it."
+            exit 1
+          fi
+          echo "guard: engine.commit $COMMIT resolves to $(git rev-parse --short "$COMMIT^{commit}") and is an ancestor of HEAD."
           dotnet run -c Release --no-build --project tools/gen-bsd-rank0 -- \
             "$COMMIT" "$GENERATED" "$PWD/regen.json" "$PWD/app/Elliptic.Bsd.Acceptance/lmfdb"
           diff -u <(tr -d '\r' < data/bsd-rank0.json) <(tr -d '\r' < regen.json)
