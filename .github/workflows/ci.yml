@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
@@ -38,7 +38,7 @@ jobs:
         run: dotnet run --project app/Elliptic.Bsd.Acceptance --configuration Release --no-build
 
       - name: Tests
-        run: dotnet test tests/Elliptic.Bsd.Tests --configuration Release --no-build
+        run: dotnet test elliptic-workbench.slnx --configuration Release --no-build
 
       # Catches a snapshot that no longer falls out of the engine that claims to have
       # produced it. The banner in the panel catches a FAILED fetch; nothing caught a
