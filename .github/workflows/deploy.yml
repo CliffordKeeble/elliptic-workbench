@@ -2,21 +2,45 @@ name: deploy
 
 on:
   workflow_dispatch:
-  # push trigger added in a follow-up commit, once a manual run is green:
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - 'index.html'
-  #     - '404.html'
-  #     - 'web/**'
-  #     - 'data/bsd-rank0.json'
-  #     - 'wrangler.jsonc'
-  #     - 'tools/build-site.sh'
-  #     - '.github/workflows/deploy.yml'
+  # Every path below is an input to tools/build-site.sh or to wrangler. Keep the two in step:
+  # a build input that is not listed here can be edited on main and the site will never redeploy,
+  # silently and with nothing going red. _headers is the one that was missed the first time.
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - '404.html'
+      - 'web/**'
+      - 'data/bsd-rank0.json'
+      - '_headers'
+      - 'wrangler.jsonc'
+      - 'tools/build-site.sh'
+      - '.github/workflows/deploy.yml'
+
+# Do NOT gate this deploy on ci passing, by `workflow_run` or by merging the two workflows.
+# It is the obvious next thought and it is wrong three times over:
+#   - `workflow_run` has no `paths` filter, so every green ci run would redeploy whether or
+#     not a single deployed byte changed. That destroys the whole point of the list above.
+#   - `workflow_run` runs the workflow definition from the DEFAULT branch, not from the
+#     triggering commit, and needs an explicit `ref: github.event.workflow_run.head_sha` on
+#     checkout or it silently deploys the wrong tree. A gate that can silently deploy the
+#     wrong tree is worse than the race it was added to close.
+#   - Duplicating ci's snapshot guard into this job costs a setup-dotnet and a full
+#     regeneration on every deploy, and leaves two copies of the guard to maintain.
+#
+# The residual exposure is accepted, not overlooked: ci and deploy both fire on push to main
+# and neither waits for the other, so a commit that breaks the snapshot guard is deployed
+# while ci is still deciding. The window is one job duration (ci runs 25-36s to date), the
+# panel's load-time checks catch numerical nonsense though not a dishonest provenance stamp,
+# the remedy is a revert push, and the thing at risk is a demo site.
 
 permissions:
   contents: read
 
+# Latest-wins, and under `push` this is now genuinely reachable: two commits a minute apart
+# will cancel the first deploy mid-flight. That is right for a deploy, and a Workers asset
+# deploy activates atomically, so a cancel leaves either the old site or the new one and not
+# a mixture. Noted so a future cancelled run is recognised rather than investigated.
 concurrency:
   group: deploy-worker
   cancel-in-progress: true

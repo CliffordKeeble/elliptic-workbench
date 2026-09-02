@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
+# A file added to this list must also be added to the paths filter in
+# .github/workflows/deploy.yml, or editing it on main will never redeploy.
+#
 # Fail loudly if an input has moved. A renamed input must break the build,
 # not silently publish a partial site.
 for f in index.html 404.html web/group-law.html web/quotient-panel.html \
