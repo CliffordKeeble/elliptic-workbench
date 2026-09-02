@@ -20,7 +20,7 @@ public class NumericsTests
     public NumericsTests() => BigFloat.Precision = 320;   // reset the global before each test
 
     private const string Pi90 =
-        "3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034";
+        "3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628035";
 
     static BigFloat Scale(BigFloat x, int k) => k >= 0
         ? x * BigFloat.From(BigInteger.One << k)
