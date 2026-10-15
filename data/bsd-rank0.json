@@ -1,11 +1,11 @@
 {
   "schema": "elliptic-workbench/bsd-rank0/v6",
   "engine": {
-    "commit": "2a113bf",
-    "generated": "2026-08-01",
+    "commit": "b95b5d6",
+    "generated": "2026-10-15",
     "precisionDigits": 80
   },
-  "provenance": "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, Tamagawa product, torsion, root number, quotient), computed at 512-bit working precision with the term count set via digits so the engine\u0027s own TermsFor clears the Fizz-certified floor M. The generator only chooses the term count, computes the certificate (q, tail bound, certified digits), and DERIVES quantities the engine does not itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the engine computes. Cross-checked against a 640-bit run. Workbench ids are internal names; each curve\u0027s labels block carries its Cremona and LMFDB labels sourced from the archived ec_curvedata record (pulled 2026-07-30), with the model-to-published-curve attachment named per curve (Brief 06).",
+  "provenance": "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, Tamagawa product, torsion, root number, quotient), computed at 512-bit working precision with the term count set via digits so the engine\u0027s own TermsFor clears the Fizz-certified floor M. The generator only chooses the term count, computes the certificate (q, tail bound, certified digits), and DERIVES quantities the engine does not itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the engine computes. Cross-checked against a 640-bit run. Workbench ids are internal names; each curve\u0027s labels block carries its Cremona and LMFDB labels sourced from the archived ec_curvedata record (pulled 2026-07-31), with the model-to-published-curve attachment named per curve (Brief 06).",
   "certificate": "Fizz tail bound: |tail| \u003C= 4 q^(M\u002B1)/(1-q), q = exp(-2\u03C0/\u221AN), via |a_n/n| \u003C= 2 (Hasse \u002B divisor bound, bad primes included). Series verified against the engine (brief 03 \u00A72): leading 2, exp(-2\u03C0n/\u221AN), a_{p^k}=a_p^k at bad primes.",
   "modelAttachmentValues": [
     "a-invariants-match",
@@ -20,7 +20,7 @@
         "workbenchId": "11a1",
         "clabel": "11a1",
         "lmfdbLabel": "11.a2",
-        "labelSource": "ec_curvedata_11a1.json fields Clabel/lmfdb_label, archive pulled 2026-07-30",
+        "labelSource": "ec_curvedata_11a1.json fields Clabel/lmfdb_label, archive pulled 2026-07-31",
         "modelAttachment": "a-invariants-match",
         "modelAttachmentNote": null
       },
@@ -256,7 +256,7 @@
         "product": 5,
         "discriminant": "-161051",
         "discriminantIsMinimal": true,
-        "minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
+        "minimalityBasis": "engine constructor enforces, for every curve it accepts: each declared bad prime is a distinct prime in [2,2^31-1]; the declared primes are exactly the primes dividing \u0394 (dividing |\u0394| through by them leaves 1); reduction at each is multiplicative (p \u2224 c4); and N is their product. Multiplicative reduction is minimal, so with no other prime dividing \u0394 the model is minimal at every prime. The necessary u^12 test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6) is also still run, as a named diagnostic.",
         "perPrime": [
           {
             "p": 11,
@@ -276,7 +276,7 @@
         "exact": false,
         "method": "gcd bound",
         "trueOrder": 5,
-        "trueOrderSource": "LMFDB 11.a2 (https://www.lmfdb.org/EllipticCurve/Q/11a1/): a-invariants [0,-1,1,-10,-20] match; torsion Z/5Z, order 5; pulled 2026-07-29",
+        "trueOrderSource": "LMFDB 11.a2 (https://www.lmfdb.org/EllipticCurve/Q/11a1/): a-invariants [0,-1,1,-10,-20] match; torsion Z/5Z, order 5; pulled from the LMFDB CURVE PAGE 2026-07-29 (not the API archive, which was fetched 2026-07-31)",
         "gcdPrimes": [
           3,
           5,
@@ -328,7 +328,7 @@
         "workbenchId": "27606c1",
         "clabel": "27606c1",
         "lmfdbLabel": "27606.c1",
-        "labelSource": "ec_curvedata_27606c1.json fields Clabel/lmfdb_label, archive pulled 2026-07-30",
+        "labelSource": "ec_curvedata_27606c1.json fields Clabel/lmfdb_label, archive pulled 2026-07-31",
         "modelAttachment": "a-invariants-match",
         "modelAttachmentNote": null
       },
@@ -3722,7 +3722,7 @@
         "product": 3,
         "discriminant": "-459391446",
         "discriminantIsMinimal": true,
-        "minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
+        "minimalityBasis": "engine constructor enforces, for every curve it accepts: each declared bad prime is a distinct prime in [2,2^31-1]; the declared primes are exactly the primes dividing \u0394 (dividing |\u0394| through by them leaves 1); reduction at each is multiplicative (p \u2224 c4); and N is their product. Multiplicative reduction is minimal, so with no other prime dividing \u0394 the model is minimal at every prime. The necessary u^12 test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6) is also still run, as a named diagnostic.",
         "perPrime": [
           {
             "p": 2,
@@ -3769,7 +3769,7 @@
         "exact": false,
         "method": "gcd bound",
         "trueOrder": 1,
-        "trueOrderSource": "LMFDB 27606.c1 (https://www.lmfdb.org/EllipticCurve/Q/27606c1/): a-invariants [1,0,0,-10289707,12703497719] match; torsion trivial, order 1; pulled 2026-07-29",
+        "trueOrderSource": "LMFDB 27606.c1 (https://www.lmfdb.org/EllipticCurve/Q/27606c1/): a-invariants [1,0,0,-10289707,12703497719] match; torsion trivial, order 1; pulled from the LMFDB CURVE PAGE 2026-07-29 (not the API archive, which was fetched 2026-07-31)",
         "gcdPrimes": [
           5,
           7,
@@ -3821,7 +3821,7 @@
         "workbenchId": "30a1",
         "clabel": "30a1",
         "lmfdbLabel": "30.a8",
-        "labelSource": "ec_curvedata_30a1.json fields Clabel/lmfdb_label, archive pulled 2026-07-30",
+        "labelSource": "ec_curvedata_30a1.json fields Clabel/lmfdb_label, archive pulled 2026-07-31",
         "modelAttachment": "a-invariants-match",
         "modelAttachmentNote": null
       },
@@ -4114,7 +4114,7 @@
         "product": 6,
         "discriminant": "-2160",
         "discriminantIsMinimal": true,
-        "minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
+        "minimalityBasis": "engine constructor enforces, for every curve it accepts: each declared bad prime is a distinct prime in [2,2^31-1]; the declared primes are exactly the primes dividing \u0394 (dividing |\u0394| through by them leaves 1); reduction at each is multiplicative (p \u2224 c4); and N is their product. Multiplicative reduction is minimal, so with no other prime dividing \u0394 the model is minimal at every prime. The necessary u^12 test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6) is also still run, as a named diagnostic.",
         "perPrime": [
           {
             "p": 2,
@@ -4152,7 +4152,7 @@
         "exact": false,
         "method": "gcd bound",
         "trueOrder": 6,
-        "trueOrderSource": "LMFDB 30.a8 (https://www.lmfdb.org/EllipticCurve/Q/30a1/): a-invariants [1,0,1,1,2] match; torsion Z/6Z, order 6; pulled 2026-07-29",
+        "trueOrderSource": "LMFDB 30.a8 (https://www.lmfdb.org/EllipticCurve/Q/30a1/): a-invariants [1,0,1,1,2] match; torsion Z/6Z, order 6; pulled from the LMFDB CURVE PAGE 2026-07-29 (not the API archive, which was fetched 2026-07-31)",
         "gcdPrimes": [
           7,
           11,
@@ -4203,7 +4203,7 @@
         "workbenchId": "n233-reg",
         "clabel": "233a2",
         "lmfdbLabel": "233.a1",
-        "labelSource": "ec_curvedata_233a2.json fields Clabel/lmfdb_label, archive pulled 2026-07-30",
+        "labelSource": "ec_curvedata_233a2.json fields Clabel/lmfdb_label, archive pulled 2026-07-31",
         "modelAttachment": "invariant-match",
         "modelAttachmentNote": "LABEL-CONVENTIONS.md \u2014 the workbench model is non-minimal; identity to the published curve rests on a c4/c6/\u0394 match (ours, not the archive\u0027s)"
       },
@@ -4739,7 +4739,7 @@
         "product": 1,
         "discriminant": "233",
         "discriminantIsMinimal": true,
-        "minimalityBasis": "engine constructor enforces the necessary u^12 minimality test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6 rejected)",
+        "minimalityBasis": "engine constructor enforces, for every curve it accepts: each declared bad prime is a distinct prime in [2,2^31-1]; the declared primes are exactly the primes dividing \u0394 (dividing |\u0394| through by them leaves 1); reduction at each is multiplicative (p \u2224 c4); and N is their product. Multiplicative reduction is minimal, so with no other prime dividing \u0394 the model is minimal at every prime. The necessary u^12 test (p^12|\u0394 \u2227 p^4|c4 \u2227 p^6|c6) is also still run, as a named diagnostic.",
         "perPrime": [
           {
             "p": 233,
