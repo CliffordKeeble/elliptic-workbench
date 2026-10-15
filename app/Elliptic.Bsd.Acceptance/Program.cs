@@ -138,13 +138,15 @@ string omega37 = "5.9869172924639192596640199589";
 string omega389 = "4.9804251217101101506427155839";
 // n233 = LMFDB 233.a1 (Cremona 233a2)
 long root233 = +1, tam233 = 1, tor233 = 2;
+string omega233 = "5.5685343942644786617970905028";
+string lval233 = "1.3921335985661196654492726256926551267";
 string sha233 = "1";
 
 // ── Constants vs archive — the middle link (CinC follow-on) ─────────────────
 // The engine checks below prove engine == constant; the integrity block above proves
 // archive == manifest. Neither proves constant == archive — and if a constant were an
 // oracle-after copied from the engine rather than from LMFDB, engine == constant would
-// pass while proving nothing (W-107). This block pins each constant to its independent
+// pass while proving nothing. This block pins each constant to its independent
 // archived source field, so engine == constant == archive gives real engine == archive.
 // The SAME variables asserted here are the ones fed to the engine comparison below.
 Console.WriteLine("Constants vs archive — the middle link");
@@ -163,7 +165,7 @@ long AInt(JsonNode rec, string field) => rec[field]!.GetValue<long>();
 string ALit(JsonNode rec, string field) => rec[field]!["data"]!.GetValue<string>();
 // The conductor and the bad primes are INPUTS to the engine, not just reference values, so
 // they come from the archive like everything else rather than from literals typed at the
-// bench (A3, 1015-FLINT-2). Both are in every ec_curvedata record, and both are now in the
+// bench. Both are in every ec_curvedata record, and both are now in the
 // manifest's requiredFields, so the integrity block above covers them.
 long NOf(JsonNode cd) => AInt(cd, "conductor");
 long[] PsOf(JsonNode cd) => cd["bad_primes"]!.AsArray().Select(n => n!.GetValue<long>()).ToArray();
@@ -179,53 +181,68 @@ void EqSha(string name, string c, JsonNode mw)              // sha_an is stored 
     CheckBool(name, ok, ok ? $"{c} = archive sha_an {a}" : $"constant {c} != archive sha_an {a}");
 }
 JsonNode? TryRec(string file) { try { return Rec(file); } catch { return null; } }
+// A curve whose mwbsd record is absent cannot have its mwbsd constants checked. MapCurve has
+// already printed the FAIL that names the file; this prints what was not run (not counted).
+bool HasMw([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] JsonNode? mw, string curve, string what)
+{
+    if (mw is not null) return true;
+    Console.WriteLine($"  [SKIP] {(what.StartsWith(curve) ? what : curve + " " + what)}: its ec_mwbsd record is absent (see the map line above)");
+    return false;
+}
 
-// Resolve a curve's two archive records from its Cremona label alone (Brief 06 §3). The
+// Resolve a curve's two archive records from its Cremona label alone. The
 // Cremona↔LMFDB correspondence is taken from the ec_curvedata record's own lmfdb_label —
-// NOT a hardcoded pairing, which would be a bench constant with no source (W-107 one level up,
-// inside the artefact built to close it). Assert at BOTH hops that each record's own label
+// NOT a hardcoded pairing, which would be a bench constant with no source (the same failure one level
+// up, inside the artefact built to close it). Assert at BOTH hops that each record's own label
 // matches the file it was opened by, so a mis-named file cannot pass the map off as sourced
 // from a filename. This deliberately does not lean on the manifest's expectedLabel (hand-typed).
-(JsonNode cd, JsonNode mw) MapCurve(string clabel)
+// mw is null when the mwbsd record cannot be read: the caller then skips that curve's mwbsd
+// checks (it used to be handed the curvedata record instead, and failed on a null reference).
+(JsonNode cd, JsonNode? mw) MapCurve(string clabel)
 {
     var cd = Rec($"ec_curvedata_{clabel}.json");             // presence integrity-guaranteed
     string cdLabel    = cd["Clabel"]!.GetValue<string>();
     string lmfdbLabel = cd["lmfdb_label"]!.GetValue<string>();
-    var mw = TryRec($"ec_mwbsd_{lmfdbLabel}.json");
+    string mwFile = $"ec_mwbsd_{lmfdbLabel}.json";
+    var mw = TryRec(mwFile);
     string mwLabel = mw?["lmfdb_label"]?.GetValue<string>() ?? "(absent)";
     bool ok = cdLabel == clabel && mw is not null && mwLabel == lmfdbLabel;
     CheckBool($"map {clabel} → {lmfdbLabel} (Cremona↔LMFDB from the ec_curvedata record, not hardcoded)", ok,
         ok ? "curvedata Clabel✓, derived mwbsd lmfdb_label✓"
-           : $"MISMATCH: curvedata Clabel={cdLabel} (want {clabel}); mwbsd for '{lmfdbLabel}' lmfdb_label={mwLabel}");
-    return (cd, mw ?? cd);
+           : mw is null
+               ? $"FAIL: {mwFile} is absent or unreadable in the archive; this curve's mwbsd checks are skipped"
+               : $"MISMATCH: curvedata Clabel={cdLabel} (want {clabel}); mwbsd for '{lmfdbLabel}' lmfdb_label={mwLabel}");
+    return (cd, mw);
 }
 
 var (cd11, mw11) = MapCurve("11a1");
 EqInt("11a1 root ε ← (−1)^analytic_rank", root11, RootOf(AInt(cd11, "analytic_rank")));
-EqInt("11a1 ∏c_p ← tamagawa_product",     tam11,   AInt(mw11, "tamagawa_product"));
+if (HasMw(mw11, "11a1", "11a1 ∏c_p ← tamagawa_product")) EqInt("11a1 ∏c_p ← tamagawa_product",     tam11,   AInt(mw11, "tamagawa_product"));
 EqInt("11a1 torsion ← curvedata torsion", tor11,   AInt(cd11, "torsion"));
-EqStr("11a1 Ω ← real_period",             omega11, ALit(mw11, "real_period"));
-EqStr("11a1 L(E,1) ← special_value",      lval11,  ALit(mw11, "special_value"));
-EqSha("11a1 |Sha| ← sha_an",              sha11,   mw11);
+if (HasMw(mw11, "11a1", "11a1 Ω ← real_period")) EqStr("11a1 Ω ← real_period",             omega11, ALit(mw11, "real_period"));
+if (HasMw(mw11, "11a1", "11a1 L(E,1) ← special_value")) EqStr("11a1 L(E,1) ← special_value",      lval11,  ALit(mw11, "special_value"));
+if (HasMw(mw11, "11a1", "11a1 |Sha| ← sha_an")) EqSha("11a1 |Sha| ← sha_an",              sha11,   mw11);
 
 var (cd27, mw27) = MapCurve("27606c1");
 EqInt("27606c1 root ε ← (−1)^analytic_rank", root27, RootOf(AInt(cd27, "analytic_rank")));
-EqInt("27606c1 ∏c_p ← tamagawa_product",     tam27,   AInt(mw27, "tamagawa_product"));
+if (HasMw(mw27, "27606c1", "27606c1 ∏c_p ← tamagawa_product")) EqInt("27606c1 ∏c_p ← tamagawa_product",     tam27,   AInt(mw27, "tamagawa_product"));
 EqInt("27606c1 torsion ← curvedata torsion", tor27,   AInt(cd27, "torsion"));
-EqStr("27606c1 Ω ← real_period",             omega27, ALit(mw27, "real_period"));
-EqStr("27606c1 L(E,1) ← special_value",      lval27,  ALit(mw27, "special_value"));
-EqSha("27606c1 |Sha| ← sha_an",              sha27,   mw27);
+if (HasMw(mw27, "27606c1", "27606c1 Ω ← real_period")) EqStr("27606c1 Ω ← real_period",             omega27, ALit(mw27, "real_period"));
+if (HasMw(mw27, "27606c1", "27606c1 L(E,1) ← special_value")) EqStr("27606c1 L(E,1) ← special_value",      lval27,  ALit(mw27, "special_value"));
+if (HasMw(mw27, "27606c1", "27606c1 |Sha| ← sha_an")) EqSha("27606c1 |Sha| ← sha_an",              sha27,   mw27);
 
 var (cd37, mw37) = MapCurve("37a1");
-EqStr("37a1 Ω ← real_period",  omega37,  ALit(mw37, "real_period"));
+if (HasMw(mw37, "37a1", "37a1 Ω ← real_period")) EqStr("37a1 Ω ← real_period",  omega37,  ALit(mw37, "real_period"));
 var (cd389, mw389) = MapCurve("389a1");
-EqStr("389a1 Ω ← real_period", omega389, ALit(mw389, "real_period"));
+if (HasMw(mw389, "389a1", "389a1 Ω ← real_period")) EqStr("389a1 Ω ← real_period", omega389, ALit(mw389, "real_period"));
 
 var (cd233, mw233) = MapCurve("233a2");
 EqInt("n233 root ε ← (−1)^analytic_rank", root233, RootOf(AInt(cd233, "analytic_rank")));
-EqInt("n233 ∏c_p ← tamagawa_product",     tam233,  AInt(mw233, "tamagawa_product"));
+if (HasMw(mw233, "n233", "n233 ∏c_p ← tamagawa_product")) EqInt("n233 ∏c_p ← tamagawa_product",     tam233,  AInt(mw233, "tamagawa_product"));
 EqInt("n233 torsion ← curvedata torsion", tor233,  AInt(cd233, "torsion"));
-EqSha("n233 |Sha| ← sha_an",              sha233,  mw233);
+if (HasMw(mw233, "n233", "n233 Ω ← real_period")) EqStr("n233 Ω ← real_period",             omega233, ALit(mw233, "real_period"));
+if (HasMw(mw233, "n233", "n233 L(E,1) ← special_value")) EqStr("n233 L(E,1) ← special_value",      lval233,  ALit(mw233, "special_value"));
+if (HasMw(mw233, "n233", "n233 |Sha| ← sha_an")) EqSha("n233 |Sha| ← sha_an",              sha233,  mw233);
 Console.WriteLine();
 
 // ── 11a1 = LMFDB 11.a2 = [0,−1,1,−10,−20], N = 11 ───────────────────────────
@@ -237,7 +254,7 @@ CheckLong("∏c_p (tamagawa_product)", r11.TamagawaProduct, tam11, "LMFDB 11.a2"
 CheckLong("torsion — bound = published order 5 (tight)", r11.TorsionBound, tor11, "LMFDB 11.a2 order");
 CheckDecimal("Ω (real_period)", r11.Omega, omega11, "LMFDB 11.a2");
 CheckDecimal("L(E,1) (special_value)", r11.LValue, lval11, "LMFDB 11.a2", atDp: 28);
-CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r11.ShaEstimate, sha11, "LMFDB 11.a2");
+if (HasMw(mw11, "11a1", "|Sha| analytic order (sha_an)")) CheckDecimal("|Sha| analytic order (sha_an)", r11.ShaEstimate, ALit(mw11, "sha_an"), "LMFDB 11.a2");
 Console.WriteLine();
 
 // ── 27606c1 = LMFDB 27606.c1 = [1,0,0,−10289707,12703497719] ─────────────────
@@ -249,7 +266,7 @@ CheckLong("∏c_p (tamagawa_product)", r27.TamagawaProduct, tam27, "LMFDB 27606.
 CheckLong("torsion — bound = published order 1 (tight)", r27.TorsionBound, tor27, "LMFDB 27606.c1 order");
 CheckDecimal("Ω (real_period)", r27.Omega, omega27, "LMFDB 27606.c1");
 CheckDecimal("L(E,1) (special_value)", r27.LValue, lval27, "LMFDB 27606.c1", atDp: 28);
-CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r27.ShaEstimate, sha27, "LMFDB 27606.c1");
+if (HasMw(mw27, "27606c1", "|Sha| analytic order (sha_an)")) CheckDecimal("|Sha| analytic order (sha_an)", r27.ShaEstimate, ALit(mw27, "sha_an"), "LMFDB 27606.c1");
 Console.WriteLine();
 
 // ── Period-only cross-checks, Δ > 0 branch (rank ≥ 1) ───────────────────────
@@ -271,7 +288,9 @@ var r233 = BsdCompiler.RunRankZero(e233, digits: 30);
 CheckLong("root number ε (ar=0)", r233.RootNumber, root233, "LMFDB 233.a1");
 CheckLong("∏c_p (tamagawa_product)", r233.TamagawaProduct, tam233, "LMFDB 233.a1");
 CheckLong("torsion — bound = published order 2 (tight)", r233.TorsionBound, tor233, "LMFDB 233.a1 order");
-CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r233.ShaEstimate, sha233, "LMFDB 233.a1");
+CheckDecimal("Ω (real_period)", r233.Omega, omega233, "LMFDB 233.a1");
+CheckDecimal("L(E,1) (special_value)", r233.LValue, lval233, "LMFDB 233.a1", atDp: 28);
+if (HasMw(mw233, "n233", "|Sha| analytic order (sha_an)")) CheckDecimal("|Sha| analytic order (sha_an)", r233.ShaEstimate, ALit(mw233, "sha_an"), "LMFDB 233.a1");
 Console.WriteLine();
 
 // ── 30a1 = LMFDB 30.a8 — torsion-bound benchmark (Brief 03 step 7) ───────────

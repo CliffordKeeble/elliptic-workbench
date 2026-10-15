@@ -11,7 +11,7 @@ namespace Elliptic.Bsd;
 /// The caller supplies the five coefficients, the conductor and the bad primes. v1 is
 /// semistable-only, and the constructor now ENFORCES the three facts that must hold of
 /// such a curve on a minimal model, refusing anything else rather than returning numbers
-/// it cannot stand behind (D37, 1015-FLINT-2):
+/// it cannot stand behind:
 ///  - every declared bad prime is a distinct prime in [2, 2³¹ − 1];
 ///  - the declared primes are EXACTLY the primes dividing Δ (each divides it, and dividing
 ///    |Δ| through by them leaves 1);
@@ -21,14 +21,15 @@ namespace Elliptic.Bsd;
 /// reduction is automatically minimal, and no other prime divides Δ. That is strictly stronger
 /// than the old necessary-only u¹²-test, which is kept as a named diagnostic because it fires
 /// with a clearer message on a rescaled model whose scaling prime the caller did declare.
-/// Papers: 141 (rank-0 grammar), 144 (|Sha| = 4), 145 (consolidation).
+/// Papers: papers/paper_141_boot_sequence/ (rank-0 grammar), papers/paper_144_genuine_phantoms/
+/// (|Sha| = 4), papers/paper_145_bsd_compiler/ (consolidation).
 /// </summary>
 public sealed class EllipticCurve
 {
     public readonly BigInteger A1, A2, A3, A4, A6;
     public readonly BigInteger B2, B4, B6, B8, C4, C6, Delta;
     public readonly long Conductor;
-    public readonly long[] BadPrimes;
+    public IReadOnlyList<long> BadPrimes { get; }
 
     public EllipticCurve(BigInteger a1, BigInteger a2, BigInteger a3, BigInteger a4, BigInteger a6,
                          long conductor, long[] badPrimes)
@@ -47,8 +48,8 @@ public sealed class EllipticCurve
         // ── Step 1: badPrimes is a set of genuine primes, before any arithmetic uses them.
         // p = 1 made Ord loop for ever, p = 0 raised DivideByZeroException from inside the
         // guard below, and a negative p produced a nonsense ε. All three now stop here.
-        // 2³¹ − 1 is the bound at which Ap's long products and Analytic.TermsFor's int cast
-        // stay safe; trial division to √p is then at most 46,341 steps.
+        // 2³¹ − 1 bounds each prime, not N: it keeps Ap's long products safe and trial division
+        // to √p at most 46,341 steps. The bound on N is Analytic.TermsFor's cap of 10,000,000 terms.
         if (badPrimes is null) throw new ArgumentNullException(nameof(badPrimes));
         for (int i = 0; i < badPrimes.Length; i++)
         {
@@ -64,10 +65,12 @@ public sealed class EllipticCurve
         }
 
         Conductor = conductor;
-        // Step 5: copy, so a caller cannot mutate the array after it has been validated.
-        BadPrimes = badPrimes.ToArray();
+        // ── Step 2: keep a read-only view over a private copy. The caller cannot mutate the
+        // array they passed after it has been validated, and cannot cast what they read back to one.
+        BadPrimes = Array.AsReadOnly(badPrimes.ToArray());
 
-        // ── Step 2: unchanged.
+        // ── Step 3: per declared prime: it divides Δ, the model is not visibly non-minimal,
+        // and the reduction is multiplicative.
         foreach (var p in badPrimes)
         {
             if (Delta % p != 0)
@@ -83,7 +86,7 @@ public sealed class EllipticCurve
                     $"Additive reduction at p = {p} (ord_p(c₄) > 0): full Tate algorithm is v3 scope.");
         }
 
-        // ── Step 3: the declared primes are ALL of them. Step 2 only checks that each
+        // ── Step 4: the declared primes are ALL of them. Step 3 only checks that each
         // declared prime divides Δ, so a rescaled model whose scaling prime is undeclared
         // slipped through with every per-prime test passing (11a1 at u = 2 declaring only
         // { 11 } returned a halved Ω and |Ш| = 2.348). No factorisation is needed: divide
@@ -97,7 +100,7 @@ public sealed class EllipticCurve
                 $"primes leaves the cofactor {residual}. The declared primes must be exactly " +
                 $"the primes dividing Δ.");
 
-        // ── Step 4: N = ∏p. BigInteger so a long product cannot wrap round into agreement.
+        // ── Step 5: N = ∏p. BigInteger so a long product cannot wrap round into agreement.
         var product = BigInteger.One;
         foreach (var p in badPrimes) product *= p;
         if (product != conductor)
@@ -116,8 +119,14 @@ public sealed class EllipticCurve
         return true;
     }
 
+    /// <summary>
+    /// The exponent of the prime p in n. <c>int.MaxValue</c> for n = 0, where the valuation is
+    /// infinite: not a throw, because the u¹² test evaluates Ord(c₄, p) and c₄ = 0 is a legal model.
+    /// </summary>
     public static int Ord(BigInteger n, long p)
     {
+        if (p < 2) throw new ArgumentOutOfRangeException(nameof(p), p, "Ord needs p ≥ 2 (p = 1 divides everything and never terminates).");
+        if (n.IsZero) return int.MaxValue;
         n = BigInteger.Abs(n);
         int k = 0;
         while (!n.IsZero && n % p == 0) { n /= p; k++; }
@@ -129,10 +138,12 @@ public sealed class EllipticCurve
     /// <summary>
     /// a_p = p + 1 − #E(𝔽_p) by direct counting. Valid as the L-series coefficient for good
     /// primes and, via the naive count that includes the singular point, for multiplicative
-    /// and additive reduction as well (Paper 144 review, Turn 2).
+    /// and additive reduction as well (papers/paper_144_genuine_phantoms/ review).
     /// </summary>
     public long Ap(long p)
     {
+        if (p < 2) throw new ArgumentOutOfRangeException(nameof(p), p, "Ap needs a prime p ≥ 2.");
+        if (!IsPrime(p)) throw new ArgumentException($"Ap needs a prime; {p} is composite.", nameof(p));
         if (p == 2)
         {
             long count = 1; // point at infinity
@@ -171,7 +182,7 @@ public sealed class EllipticCurve
 
     private static long PowMod(long b, long e, long m)
     {
-        // m < 2^31 in v1 usage, so 128-bit-safe via ulong products.
+        // m < 2³¹ in v1 usage, so every product is below 2⁶² and the ulong arithmetic never wraps.
         ulong result = 1, bb = (ulong)(b % m);
         ulong mm = (ulong)m;
         while (e > 0)
@@ -264,16 +275,24 @@ public sealed class EllipticCurve
         return prod;
     }
 
+    /// <summary>The odd primes <see cref="TorsionBound"/> takes the gcd of #E(𝔽_p) over. No 2: reduction need not be injective on torsion there.</summary>
+    public static IReadOnlyList<long> TorsionPrimes { get; } =
+        Array.AsReadOnly(new long[] { 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 });
+
     /// <summary>Upper bound on |E(ℚ)_tors| via gcd of #E(𝔽_p) over small good odd primes.</summary>
     public long TorsionBound()
     {
         long g = 0;
-        foreach (var p in new long[] { 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 })
+        foreach (var p in TorsionPrimes)
         {
             if (Delta % p == 0) continue;
             long np = p + 1 - Ap(p);
             g = g == 0 ? np : Gcd(g, np);
         }
+        // Every listed prime divides Δ (it takes N ≥ 3.7·10¹²): there is no bound, and returning
+        // 0 would have made |Ш| = 0.
+        if (g == 0)
+            throw new NotSupportedException("TorsionBound: every torsion prime divides Δ, so no bound is available.");
         return g;
     }
 

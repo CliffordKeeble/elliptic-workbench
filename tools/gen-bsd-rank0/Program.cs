@@ -7,11 +7,12 @@ using Elliptic.Numerics;
 
 // Generator for data/bsd-rank0.json (schema v6). See tools/gen-bsd-rank0/README.md.
 // args: <engineCommit> <generatedDate> <outputPath> [<archiveDir>]
+var inv = CultureInfo.InvariantCulture;
 string engineCommit = args.Length > 0 ? args[0] : "unknown";
-string generated    = args.Length > 1 ? args[1] : DateTime.UtcNow.ToString("yyyy-MM-dd");
+string generated    = args.Length > 1 ? args[1] : DateTime.UtcNow.ToString("yyyy-MM-dd", inv);
 string outPath      = args.Length > 2 ? args[2] : "bsd-rank0.json";
-// Brief 06 §2: the one archive the labels are sourced from (the coupling Sketch blessed —
-// one archive that must agree, not a second copy). Default assumes the repo root as cwd.
+// Brief 06 §2: the one archive the labels are sourced from (one archive that must agree, not a
+// second copy). Default assumes the repo root as cwd.
 string archiveDir   = args.Length > 3 ? args[3] : Path.Combine("app", "Elliptic.Bsd.Acceptance", "lmfdb");
 
 // sha guard: refuse to stamp the file with a non-sha commit (e.g. an unexpanded "$(git ...").
@@ -25,7 +26,6 @@ if (!System.Text.RegularExpressions.Regex.IsMatch(engineCommit, "^[0-9a-fA-F]{7,
 const int OutDigits = 80;    // certified decimal digits emitted for real quantities
 const int WorkBits  = 512;   // primary working precision
 const int CheckBits = 640;   // second precision, to test the implementation (section 9)
-var inv = CultureInfo.InvariantCulture;
 
 // ── Brief 06 §2: per-curve label block, sourced from the LMFDB archive ──────────
 // modelAttachment says how the workbench MODEL was tied to the published curve. A value that
@@ -33,7 +33,7 @@ var inv = CultureInfo.InvariantCulture;
 // it may NAME an unsourced attachment rather than absorb it. The enum is all THREE from the start
 // (§2) so a curve added later cannot be forced into "a-invariants-match" for lack of "unverified":
 //   a-invariants-match — workbench a-invariants compared to LMFDB's displayed a-invariants, matched
-//   invariant-match    — identity via a c4/c6/Δ (j) match; the workbench model differs (e.g. non-minimal)
+//   invariant-match    — identity via a c4/c6/Δ (j) match; the workbench model differs (e.g. a translation of the minimal model)
 //   unverified         — nothing checked (e.g. curves the panel does not use)
 string[] ModelAttachmentEnum = { "a-invariants-match", "invariant-match", "unverified" };
 // Clabel = the archive key (Cremona label). It equals the workbench id for three curves; for
@@ -45,13 +45,19 @@ var labelInfo = new Dictionary<string, (string Clabel, string ModelAttachment)>
     ["30a1"]     = ("30a1",    "a-invariants-match"),
     ["n233-reg"] = ("233a2",   "invariant-match"),
 };
-string labelAccessDate = "unknown";
-try { labelAccessDate = JsonNode.Parse(File.ReadAllText(Path.Combine(archiveDir, "manifest.json")))!["accessDate"]!.GetValue<string>(); }
-catch { /* leave unknown; the block still records the source file */ }
+// A missing or malformed manifest used to be swallowed here and published as "archive pulled
+// unknown". It stops the run instead, naming the file.
+string manifestPath = Path.Combine(archiveDir, "manifest.json");
+string labelAccessDate;
+try { labelAccessDate = JsonNode.Parse(File.ReadAllText(manifestPath))!["accessDate"]!.GetValue<string>(); }
+catch (Exception ex)
+{
+    throw new InvalidDataException($"gen: cannot read accessDate from {manifestPath}: {ex.Message}", ex);
+}
 
 // Read a curve's Cremona + LMFDB labels from its ec_curvedata record, taking the correspondence
 // from the record and asserting the record's own Clabel matches the file it was opened by — the
-// Brief 06 §3 discipline applied generator-side, so the map is never sourced from a filename.
+// same discipline applied generator-side, so the map is never sourced from a filename.
 (string clabel, string lmfdbLabel) ArchiveLabels(string clabelKey)
 {
     var data = JsonNode.Parse(File.ReadAllText(Path.Combine(archiveDir, $"ec_curvedata_{clabelKey}.json")))!["data"];
@@ -59,12 +65,9 @@ catch { /* leave unknown; the block still records the source file */ }
     string cl = rec["Clabel"]!.GetValue<string>();
     string ll = rec["lmfdb_label"]!.GetValue<string>();
     if (cl != clabelKey)
-        throw new Exception($"gen: ec_curvedata_{clabelKey}.json carries Clabel={cl}, not {clabelKey} — archive label map broken");
+        throw new InvalidDataException($"gen: ec_curvedata_{clabelKey}.json carries Clabel={cl}, not {clabelKey} — archive label map broken");
     return (cl, ll);
 }
-
-// Engine's hardcoded torsion gcd primes (Curve.cs TorsionBound): odd primes only, no 2.
-long[] EngineGcdPrimes = { 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 };
 
 // TrueOrder is a CURATED external value: the true torsion order, pulled from a published source
 // (LMFDB) with the date, NOT computed by the engine or taken from the xUnit suite. It is null where
@@ -81,7 +84,7 @@ var defs = new (string Label, string Prov, long A1, long A2, long A3, long A4, l
         null, "NULL BY CinC RULING (brief 05). LMFDB lists conductor 233 as minimal model [1,0,1,-5,3] = 233.a1 (torsion Z/2Z). Our model [1,3,0,-1,0] is the same curve: matching c4=217, c6=-3133, Delta=233 fixes it up to isomorphism over Q and torsion order is an isomorphism invariant, so the identification is a theorem, not a guess. It is left null anyway: the value would only make n233 a fourth tight example, whereas the null is a visible instance of the provenance rule declining (source-displayed accepted; derived-by-us, however sound, not). Reasoning recorded so the value is one step away if ever needed."),
 };
 
-// Fizz inversion: for D certified digits, M = ceil((D·ln10 + ln(4/(1-q))) / (-ln q)), q = exp(-2π/√N).
+// Tail-bound inversion: for D certified digits, M = ceil((D·ln10 + ln(4/(1-q))) / (-ln q)), q = exp(-2π/√N).
 // M is a FLOOR on the term count; using more terms only certifies more digits.
 static int InvertTerms(long N, int D)
 {
@@ -97,7 +100,7 @@ static int ChooseDigits(long N, int M, int emit)
     return d;
 }
 
-// Fizz tail bound at a given term count: 4 q^(nmax+1) / (1-q).
+// Tail bound at a given term count: 4 q^(nmax+1) / (1-q), from |a_n/n| <= 2.
 static double TailAt(long N, int nmax)
 {
     double q = Math.Exp(-2.0 * Math.PI / Math.Sqrt(N));
@@ -157,8 +160,8 @@ foreach (var d in defs)
     BigFloat.Precision = WorkBits;
 
     // ---- assertion (a): gcd over odd good primes only (derived; engine gives only the value) ----
-    var gcdPrimes = EngineGcdPrimes.Where(p => e.Delta % p != 0).ToArray();
-    bool excludesTwo = !EngineGcdPrimes.Contains(2);
+    var gcdPrimes = EllipticCurve.TorsionPrimes.Where(p => e.Delta % p != 0).ToArray();
+    bool excludesTwo = !EllipticCurve.TorsionPrimes.Contains(2L);
     long gcdCheck = 0; foreach (var p in gcdPrimes) { long np = p + 1 - e.Ap(p); gcdCheck = gcdCheck == 0 ? np : Gcd(gcdCheck, np); }
     bool torCrosscheck = gcdCheck == tor;
 
@@ -192,10 +195,10 @@ foreach (var d in defs)
     // Brief 06 §2: resolve this curve's labels from the archive (the §3-sourced correspondence).
     var (archClabel, attachment) = labelInfo[d.Label];
     if (!ModelAttachmentEnum.Contains(attachment))
-        throw new Exception($"gen: {d.Label} modelAttachment '{attachment}' not in the enum");
+        throw new InvalidDataException($"gen: {d.Label} modelAttachment '{attachment}' not in the enum");
     var (clab, lmfdbLab) = ArchiveLabels(archClabel);
     string? attachNote = attachment == "invariant-match"
-        ? "LABEL-CONVENTIONS.md — the workbench model is non-minimal; identity to the published curve rests on a c4/c6/Δ match (ours, not the archive's)"
+        ? "LABEL-CONVENTIONS.md — the workbench model is LMFDB's minimal model up to a translation (u = 1), not LMFDB's reduced form; identity to the published curve rests on a c4/c6/Δ match (ours, not the archive's)"
         : null;
 
     curvesJson.Add(new JsonObject
@@ -221,7 +224,7 @@ foreach (var d in defs)
             ["value"] = rep.LValue.ToDecimalString(OutDigits),   // engine output (RunRankZero)
             ["method"] = "smoothed Dirichlet series",
             ["termsUsed"] = termsUsed,                           // the engine's actual term count
-            ["termsRequired"] = M,                               // Fizz inversion: the certified floor
+            ["termsRequired"] = M,                               // tail-bound inversion: the certified floor
             ["termsRule"] = "engine LValueRankZero at digits chosen so its TermsFor >= M; M = ceil((D·ln10 + ln(4/(1-q)))/(-ln q))",
             ["q"] = qbf.ToDecimalString(60),
             ["tailBound"] = tailD.ToString("E4", inv),           // tail at termsUsed
@@ -248,7 +251,7 @@ foreach (var d in defs)
         ["tamagawa"] = new JsonObject
         {
             ["product"] = prod,                                  // engine output
-            ["discriminant"] = e.Delta.ToString(),               // engine field
+            ["discriminant"] = e.Delta.ToString(inv),               // engine field
             ["discriminantIsMinimal"] = true,
             ["minimalityBasis"] = "engine constructor enforces, for every curve it accepts: each declared bad prime is a distinct "
                                         + "prime in [2,2^31-1]; the declared primes are exactly the primes dividing Δ (dividing |Δ| through by them leaves 1); "
@@ -257,8 +260,9 @@ foreach (var d in defs)
                                         + "is also still run, as a named diagnostic.",
             ["perPrime"] = perPrime,
             ["allSemistable"] = allSemistable,
-            ["perPrimeProvenance"] = "derived in generator from public primitives (Ord, Δ, a_p) per the (v_p(Δ),a_p) recipe; the engine "
-                                   + "computes only the product, so nothing is duplicated. Product cross-checked against engine TamagawaProduct = "
+            ["perPrimeProvenance"] = "derived in generator from public primitives (Ord, Δ, a_p) per the (v_p(Δ),a_p) recipe; this "
+                                   + "duplicates the engine's per-prime c_p rule on purpose, as a cross-check, because the engine returns only the "
+                                   + "product. Product cross-checked against engine TamagawaProduct = "
                                    + (tamagawaCrosscheck ? "OK" : "MISMATCH"),
         },
         ["torsion"] = new JsonObject
@@ -307,13 +311,13 @@ var root = new JsonObject
     ["engine"] = new JsonObject { ["commit"] = engineCommit, ["generated"] = generated, ["precisionDigits"] = OutDigits },
     ["provenance"] = "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, "
                    + "Tamagawa product, torsion, root number, quotient), computed at " + WorkBits + "-bit working precision with the term "
-                   + "count set via digits so the engine's own TermsFor clears the Fizz-certified floor M. The generator only chooses the "
+                   + "count set via digits so the engine's own TermsFor clears the certified floor M. The generator only chooses the "
                    + "term count, computes the certificate (q, tail bound, certified digits), and DERIVES quantities the engine does not "
                    + "itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the "
                    + "engine computes. Cross-checked against a " + CheckBits + "-bit run. Workbench ids are internal names; each curve's labels "
                    + "block carries its Cremona and LMFDB labels sourced from the archived ec_curvedata record (pulled " + labelAccessDate + "), "
                    + "with the model-to-published-curve attachment named per curve (Brief 06).",
-    ["certificate"] = "Fizz tail bound: |tail| <= 4 q^(M+1)/(1-q), q = exp(-2π/√N), via |a_n/n| <= 2 (Hasse + divisor bound, bad primes included). "
+    ["certificate"] = "Tail bound: |tail| <= 4 q^(M+1)/(1-q), q = exp(-2π/√N), via |a_n/n| <= 2 (Hasse + divisor bound, bad primes included). "
                     + "Series verified against the engine (brief 03 §2): leading 2, exp(-2πn/√N), a_{p^k}=a_p^k at bad primes.",
     ["modelAttachmentValues"] = new JsonArray(ModelAttachmentEnum.Select(x => (JsonNode)x).ToArray()),
     ["curves"] = curvesJson,

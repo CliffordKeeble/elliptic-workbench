@@ -13,18 +13,47 @@ namespace Elliptic.Bsd;
 ///   Δ &gt; 0, roots e₁ &gt; e₂ &gt; e₃ of X³ + AX + B:   Ω = 2π / AGM(√(e₁−e₃), √(e₁−e₂))
 ///   Δ &lt; 0, real root e₁, c = 3e₁, d = 3e₁² + A:  Ω = π / AGM(√(2√d + c)/2, d^(1/4))
 /// Both validated to 30 digits against 11a1, 37a1, 389a1, 27606c1 (3 July 2026 bench),
-/// including the near-degenerate 27606c1 case that defeats naive quadrature (Paper 144 §3.4).
+/// including the near-degenerate 27606c1 case that defeats naive quadrature (papers/paper_144_genuine_phantoms/ §3.4).
 /// Roots are found by full-precision bisection inside Cauchy bounds — no seeds, no branches.
 /// </summary>
 public static class Analytic
 {
+    // EllipticCurve.An allocates a long table of this length (10,000,000 terms = 80 MB), and the
+    // cap keeps the int cast in TermsFor safe with a wide margin.
+    private const int MaxTerms = 10_000_000;
+
     /// <summary>Number of series terms for the given decimal-digit target.</summary>
     public static int TermsFor(long conductor, int digits)
-        => (int)Math.Ceiling(digits * Math.Log(10) * Math.Sqrt(conductor) / (2 * Math.PI)) + 64;
+    {
+        double terms = Math.Ceiling(digits * Math.Log(10) * Math.Sqrt(conductor) / (2 * Math.PI)) + 64;
+        if (!(terms <= MaxTerms))        // also catches NaN
+            throw new ArgumentOutOfRangeException(nameof(conductor), conductor,
+                $"{digits} digits at conductor {conductor} needs more than {MaxTerms:N0} series terms.");
+        return (int)terms;
+    }
+
+    /// <summary>
+    /// Bound on what the series drops after <paramref name="terms"/> terms: 4 q^(n+1) / (1 − q),
+    /// q = e^(−2π/√N), from |a_n/n| ≤ 2 (Hasse and the divisor bound, bad primes included).
+    /// Computed in BigFloat because a double underflows at large digit targets.
+    /// </summary>
+    public static BigFloat TailBound(long conductor, int terms)
+    {
+        var rate = Reals.Pi().Twice() / BigFloat.Sqrt(BigFloat.From(conductor));   // 2π/√N
+        var q = BigFloat.Exp(-rate);
+        var qPow = BigFloat.Exp(-(rate * (terms + 1L)));                            // q^(n+1)
+        return (qPow * 4L) / (BigFloat.One - q);
+    }
 
     /// <summary>L(E, 1) for ε = +1 via the exact smoothed series, to roughly <paramref name="digits"/> digits.</summary>
     public static BigFloat LValueRankZero(EllipticCurve e, int digits, out Dictionary<long, long> ap)
     {
+        // `digits` sets only the term count; roundoff is set by BigFloat.Precision, which nothing
+        // here raises. Past about 0.30103 · Precision − 10 digits the answer would be silently short.
+        int maxDigits = (int)Math.Floor(0.30103 * BigFloat.Precision) - 10;
+        if (digits < 1 || digits > maxDigits)
+            throw new ArgumentOutOfRangeException(nameof(digits), digits,
+                $"digits must be in [1, {maxDigits}] at BigFloat.Precision = {BigFloat.Precision} bits.");
         int nmax = TermsFor(e.Conductor, digits);
         var an = e.An(nmax, out ap);
 
@@ -52,7 +81,7 @@ public static class Analytic
 
         if (e.Delta.Sign > 0)
         {
-            // Three real roots; e1 is the largest, bracketed in [√(−A/3), 1 + max(|A|,|B|)].
+            // Three real roots; e1 is the largest, bracketed in [√(−A/3), 2 + max(|A|,|B|)].
             var lo = BigFloat.Sqrt((-a) / 3L);
             var hi = CauchyBound(a, b);
             var e1 = Bisect(a, b, lo, hi);

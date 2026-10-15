@@ -14,7 +14,7 @@ re-derive what it does.**
 What it does beyond taking engine outputs:
 
 - **Certified term count** by inversion of the tail bound `|tail| ≤ 4·q^(M+1)/(1−q)`,
-  `q = exp(−2π/√N)` (Fizz): `M = ⌈(D·ln10 + ln(4/(1−q))) / (−ln q)⌉`, the certified **floor**
+  `q = exp(−2π/√N)`: `M = ⌈(D·ln10 + ln(4/(1−q))) / (−ln q)⌉`, the certified **floor**
   for `D` digits. The generator picks the engine `digits` whose own `TermsFor` clears `M`, so
   the single engine call sums `nmax ≥ M` terms. `termsUsed` is the engine's actual count,
   `termsRequired` is `M`, and `certifiedDigits` is computed from `termsUsed`.

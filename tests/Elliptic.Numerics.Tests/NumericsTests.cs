@@ -109,4 +109,47 @@ public class NumericsTests
     [Fact] public void SqrtNegative_Throws() => Assert.Throws<ArithmeticException>(() => BigFloat.Sqrt(BigFloat.From(-2)));
     [Fact] public void AgmNonPositive_Throws() => Assert.Throws<ArithmeticException>(() => Reals.Agm(BigFloat.Zero, BigFloat.One));
     [Fact] public void ExpRangeGuard_Throws() => Assert.Throws<ArithmeticException>(() => BigFloat.Exp(Scale(BigFloat.One, 250)));
+
+    // ── 7. Division by a long keeps full precision on a short numerator ───────
+    // The old operator shifted by a fixed Guard + 70 bits, so a numerator of a few bits came
+    // back with about 100 bits of quotient whatever Precision was: 1/3 agreed with the ratio
+    // to 30 decimals at 320 bits, and Exp(1), whose Taylor terms divide short values, to 92.
+    [Fact]
+    public void DivLong_ShortNumerator_RoundTripsToOne()
+        => AssertClose((BigFloat.One / 3L) * BigFloat.From(3), BigFloat.One);
+
+    // e to 100 decimals, from mpmath at mp.dps = 130.
+    private const string E100 =
+        "2.7182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274";
+
+    [Fact]
+    public void ExpOne_AgreesTo95Decimals()
+        => Assert.StartsWith(E100[..(2 + 95)], BigFloat.Exp(BigFloat.One).ToDecimalString(100));
+
+    // ── 8. Equality agrees with ordering ──────────────────────────────────────
+    // From(2) is (2, 0) and One.Twice() is (1, 1): the representation is not canonical, so
+    // default struct equality said "different" where CompareTo said "equal".
+    [Fact]
+    public void Equals_AgreesWithCompareTo_AndHashesMatch()
+    {
+        var a = BigFloat.From(2);
+        var b = BigFloat.One.Twice();
+        Assert.Equal(0, a.CompareTo(b));
+        Assert.True(a.Equals(b));
+        Assert.True(a.Equals((object)b));
+        Assert.Equal(a.GetHashCode(), b.GetHashCode());
+        Assert.False(BigFloat.From(3).Equals(a));
+    }
+
+    [Fact]
+    public void EqualityOperators_AgreeWithCompareTo()
+    {
+        var a = BigFloat.From(2);
+        var b = BigFloat.One.Twice();
+        Assert.True(a == b);
+        Assert.False(a != b);
+        Assert.True(BigFloat.From(3) != a);
+        Assert.False(BigFloat.From(3) == a);
+        Assert.True(BigFloat.Zero == BigFloat.Zero.Twice());
+    }
 }

@@ -5,7 +5,7 @@
 
 # The CI build script is executed by `sh` on the Linux runner. Keep shell
 # scripts LF regardless of the platform's core.autocrlf, so a CRLF checkout
-# cannot break the deploy. (Brief 07 §1 documents the CRLF/LF hazard here.)
+# cannot break the deploy. (A CRLF checkout of a shell script fails on the Linux runner.)
 # Stated explicitly, after the blanket rule, so weakening the line above
 # cannot silently remove the deploy's protection.
 *.sh text eol=lf

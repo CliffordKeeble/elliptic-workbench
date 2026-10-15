@@ -149,6 +149,8 @@
                       "labelField":  "lmfdb_label",
                       "expectedLabel":  "233.a1",
                       "requiredFields":  [
+                                             "real_period",
+                                             "special_value",
                                              "tamagawa_product",
                                              "sha_an"
                                          ],
