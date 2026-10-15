@@ -30,6 +30,12 @@ High-precision arithmetic (`BigFloat`, π via Brent–Salamin, AGM) lives in
 
 - **Rank 0, ε = +1, semistable, minimal models only.**
 - Odd analytic rank (ε = −1) throws by design — the derivative engine is out of scope.
+- Even analytic rank ≥ 2 is refused too: if |L(E,1)| is no larger than the series tail, L(E,1)
+  is not certified non-zero and `RunRankZero` throws `NotSupportedException` (389a1, ε = +1,
+  rank 2, is the witness).
+- `digits` is bounded by the working precision: `1 ≤ digits ≤ ⌊0.30103 · BigFloat.Precision⌋ − 10`,
+  else `ArgumentOutOfRangeException`. The series is capped at 10,000,000 terms (`An` allocates a
+  table that long, 80 MB), which bounds the conductor for a given digit target.
 - Additive reduction throws by design — the full Tate algorithm is out of scope.
 - The model must be minimal; a necessary minimality test is enforced.
 - Not thread-safe for concurrent use at different precisions: `BigFloat.Precision` is one process-wide setting, so set it once, before use.
@@ -73,23 +79,30 @@ documented in
 ## Layout
 
 ```
-src/Elliptic.Numerics       BigFloat, Reals (π, AGM)  — BCL-only
-src/Elliptic.Bsd            EllipticCurve, Analytic, BsdCompiler, RankZeroReport
-app/Elliptic.Bsd.Acceptance console harness; exit 0 iff all checks pass
-tests/Elliptic.Bsd.Tests    xUnit component battery
+src/Elliptic.Numerics          BigFloat, Reals (π, AGM)  — BCL-only
+src/Elliptic.Bsd               EllipticCurve, Analytic, BsdCompiler, RankZeroReport
+app/Elliptic.Bsd.Acceptance    console harness; exit 0 iff all checks pass
+tests/Elliptic.Numerics.Tests  xUnit battery for BigFloat, π and the AGM
+tests/Elliptic.Bsd.Tests       xUnit component battery
+tools/gen-bsd-rank0            producer of data/bsd-rank0.json (see its README)
 ```
 
 The repository-root `nuget.config` clears all remote package sources, so the
-compute and acceptance projects restore with no network. `Elliptic.Bsd.Tests`
-carries its own `nuget.config` re-enabling nuget.org for the xUnit packages.
+compute, acceptance and generator projects restore with no network. The two test
+projects, `Elliptic.Numerics.Tests` and `Elliptic.Bsd.Tests`, each carry their own
+`nuget.config` re-enabling nuget.org for the xUnit packages.
 
 ## Build and run
 
 ```
 dotnet build elliptic-workbench.slnx
 dotnet run --project app/Elliptic.Bsd.Acceptance   # prints results; exit 0 on all-pass
-dotnet test tests/Elliptic.Bsd.Tests
+dotnet test elliptic-workbench.slnx
 ```
+
+A good run prints `59 passed, 0 failed.` from the harness (and exits 0), then
+`Passed!  - Failed: 0, Passed: 40` for `Elliptic.Numerics.Tests.dll` and
+`Passed!  - Failed: 0, Passed: 62` for `Elliptic.Bsd.Tests.dll`.
 
 Requires the .NET 10 SDK.
 

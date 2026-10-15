@@ -13,7 +13,7 @@ namespace Elliptic.Bsd;
 ///   Δ &gt; 0, roots e₁ &gt; e₂ &gt; e₃ of X³ + AX + B:   Ω = 2π / AGM(√(e₁−e₃), √(e₁−e₂))
 ///   Δ &lt; 0, real root e₁, c = 3e₁, d = 3e₁² + A:  Ω = π / AGM(√(2√d + c)/2, d^(1/4))
 /// Both validated to 30 digits against 11a1, 37a1, 389a1, 27606c1 (3 July 2026 bench),
-/// including the near-degenerate 27606c1 case that defeats naive quadrature (Paper 144 §3.4).
+/// including the near-degenerate 27606c1 case that defeats naive quadrature (papers/paper_144_genuine_phantoms/ §3.4).
 /// Roots are found by full-precision bisection inside Cauchy bounds — no seeds, no branches.
 /// </summary>
 public static class Analytic
@@ -81,7 +81,7 @@ public static class Analytic
 
         if (e.Delta.Sign > 0)
         {
-            // Three real roots; e1 is the largest, bracketed in [√(−A/3), 1 + max(|A|,|B|)].
+            // Three real roots; e1 is the largest, bracketed in [√(−A/3), 2 + max(|A|,|B|)].
             var lo = BigFloat.Sqrt((-a) / 3L);
             var hi = CauchyBound(a, b);
             var e1 = Bisect(a, b, lo, hi);

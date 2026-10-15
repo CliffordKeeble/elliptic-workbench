@@ -82,12 +82,12 @@ public class BsdTests
         => Assert.Contains("non-minimal", Assert.Throws<NotSupportedException>(
             () => new EllipticCurve(0, -4, 8, -160, -1280, 11, new long[] { 2, 11 })).Message);
 
-    // ── 3b. The constructor refuses what it cannot check (D37 / 1015-FLINT-2) ──
-    // Mr Plumb's A1 and A2: four ways the engine returned, hung or threw the wrong
+    // ── 3b. The constructor refuses what it cannot check ──
+    // Four ways the engine returned, hung or threw the wrong
     // exception on input it had no business accepting. Each case below was RED on
     // 64dfb8f before the constructor's validation was written.
 
-    // T1 (A1). The u = 2 rescaling of 11a1 declaring only { 11 }: the u¹² test runs
+    // T1. The u = 2 rescaling of 11a1 declaring only { 11 }: the u¹² test runs
     // at declared primes only, so p = 2 was never looked at and the engine returned
     // halved Ω and |Ш| = 2.348. Δ = −2¹²·11⁵, so 2 is a bad prime and undeclared.
     [Fact]
@@ -95,14 +95,14 @@ public class BsdTests
         => Assert.Throws<ArgumentException>(
             () => new EllipticCurve(0, -4, 8, -160, -1280, 11, new long[] { 11 }));
 
-    // T2 (A2). The conductor was accepted unchecked; the engine is semistable-only,
+    // T2. The conductor was accepted unchecked; the engine is semistable-only,
     // so N must be the product of the declared primes.
     [Fact]
     public void Guard_ConductorMustEqualProductOfBadPrimes()
         => Assert.Throws<ArgumentException>(
             () => new EllipticCurve(0, -1, 1, -10, -20, 12, new long[] { 11 }));
 
-    // T3 (A2, the hang). p = 1 divides everything, so Ord looped for ever. Run the
+    // T3 (the hang). p = 1 divides everything, so Ord looped for ever. Run the
     // constructor off-thread so a regression cannot hang the suite.
     [Fact]
     public void Guard_BadPrimeOne_ThrowsAndDoesNotHang()
@@ -123,7 +123,7 @@ public class BsdTests
         Assert.IsAssignableFrom<ArgumentException>(t.Exception!.InnerException);
     }
 
-    // T4 (A2). Duplicates, zero, negatives and composites in badPrimes. The message
+    // T4. Duplicates, zero, negatives and composites in badPrimes. The message
     // must name the offending value, so the caller can see which entry was rejected.
     [Theory]
     [InlineData(0, -1, 1, -10, -20, 11, new long[] { 11, 11 }, "11")]   // declared twice
@@ -171,7 +171,7 @@ public class BsdTests
     public void Sha_30a1_Reports4_DocumentsOpenFinding2()
         => Assert.StartsWith("4.00000000", BsdCompiler.RunRankZero(E30, digits: 20).ShaEstimate.ToDecimalString(10));
 
-    // ── 8. The library refuses what it cannot answer (D37 / 1015-FLINT-4, part 2) ──
+    // ── 8. The library refuses what it cannot answer ──
 
     // 8a. Even analytic rank >= 2: 389a1 has epsilon = +1 and rank 2, so L(E,1) = 0 and the
     // rank-0 quotient is meaningless. It used to come back as |Sha| ~ 0. The root number alone
@@ -181,7 +181,7 @@ public class BsdTests
         => Assert.Contains("not certified", Assert.Throws<NotSupportedException>(
             () => BsdCompiler.RunRankZero(E389)).Message);
 
-    // P6-1. The spec says epsilon = -1 is refused; nothing tested it. Green from the start.
+    // The spec says epsilon = -1 is refused; nothing tested it.
     [Fact]
     public void RunRankZero_37a1_EpsilonMinus1_IsRefused()
         => Assert.Contains("ε = -1", Assert.Throws<NotSupportedException>(
@@ -287,7 +287,7 @@ public class BsdTests
         Assert.DoesNotContain(2L, EllipticCurve.TorsionPrimes);
     }
 
-    // 8e. P6-2. The spec promises L(E,1) and the real period, and a planted fault in L used to
+    // 8e. The spec promises L(E,1) and the real period, and a planted fault in L used to
     // turn one xUnit test red, and that one asserted a known-wrong value. 11a1 against the
     // archived strings, copied as literals from
     //   app/Elliptic.Bsd.Acceptance/lmfdb/ec_mwbsd_11.a2.json  (fields real_period, special_value)

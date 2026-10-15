@@ -7,7 +7,7 @@ namespace Elliptic.Bsd;
 /// certified order, and it enters <c>ShaEstimate</c> squared — an overshoot by k inflates the
 /// estimate by k² (witness: 30a1 reports 4 where the truth is 1, and 4 is itself a plausible
 /// square). Treat ShaEstimate as exact only for curves whose torsion is independently known
-/// until v1.1 lands Lutz–Nagell certification. See the v1.1 work order.
+/// until v1.1 lands Lutz–Nagell certification.
 /// </summary>
 public sealed record RankZeroReport(
     long Conductor,
@@ -24,10 +24,10 @@ public sealed record RankZeroReport(
 /// the constructor refuses any triple it cannot check (see <see cref="EllipticCurve"/>). No
 /// external data anywhere in the pipeline (LMFDB published values appear only in the
 /// acceptance suite, as oracles-after —
-/// the discipline of Paper 144 §4.3; the frozen 3 July 2026 bench values they replaced in
+/// the discipline of papers/paper_144_genuine_phantoms/ §4.3; the frozen 3 July 2026 bench values they replaced in
 /// Brief 03 are recorded in acceptance-constants.md).
 /// v2 (derivative engine: Γ*, η(s), Richardson — Papers 140/142) and v3 (full Tate at p = 2, 3)
-/// extend this class; see the Mr Code brief.
+/// extend this class.
 /// </summary>
 public static class BsdCompiler
 {
