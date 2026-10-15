@@ -81,6 +81,61 @@ public class BsdTests
         => Assert.Contains("non-minimal", Assert.Throws<NotSupportedException>(
             () => new EllipticCurve(0, -4, 8, -160, -1280, 11, new long[] { 2, 11 })).Message);
 
+    // ── 3b. The constructor refuses what it cannot check (D37 / 1015-FLINT-2) ──
+    // Mr Plumb's A1 and A2: four ways the engine returned, hung or threw the wrong
+    // exception on input it had no business accepting. Each case below was RED on
+    // 64dfb8f before the constructor's validation was written.
+
+    // T1 (A1). The u = 2 rescaling of 11a1 declaring only { 11 }: the u¹² test runs
+    // at declared primes only, so p = 2 was never looked at and the engine returned
+    // halved Ω and |Ш| = 2.348. Δ = −2¹²·11⁵, so 2 is a bad prime and undeclared.
+    [Fact]
+    public void Guard_UndeclaredDeltaPrime_U2ModelWithOnly11()
+        => Assert.Throws<ArgumentException>(
+            () => new EllipticCurve(0, -4, 8, -160, -1280, 11, new long[] { 11 }));
+
+    // T2 (A2). The conductor was accepted unchecked; the engine is semistable-only,
+    // so N must be the product of the declared primes.
+    [Fact]
+    public void Guard_ConductorMustEqualProductOfBadPrimes()
+        => Assert.Throws<ArgumentException>(
+            () => new EllipticCurve(0, -1, 1, -10, -20, 12, new long[] { 11 }));
+
+    // T3 (A2, the hang). p = 1 divides everything, so Ord looped for ever. Run the
+    // constructor off-thread so a regression cannot hang the suite.
+    [Fact]
+    public void Guard_BadPrimeOne_ThrowsAndDoesNotHang()
+    {
+        var t = Task.Run(() => new EllipticCurve(0, -1, 1, -10, -20, 11, new long[] { 1, 11 }));
+        // xUnit1031 suppressed deliberately: the bounded Wait IS the assertion. An awaited
+        // task would hang the run for ever on a regression, which is the defect under test.
+        // Wait rethrows a faulted task's exception as AggregateException rather than
+        // returning true, so catching it is how "finished inside the window" is read; a
+        // genuine hang still returns false and trips the assertion below.
+        bool finished;
+#pragma warning disable xUnit1031
+        try { finished = t.Wait(TimeSpan.FromSeconds(5)); }
+#pragma warning restore xUnit1031
+        catch (AggregateException) { finished = true; }
+        Assert.True(finished, "constructor did not return within 5 s (Ord hang).");
+        Assert.IsAssignableFrom<ArgumentException>(t.Exception!.InnerException);
+    }
+
+    // T4 (A2). Duplicates, zero, negatives and composites in badPrimes. The message
+    // must name the offending value, so the caller can see which entry was rejected.
+    [Theory]
+    [InlineData(0, -1, 1, -10, -20, 11, new long[] { 11, 11 }, "11")]   // declared twice
+    [InlineData(0, -1, 1, -10, -20, 11, new long[] { 0, 11 }, "0")]     // DivideByZero from inside the guard
+    [InlineData(0, -1, 1, -10, -20, 11, new long[] { -11 }, "-11")]     // nonsense ε
+    [InlineData(1, 0, 1, 1, 2, 30, new long[] { 6, 5 }, "6")]           // composite, and it divides Δ
+    public void Guard_BadPrimesMustBeDistinctPrimes(
+        long a1, long a2, long a3, long a4, long a6, long conductor, long[] badPrimes, string named)
+    {
+        var ex = Assert.Throws<ArgumentException>(
+            () => new EllipticCurve(a1, a2, a3, a4, a6, conductor, badPrimes));
+        Assert.Contains(named, ex.Message);
+    }
+
     // ── 4. Tamagawa semistable rule in isolation ──────────────────────────────
     [Fact] public void Tamagawa_11a1_Split() => Assert.Equal(5, E11.TamagawaProduct(new Dictionary<long, long> { [11] = 1 }));
     [Fact] public void Tamagawa_11a1_NonSplit() => Assert.Equal(1, E11.TamagawaProduct(new Dictionary<long, long> { [11] = -1 }));

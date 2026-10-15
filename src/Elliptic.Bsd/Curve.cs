@@ -8,10 +8,19 @@ namespace Elliptic.Bsd;
 /// point counting (lexical analysis), the Hecke rebuild (parsing), Tamagawa numbers
 /// (exception handling, semistable only in v1), a torsion upper bound, and the root number.
 ///
-/// v1 preconditions, enforced or documented:
-///  - the model must be minimal (a necessary u-test is run: no prime with p¹²|Δ, p⁴|c₄, p⁶|c₆);
-///  - all bad reduction must be multiplicative (enforced: ord_p(c₄) = 0 at every bad prime);
-///  - the conductor and its prime factorisation are supplied by the caller and checked against Δ.
+/// The caller supplies the five coefficients, the conductor and the bad primes. v1 is
+/// semistable-only, and the constructor now ENFORCES the three facts that must hold of
+/// such a curve on a minimal model, refusing anything else rather than returning numbers
+/// it cannot stand behind (D37, 1015-FLINT-2):
+///  - every declared bad prime is a distinct prime in [2, 2³¹ − 1];
+///  - the declared primes are EXACTLY the primes dividing Δ (each divides it, and dividing
+///    |Δ| through by them leaves 1);
+///  - reduction at each is multiplicative (ord_p(c₄) = 0), and the conductor is their product,
+///    so N is squarefree as semistability requires.
+/// Those three together imply the model is minimal at every prime: a prime of multiplicative
+/// reduction is automatically minimal, and no other prime divides Δ. That is strictly stronger
+/// than the old necessary-only u¹²-test, which is kept as a named diagnostic because it fires
+/// with a clearer message on a rescaled model whose scaling prime the caller did declare.
 /// Papers: 141 (rank-0 grammar), 144 (|Sha| = 4), 145 (consolidation).
 /// </summary>
 public sealed class EllipticCurve
@@ -34,9 +43,31 @@ public sealed class EllipticCurve
         Delta = -B2 * B2 * B8 - 8 * B4 * B4 * B4 - 27 * B6 * B6 + 9 * B2 * B4 * B6;
 
         if (Delta.IsZero) throw new ArgumentException("Singular curve: Δ = 0.");
-        Conductor = conductor;
-        BadPrimes = badPrimes;
 
+        // ── Step 1: badPrimes is a set of genuine primes, before any arithmetic uses them.
+        // p = 1 made Ord loop for ever, p = 0 raised DivideByZeroException from inside the
+        // guard below, and a negative p produced a nonsense ε. All three now stop here.
+        // 2³¹ − 1 is the bound at which Ap's long products and Analytic.TermsFor's int cast
+        // stay safe; trial division to √p is then at most 46,341 steps.
+        if (badPrimes is null) throw new ArgumentNullException(nameof(badPrimes));
+        for (int i = 0; i < badPrimes.Length; i++)
+        {
+            long p = badPrimes[i];
+            if (p < 2 || p > int.MaxValue)
+                throw new ArgumentException(
+                    $"Declared bad prime {p} is out of range: must be a prime in [2, 2147483647].");
+            if (!IsPrime(p))
+                throw new ArgumentException($"Declared bad prime {p} is not prime.");
+            for (int j = 0; j < i; j++)
+                if (badPrimes[j] == p)
+                    throw new ArgumentException($"Declared bad prime {p} appears more than once.");
+        }
+
+        Conductor = conductor;
+        // Step 5: copy, so a caller cannot mutate the array after it has been validated.
+        BadPrimes = badPrimes.ToArray();
+
+        // ── Step 2: unchanged.
         foreach (var p in badPrimes)
         {
             if (Delta % p != 0)
@@ -51,6 +82,38 @@ public sealed class EllipticCurve
                 throw new NotSupportedException(
                     $"Additive reduction at p = {p} (ord_p(c₄) > 0): full Tate algorithm is v3 scope.");
         }
+
+        // ── Step 3: the declared primes are ALL of them. Step 2 only checks that each
+        // declared prime divides Δ, so a rescaled model whose scaling prime is undeclared
+        // slipped through with every per-prime test passing (11a1 at u = 2 declaring only
+        // { 11 } returned a halved Ω and |Ш| = 2.348). No factorisation is needed: divide
+        // |Δ| through by the declared primes and nothing may be left.
+        var residual = BigInteger.Abs(Delta);
+        foreach (var p in badPrimes)
+            while (residual % p == 0) residual /= p;
+        if (!residual.IsOne)
+            throw new ArgumentException(
+                $"Δ has a prime factor that is not declared bad: dividing |Δ| by the declared " +
+                $"primes leaves the cofactor {residual}. The declared primes must be exactly " +
+                $"the primes dividing Δ.");
+
+        // ── Step 4: N = ∏p. BigInteger so a long product cannot wrap round into agreement.
+        var product = BigInteger.One;
+        foreach (var p in badPrimes) product *= p;
+        if (product != conductor)
+            throw new ArgumentException(
+                $"Conductor {conductor} is not the product of the declared bad primes " +
+                $"({product}). The engine is semistable-only, so N is squarefree and equal to " +
+                $"the product of its bad primes.");
+    }
+
+    /// <summary>Trial division to √p. p ≥ 2 and p ≤ 2³¹ − 1, so at most 46,341 steps.</summary>
+    private static bool IsPrime(long p)
+    {
+        if (p % 2 == 0) return p == 2;
+        for (long d = 3; d * d <= p; d += 2)
+            if (p % d == 0) return false;
+        return true;
     }
 
     public static int Ord(BigInteger n, long p)

@@ -72,11 +72,11 @@ long[] EngineGcdPrimes = { 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 };
 var defs = new (string Label, string Prov, long A1, long A2, long A3, long A4, long A6, long N, long[] Bad, long? TrueOrder, string TrueOrderSource)[]
 {
     ("11a1",    "internal bench name; NOT pulled from LMFDB", 0, -1, 1, -10, -20, 11, new long[] { 11 },
-        5, "LMFDB 11.a2 (https://www.lmfdb.org/EllipticCurve/Q/11a1/): a-invariants [0,-1,1,-10,-20] match; torsion Z/5Z, order 5; pulled 2026-07-29"),
+        5, "LMFDB 11.a2 (https://www.lmfdb.org/EllipticCurve/Q/11a1/): a-invariants [0,-1,1,-10,-20] match; torsion Z/5Z, order 5; pulled from the LMFDB CURVE PAGE 2026-07-29 (not the API archive, which was fetched 2026-07-31)"),
     ("27606c1", "internal bench name; NOT pulled from LMFDB", 1, 0, 0, -10289707, 12703497719, 27606, new long[] { 2, 3, 43, 107 },
-        1, "LMFDB 27606.c1 (https://www.lmfdb.org/EllipticCurve/Q/27606c1/): a-invariants [1,0,0,-10289707,12703497719] match; torsion trivial, order 1; pulled 2026-07-29"),
+        1, "LMFDB 27606.c1 (https://www.lmfdb.org/EllipticCurve/Q/27606c1/): a-invariants [1,0,0,-10289707,12703497719] match; torsion trivial, order 1; pulled from the LMFDB CURVE PAGE 2026-07-29 (not the API archive, which was fetched 2026-07-31)"),
     ("30a1",    "internal bench name (xUnit Finding-2 curve); NOT pulled from LMFDB", 1, 0, 1, 1, 2, 30, new long[] { 2, 3, 5 },
-        6, "LMFDB 30.a8 (https://www.lmfdb.org/EllipticCurve/Q/30a1/): a-invariants [1,0,1,1,2] match; torsion Z/6Z, order 6; pulled 2026-07-29"),
+        6, "LMFDB 30.a8 (https://www.lmfdb.org/EllipticCurve/Q/30a1/): a-invariants [1,0,1,1,2] match; torsion Z/6Z, order 6; pulled from the LMFDB CURVE PAGE 2026-07-29 (not the API archive, which was fetched 2026-07-31)"),
     ("n233-reg","internal regression curve (v1.0.1 Finding-1), conductor 233; no bench/LMFDB label", 1, 3, 0, -1, 0, 233, new long[] { 233 },
         null, "NULL BY CinC RULING (brief 05). LMFDB lists conductor 233 as minimal model [1,0,1,-5,3] = 233.a1 (torsion Z/2Z). Our model [1,3,0,-1,0] is the same curve: matching c4=217, c6=-3133, Delta=233 fixes it up to isomorphism over Q and torsion order is an isomorphism invariant, so the identification is a theorem, not a guess. It is left null anyway: the value would only make n233 a fourth tight example, whereas the null is a visible instance of the provenance rule declining (source-displayed accepted; derived-by-us, however sound, not). Reasoning recorded so the value is one step away if ever needed."),
 };
@@ -250,7 +250,11 @@ foreach (var d in defs)
             ["product"] = prod,                                  // engine output
             ["discriminant"] = e.Delta.ToString(),               // engine field
             ["discriminantIsMinimal"] = true,
-            ["minimalityBasis"] = "engine constructor enforces the necessary u^12 minimality test (p^12|Δ ∧ p^4|c4 ∧ p^6|c6 rejected)",
+            ["minimalityBasis"] = "engine constructor enforces, for every curve it accepts: each declared bad prime is a distinct "
+                                        + "prime in [2,2^31-1]; the declared primes are exactly the primes dividing Δ (dividing |Δ| through by them leaves 1); "
+                                        + "reduction at each is multiplicative (p ∤ c4); and N is their product. Multiplicative reduction is minimal, so with "
+                                        + "no other prime dividing Δ the model is minimal at every prime. The necessary u^12 test (p^12|Δ ∧ p^4|c4 ∧ p^6|c6) "
+                                        + "is also still run, as a named diagnostic.",
             ["perPrime"] = perPrime,
             ["allSemistable"] = allSemistable,
             ["perPrimeProvenance"] = "derived in generator from public primitives (Ord, Δ, a_p) per the (v_p(Δ),a_p) recipe; the engine "
