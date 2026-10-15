@@ -8,12 +8,22 @@ namespace Elliptic.Numerics;
 /// not IEEE-correctly-rounded. Working precision is set via <see cref="Precision"/>
 /// (bits) before any computation; the Pi cache in <see cref="Reals"/> is keyed on it.
 /// </summary>
-public readonly struct BigFloat : IComparable<BigFloat>
+public readonly struct BigFloat : IComparable<BigFloat>, IEquatable<BigFloat>
 {
     /// <summary>Working precision in bits (~0.301 * bits decimal digits). Default 320 bits ≈ 96 digits.</summary>
+    /// <remarks>
+    /// One process-wide setting, by design: set it once, before use. No caller computes at two
+    /// precisions on two threads at once; a per-thread or per-call precision would change the
+    /// class's contract; and the class has a twin in another repository (Icosian.Numerics) that
+    /// must stay in step with this one.
+    /// </remarks>
     public static int Precision { get; set; } = 320;
 
     private const int Guard = 32;
+
+    // With |x| < 1/4 a Taylor term shrinks by about 2^(2 + log2 n) per step, so this cap covers a
+    // working precision of about 3 x 10^5 bits. Past that Exp throws instead of returning short.
+    private const int MaxExpTerms = 20000;
 
     public readonly BigInteger Mantissa;
     public readonly int Exponent;
@@ -92,14 +102,9 @@ public readonly struct BigFloat : IComparable<BigFloat>
         return Normalize(q, (long)a.Exponent - b.Exponent - shift);
     }
 
-    public static BigFloat operator /(BigFloat a, long n)
-    {
-        if (n == 0) throw new DivideByZeroException("BigFloat division by zero.");
-        if (a.IsZero) return Zero;
-        int shift = Guard + 70;
-        var q = BigInteger.Divide(a.Mantissa << shift, n);
-        return Normalize(q, (long)a.Exponent - shift);
-    }
+    // Through the BigFloat divide, whose shift grows to cover the numerator's width. A fixed
+    // shift left a short numerator with ~100 bits of quotient at any Precision.
+    public static BigFloat operator /(BigFloat a, long n) => a / From(n);
 
     /// <summary>Exact halving / doubling (exponent shift only).</summary>
     public BigFloat Half() => IsZero ? this : new BigFloat(Mantissa, Exponent - 1);
@@ -107,6 +112,21 @@ public readonly struct BigFloat : IComparable<BigFloat>
     public BigFloat Abs() => Sign < 0 ? -this : this;
 
     public int CompareTo(BigFloat other) => (this - other).Sign;
+
+    // Equality is ordering's equality. Mantissa/Exponent is not canonical ((2, 0) and (1, 1) are
+    // one value), so the default struct equality, which compares the fields, disagreed with
+    // CompareTo. The hash uses the canonical form: trailing zero bits moved into the exponent.
+    public bool Equals(BigFloat other) => CompareTo(other) == 0;
+    public override bool Equals(object? obj) => obj is BigFloat other && Equals(other);
+    public static bool operator ==(BigFloat a, BigFloat b) => a.Equals(b);
+    public static bool operator !=(BigFloat a, BigFloat b) => !a.Equals(b);
+
+    public override int GetHashCode()
+    {
+        if (IsZero) return 0;
+        int tz = (int)BigInteger.TrailingZeroCount(Mantissa);
+        return HashCode.Combine(Mantissa >> tz, (long)Exponent + tz);
+    }
     public static bool operator <(BigFloat a, BigFloat b) => (a - b).Sign < 0;
     public static bool operator >(BigFloat a, BigFloat b) => (a - b).Sign > 0;
     public static bool operator <=(BigFloat a, BigFloat b) => (a - b).Sign <= 0;
@@ -150,13 +170,15 @@ public readonly struct BigFloat : IComparable<BigFloat>
         }
         var sum = One;
         var term = One;
-        for (long n = 1; n <= 20000; n++)
+        bool converged = false;
+        for (long n = 1; n <= MaxExpTerms; n++)
         {
             term = term * x / n;
-            if (term.IsZero) break;
+            if (term.IsZero) { converged = true; break; }
             sum += term;
-            if (sum.Mag - term.Mag > Precision + Guard) break;
+            if (sum.Mag - term.Mag > Precision + Guard) { converged = true; break; }
         }
+        if (!converged) throw new ArithmeticException("Exp: Taylor series did not converge within the term cap.");
         for (int i = 0; i < s; i++) sum *= sum;
         return sum;
     }

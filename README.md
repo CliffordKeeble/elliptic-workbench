@@ -32,6 +32,7 @@ High-precision arithmetic (`BigFloat`, π via Brent–Salamin, AGM) lives in
 - Odd analytic rank (ε = −1) throws by design — the derivative engine is out of scope.
 - Additive reduction throws by design — the full Tate algorithm is out of scope.
 - The model must be minimal; a necessary minimality test is enforced.
+- Not thread-safe for concurrent use at different precisions: `BigFloat.Precision` is one process-wide setting, so set it once, before use.
 
 ### Known limitation — torsion bound
 
