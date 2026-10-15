@@ -109,9 +109,15 @@ public class BsdTests
         var t = Task.Run(() => new EllipticCurve(0, -1, 1, -10, -20, 11, new long[] { 1, 11 }));
         // xUnit1031 suppressed deliberately: the bounded Wait IS the assertion. An awaited
         // task would hang the run for ever on a regression, which is the defect under test.
+        // Wait rethrows a faulted task's exception as AggregateException rather than
+        // returning true, so catching it is how "finished inside the window" is read; a
+        // genuine hang still returns false and trips the assertion below.
+        bool finished;
 #pragma warning disable xUnit1031
-        Assert.True(t.Wait(TimeSpan.FromSeconds(5)), "constructor did not return within 5 s (Ord hang).");
+        try { finished = t.Wait(TimeSpan.FromSeconds(5)); }
 #pragma warning restore xUnit1031
+        catch (AggregateException) { finished = true; }
+        Assert.True(finished, "constructor did not return within 5 s (Ord hang).");
         Assert.IsAssignableFrom<ArgumentException>(t.Exception!.InnerException);
     }
 
