@@ -11,8 +11,8 @@ namespace Elliptic.Bsd.Tests;
 // Direct port of the v1.0.2 Elliptic.Bsd console battery into xUnit. Component-level
 // rules, distinct from the end-to-end acceptance suite: a_p vs an in-process brute
 // counter (cross-method inside C#), Hecke identities from the recursion's own output,
-// every constructor guard with a witness curve, and the open Finding 2 state asserted
-// explicitly (tagged [Trait("Finding","2")]) so v1.1 flips it deliberately.
+// every constructor guard with a witness curve, and the open torsion-bound defect asserted
+// explicitly (tagged [Trait("OpenDefect","TorsionBound")]) so v1.1 flips it deliberately.
 public class BsdTests
 {
     public BsdTests() => BigFloat.Precision = 320;
@@ -144,13 +144,13 @@ public class BsdTests
     [Fact] public void Tamagawa_30a1_AllSplit() => Assert.Equal(12, E30.TamagawaProduct(new Dictionary<long, long> { [2] = 1, [3] = 1, [5] = 1 }));
     [Fact] public void Tamagawa_30a1_AllNonSplit() => Assert.Equal(2, E30.TamagawaProduct(new Dictionary<long, long> { [2] = -1, [3] = -1, [5] = -1 }));
 
-    // ── 5. Root numbers from real a_p (233 exercises the Finding-1 seed) ───────
+    // ── 5. Root numbers from real a_p (233 exercises the bad-prime seed of a_p) ───────
     [Fact] public void RootNumber_11a1_Plus1() { E11.An(50, out var ap); Assert.Equal(+1, E11.RootNumber(ap)); }
     [Fact] public void RootNumber_37a1_Minus1() { E37.An(50, out var ap); Assert.Equal(-1, E37.RootNumber(ap)); }
     [Fact] public void RootNumber_30a1_Plus1() { E30.An(50, out var ap); Assert.Equal(+1, E30.RootNumber(ap)); }
     [Fact] public void RootNumber_233_Plus1_ViaSeededBadPrime() { E233.An(50, out var ap); Assert.Equal(+1, E233.RootNumber(ap)); }
 
-    // ── 6. Series sizing: the Finding-1 boundary, frozen ──────────────────────
+    // ── 6. Series sizing: the conductor-above-series-bound boundary, frozen ──────────────────────
     [Fact] public void TermsFor_233_30_IsOneShortOfConductor() => Assert.Equal(232, Analytic.TermsFor(233, 30));
     [Fact] public void TermsFor_233_40_ReachesConductor() => Assert.True(Analytic.TermsFor(233, 40) >= 233);
 
@@ -159,16 +159,16 @@ public class BsdTests
     [Fact] public void TorsionBound_27606c1_Is1() => Assert.Equal(1, E27606.TorsionBound());
     [Fact] public void TorsionBound_233_Is2() => Assert.Equal(2, E233.TorsionBound());
 
-    // Finding 2 (OPEN): 30a1's gcd bound is 12 (true order 6) and its |Sha| is a
+    // Open torsion-bound defect: 30a1's gcd bound is 12 (true order 6) and its |Sha| is a
     // plausible wrong square 4.0. These assert the CURRENT wrong values on purpose,
     // so v1.1's exact-torsion certification must flip them visibly, never silently.
     [Fact]
-    [Trait("Finding", "2")]
-    public void TorsionBound_30a1_Is12_DocumentsOpenFinding2() => Assert.Equal(12, E30.TorsionBound());
+    [Trait("OpenDefect", "TorsionBound")]
+    public void TorsionBound_30a1_Is12_DocumentsOpenTorsionBoundDefect() => Assert.Equal(12, E30.TorsionBound());
 
     [Fact]
-    [Trait("Finding", "2")]
-    public void Sha_30a1_Reports4_DocumentsOpenFinding2()
+    [Trait("OpenDefect", "TorsionBound")]
+    public void Sha_30a1_Reports4_DocumentsOpenTorsionBoundDefect()
         => Assert.StartsWith("4.00000000", BsdCompiler.RunRankZero(E30, digits: 20).ShaEstimate.ToDecimalString(10));
 
     // ── 8. The library refuses what it cannot answer ──

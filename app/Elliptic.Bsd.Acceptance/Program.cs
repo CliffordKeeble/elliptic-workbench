@@ -82,7 +82,7 @@ static BigInteger RoundScaled(string s, int d)
 
 Console.WriteLine("Elliptic.Bsd v1 acceptance — rank-0 channel, constants validated against LMFDB\n");
 
-// ── Archive integrity — the LMFDB evidence base (follow-on item 1) ──────────
+// ── Archive integrity — the LMFDB evidence base ──────────
 // Verify the archive BEFORE validating constants against it: each record's own label
 // field equals the requested label (catches a wrong-curve record), every field a
 // constant draws is present and non-null, and the content hash matches the manifest
@@ -142,7 +142,7 @@ string omega233 = "5.5685343942644786617970905028";
 string lval233 = "1.3921335985661196654492726256926551267";
 string sha233 = "1";
 
-// ── Constants vs archive — the middle link (CinC follow-on) ─────────────────
+// ── Constants vs archive — the middle link ─────────────────
 // The engine checks below prove engine == constant; the integrity block above proves
 // archive == manifest. Neither proves constant == archive — and if a constant were an
 // oracle-after copied from the engine rather than from LMFDB, engine == constant would
@@ -293,13 +293,13 @@ CheckDecimal("L(E,1) (special_value)", r233.LValue, lval233, "LMFDB 233.a1", atD
 if (HasMw(mw233, "n233", "|Sha| analytic order (sha_an)")) CheckDecimal("|Sha| analytic order (sha_an)", r233.ShaEstimate, ALit(mw233, "sha_an"), "LMFDB 233.a1");
 Console.WriteLine();
 
-// ── 30a1 = LMFDB 30.a8 — torsion-bound benchmark (Brief 03 step 7) ───────────
+// ── 30a1 = LMFDB 30.a8 — torsion-bound benchmark ───────────
 // KNOWN DEFECT, LIVE. The engine's TorsionBound is a gcd upper bound, not the true order.
 // Published torsion order (LMFDB 30.a8) = 6; the engine's gcd bound = 12 (overshoots by k=2).
 // The trueOrder work added a DATA field; it did not cure the engine's TorsionBound. Documented
 // under the known-defect convention: the checks assert the CURRENT (defective) engine values so a
 // future Nagell–Lutz cure flips these lines visibly. The published order 6 is the target. The
-// cure is parked (candidate future brief); this pass documents, it does not fix.
+// cure is parked (candidate future work); this pass documents, it does not fix.
 Console.WriteLine("30a1  (LMFDB 30.a8)  torsion-bound benchmark — KNOWN DEFECT (live)");
 var cd30 = Rec("ec_curvedata_30a1.json");   // integrity-guaranteed above; no new check here
 var e30 = new EllipticCurve(1, 0, 1, 1, 2, NOf(cd30), PsOf(cd30));

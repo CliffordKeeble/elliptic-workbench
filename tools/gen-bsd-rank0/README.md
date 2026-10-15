@@ -51,6 +51,5 @@ dotnet run -c Release --project tools/gen-bsd-rank0 -- $(git rev-parse --short H
 
 Real quantities are emitted as JSON strings so precision beyond `double` survives the round trip.
 A curve's top-level `label` is an internal bench name, not an LMFDB pull; its `labels` block is the
-sourced one, carrying the Cremona and LMFDB labels read from the archived `ec_curvedata` record
-(Brief 06 §2). The two are separate on purpose — a value that feeds the panel's arithmetic must be
+sourced one, carrying the Cremona and LMFDB labels read from the archived `ec_curvedata` record. The two are separate on purpose — a value that feeds the panel's arithmetic must be
 sourced end to end, while a display label may name an unsourced attachment.

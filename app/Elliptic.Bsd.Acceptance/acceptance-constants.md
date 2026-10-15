@@ -1,6 +1,6 @@
 # Acceptance constants — inventory and provenance
 
-Rulebook §5 remediation (Brief 03, commissioned by CinC, 29 July 2026). Executor: Mr Code.
+The remediation of the acceptance constants' provenance: frozen bench values replaced by LMFDB published values (29 July 2026).
 
 This file is the **before-photograph**: every constant the acceptance suite
 (`Program.cs`) asserts, exactly as it stands *before* any conversion to published
@@ -117,7 +117,7 @@ necessarily +1. Every value here is taken from the structured API, not the summa
 
 Two label surprises, taken from the page not assumed: Cremona `11a1` = LMFDB `11.**a2**`
 (the numberings differ), and n233 is Cremona **233a2** (not 233a1) = LMFDB 233.a1 — the
-workbench's generic "n233" matches neither Cremona nor LMFDB label. **Flag for CinC:** n233's
+workbench's generic "n233" matches neither Cremona nor LMFDB label. **Flag:** n233's
 identity is our own c₄/c₆/Δ computation (models differ on the page), not a direct a-invariant
 display — the same provenance caveat as its `trueOrder`.
 
@@ -170,20 +170,20 @@ tolerance problem.
   of decimal places LMFDB displays — with tolerance **½ unit in the last published place**.
 - The comparison is performed **in decimal**: the engine value is rendered to the published number of
   places and compared against LMFDB's decimal string as scaled `BigInteger`s. **No binary-double round
-  trip** — parsing to `double` would silently eat the tolerance (CinC caution).
+  trip** — parsing to `double` would silently eat the tolerance.
 - The tolerance derives **only** from the source's precision. The engine must compute to at least the
   published precision; where the harness's digit target is lower, the shortfall is **reported as a
   finding**, never absorbed by widening the tolerance or lowering the compare precision.
 - **Amendment (29 Jul, own commit).** Where a source field's *display* precision exceeds its
   *self-consistent* precision, the comparison runs at the self-consistent precision. This applies to
   `special_value` — displayed at 38 dp but self-consistent to ~28 dp (anchored by `real_period`'s 28
-  dp), the true value verified at three benches (conversion findings below). This is **not** lowering
+  dp), the true value verified three independent ways (conversion findings below). This is **not** lowering
   the tolerance to pass: it is comparing at the precision the source is actually right to; the display
   overrun is documented, not honoured.
 - **Torsion** is validated as "engine bound is tight and equals the published order" on the five tight
   curves; the benchmark curve (step 7) documents the non-tight case.
 
-n233 identity is **confirmed at the invariant level** (two independent computations: ours and CinC's
+n233 identity is **confirmed at the invariant level** (two independent computations: ours and a separate
 re-derivation; c₄=217, c₆=−3133, Δ=233, and c₄³−c₆²=1728·233 checks). Equal (c₄,c₆) over ℚ is the same
 curve up to isomorphism; the two are translation-equivalent minimal models, ours not in LMFDB reduced
 form. Direct a-invariant comparison is not applicable; both computations are cited; both true labels are
@@ -218,13 +218,13 @@ LMFDB special:  0.253841860855910684337758923350 4388746500
 
 This is neither truncation nor a value tuned to pass.
 
-**Resolved (CinC ruling, 29 Jul) — a precision seam, verified at three benches.** The true value
+**Resolved (ruling of 29 Jul) — a precision seam, verified three independent ways.** The true value
 of L(E,1) is confirmed independently:
 
 - **PARI/GP 2.15.4**, `lfun(ellinit([0,-1,1,-10,-20]), 1)` at 100 digits:
   `0.2538418608559106843377589233509094610438984483661217335934273842460816677225555445380724611843025215`,
   with L − Ω/5 = 2.3×10⁻⁹⁷ (the BSD identity to the working floor).
-- **CinC's independent mpmath build** (aₚ from brute-force point counts on the curve equation;
+- **An independent mpmath build** (aₚ from brute-force point counts on the curve equation;
   a₁₁ = 1 from the nonsingular count, not a table; smoothed series at 70 digits): agrees with PARI
   to 1.4×10⁻⁷¹.
 - **This engine**: its 40-digit value is the correct rounding of the above.
@@ -235,7 +235,7 @@ junk from the stored representation. **This is a precision seam, not an error: L
 precision it computes; the display overstates it.** Under the amended tolerance rule (compare at the
 source's self-consistent precision) the two L checks **pass at 28 dp**. They are preserved here as
 the job's reds with the full chain — banked red (b243ac3) → first diagnosis retracted (dc73d53) →
-three-bench verification → registered amendment → green. That chain is the difference between
+three-way verification → registered amendment → green. That chain is the difference between
 discovery and tuning.
 
 The other 16 constants validate at LMFDB's published precision: root numbers, Tamagawa products,
@@ -244,26 +244,26 @@ torsion (bound = published order, all tight), all four real periods, and |Ш| (a
 ## Step 7 — the 30a1 torsion-bound benchmark
 
 Added **30a1** (LMFDB **30.a8**, a-invariants `[1,0,1,1,2]`, conductor 30) as the benchmark for the
-non-tight case. Rationale: small conductor, a clean 2× gap, provenance already established (brief 05,
+non-tight case. Rationale: small conductor, a clean 2× gap, provenance already established (the trueOrder curation,
 LMFDB 30.a8 torsion order 6). The engine's gcd `TorsionBound` = **12**, the **published order = 6** —
 so the bound overshoots by k = 2, and the |Ш| *estimate* = L·12²/(Ω·∏cₚ) = **4** where the analytic
 order is **1**. The defect is **live**: the trueOrder work added a *data* field, it did not cure the
 engine's `TorsionBound` (a gcd bound, not Nagell–Lutz). Documented under the **known-defect
 convention** — the two benchmark checks assert the current (defective) engine values (12 and 4) so a
 future cure flips them visibly, with the published order / analytic order stated as the targets. The
-cure is **parked** (candidate future brief); this pass documents, it does not fix.
+cure is **parked** (candidate future work); this pass documents, it does not fix.
 
 ## Job status
 
 Suite: **20 passed, 0 failed** — 18 constants validated against LMFDB published values + 2 known-defect
 benchmark checks. The two L(E,1) checks are green under the amended rule (compare at the source's
 self-consistent precision) and preserved above as the job's reds with the full discovery chain (banked
-→ retracted → three-bench verified → amended → green). Raw source responses archived under `lmfdb/`,
-access-dated. **Ready for Sketch to mark rulebook §5 discharged.**
+→ retracted → three-way verified → amended → green). Raw source responses archived under `lmfdb/`,
+access-dated. **Ready to be marked discharged.**
 
 ---
 
-# Follow-on pass to Brief 03 (CinC, 31 July 2026)
+# Follow-on pass to the LMFDB conversion (31 July 2026)
 
 Three items arising from the close-out pass, none of them a re-opening of it.
 
@@ -289,7 +289,7 @@ in a one-off shell). Per archived response, three assertions, driven by
    (`2026-07-31`), so a later silent re-fetch or hand-edit is detectable rather than assumed
    absent.
 
-**Result — all 12 files pass** (the 10 from Brief 03 plus the two 30a1 evidence files
+**Result — all 12 files pass** (the 10 from the conversion plus the two 30a1 evidence files
 `ec_curvedata_30a1.json` / `ec_mwbsd_30.a8.json`, now committed with the manifest):
 
 | file | expected label | label | fields | hash |
@@ -313,12 +313,12 @@ runs whenever the suite does.
 
 ## Item 2 — the 30a1 defect hypothesis: confirmed alive, prediction frozen
 
-CinC's reading is that the two 30a1 defect numbers (torsion bound 12 vs order 6; |Ш| estimate 4
+The reading is that the two 30a1 defect numbers (torsion bound 12 vs order 6; |Ш| estimate 4
 vs analytic 1) are **one defect seen twice** — torsion enters the BSD ratio squared, so a bound
 too large by k = 2 inflates |Ш| by exactly 4. Step 1 (does |Ш| draw on the *same* torsion
 quantity?) is **confirmed**: `Compiler.cs` computes `sha = L·(tor·tor)/(Ω·∏c_p)` with
 `tor = e.TorsionBound()` — the same gcd bound, squared, no independent torsion source. Hypothesis
-alive. Per CinC's instruction the **prediction is now frozen before any cure runs**, in
+alive. As instructed, the **prediction is now frozen before any cure runs**, in
 [`30a1-torsion-cure-prereg.md`](30a1-torsion-cure-prereg.md): TorsionBound 12→6, |Ш| → **exactly
 1** at a 20-dp / ½-ulp tolerance with the residual reported (replacing the current 0-dp window),
 with kill conditions stated. **The cure stays parked** — it is not green under standing trust and
@@ -329,13 +329,13 @@ waits for Cliff to unpark it.
 The parked label findings (Cremona `11a1` = LMFDB `11.a2`; `n233` = Cremona `233a2` / LMFDB
 `233.a1`) are written up as an explicit inheritance note at the repo root,
 [`LABEL-CONVENTIONS.md`](../../LABEL-CONVENTIONS.md), linked from the README so the future
-LMFDB-label-lookup brief reads it as a **design input** rather than rediscovering it as a bug: the
+LMFDB-label-lookup work reads it as a **design input** rather than rediscovering it as a bug: the
 two divergences with instances, the identity being invariant-level (c₄, c₆ / j) not nominal, and
 model normalisation deliberately parked because it would move every curated point.
 
 ---
 
-# Second follow-on — three small things (CinC, 31 July 2026)
+# Second follow-on — three small things (31 July 2026)
 
 ## The middle link — constants pinned to their archived source
 
@@ -366,21 +366,21 @@ asserted values are the *defective* engine outputs (12, 4), not archive-drawn co
 
 ## README provenance sweep
 
-The README "Acceptance constants" section was false about its own provenance after Brief 03 —
+The README "Acceptance constants" section was false about its own provenance after the LMFDB conversion —
 it still described the constants as "frozen internal bench values … not fetched from any external
 database … not external validation against published tables." Rewritten to state what is now true
 (LMFDB published values, archived, integrity-checked, middle-link-pinned, never fed to the
 pipeline), preserving the L(E,1) precision-seam wording. **Swept for others:** the `Compiler.cs`
 class docstring likewise referenced "the frozen 3 July 2026 bench values appear only in the
-acceptance suite" — those were replaced by LMFDB published values in Brief 03; corrected. The
+acceptance suite" — those were replaced by LMFDB published values in the conversion; corrected. The
 **before-photograph at the top of this note is correct history**, not stale, and is left intact.
-**Flagged, not edited (Mr Sketch's domain):** the panel generator's "internal bench name; NOT
+**Flagged, not edited (the panel generator's to change):** the panel generator's "internal bench name; NOT
 pulled from LMFDB" notes (`tools/gen-bsd-rank0`, `data/bsd-rank0.json`) — literally still true (the
 generator hardcodes bench names and does not pull them) but the label *correspondence* is now
-documented in `LABEL-CONVENTIONS.md`, so Sketch may want to soften the "provenance unknown"
+documented in `LABEL-CONVENTIONS.md`, so its owner may want to soften the "provenance unknown"
 implication.
 
-## The precision anchor of the |Ш| ratio (CinC's question)
+## The precision anchor of the |Ш| ratio (a reviewer's question)
 
 **Q:** In `sha = L·tor²/(Ω·∏c_p)`, which of L and Ω are engine-computed and which are sourced from
 LMFDB, and what is the weakest precision among them?
@@ -396,5 +396,5 @@ own working precision**, set by `digits` (34 for the 30a1 benchmark): both the s
 figures, and the ratio is a near-unit rational so there is no catastrophic cancellation. **The 20-dp
 stake in the pre-registration is correctly anchored to the engine's floor — because the engine's
 floor is the only floor in the ratio.** The answer *confirms* the stake's justification rather than
-changing it, so per CinC's instruction **no companion note is filed beside the pre-registration**
+changing it, so, as instructed, **no companion note is filed beside the pre-registration**
 and it stays frozen and unedited. Recorded here only.
