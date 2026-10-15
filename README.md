@@ -82,15 +82,18 @@ documented in
 src/Elliptic.Numerics          BigFloat, Reals (π, AGM)  — BCL-only
 src/Elliptic.Bsd               EllipticCurve, Analytic, BsdCompiler, RankZeroReport
 app/Elliptic.Bsd.Acceptance    console harness; exit 0 iff all checks pass
+app/Elliptic.Site              local web host for the pages; F5 in Visual Studio
 tests/Elliptic.Numerics.Tests  xUnit battery for BigFloat, π and the AGM
 tests/Elliptic.Bsd.Tests       xUnit component battery
+tests/Elliptic.Site.Tests      xUnit: the host serves what the deploy publishes, and nothing else
 tools/gen-bsd-rank0            producer of data/bsd-rank0.json (see its README)
 ```
 
 The repository-root `nuget.config` clears all remote package sources, so the
-compute, acceptance and generator projects restore with no network. The two test
-projects, `Elliptic.Numerics.Tests` and `Elliptic.Bsd.Tests`, each carry their own
-`nuget.config` re-enabling nuget.org for the xUnit packages.
+compute, acceptance, site and generator projects restore with no network. The
+three test projects, `Elliptic.Numerics.Tests`, `Elliptic.Bsd.Tests` and
+`Elliptic.Site.Tests`, each carry their own `nuget.config` re-enabling nuget.org
+for the xUnit packages (and, for the last, the ASP.NET Core test host).
 
 ## Build and run
 
@@ -105,6 +108,22 @@ A good run prints `59 passed, 0 failed.` from the harness (and exits 0), then
 `Passed!  - Failed: 0, Passed: 62` for `Elliptic.Bsd.Tests.dll`.
 
 Requires the .NET 10 SDK.
+
+## Run the site locally
+
+The pages are plain static files in the repository: `index.html`, `web/` and
+`data/bsd-rank0.json`. `app/Elliptic.Site` serves them on your own machine,
+straight from those folders.
+
+- **Visual Studio:** open `elliptic-workbench.slnx`; right-click `Elliptic.Site`,
+  *Set as Startup Project*; press F5 (or Ctrl+F5 to run without the debugger).
+  The browser opens at `http://localhost:5190`.
+- **Command line:** `dotnet run --project app/Elliptic.Site`
+- Edit a page and refresh the browser; no rebuild is needed.
+
+Only the published pages are served; the source, the tools and `.git` are not
+reachable. The deployed site is still built by `tools/build-site.sh`; this host
+does not touch it.
 
 ## Curve labels
 
