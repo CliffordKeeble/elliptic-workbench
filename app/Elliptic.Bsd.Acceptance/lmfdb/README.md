@@ -1,7 +1,7 @@
 # Archived LMFDB API responses
 
 Raw LMFDB API JSON responses, archived as **source evidence** for the acceptance constants
-(Brief 03). Every value the acceptance suite validates against — including the displayed
+(the LMFDB conversion; see `../acceptance-constants.md`). Every value the acceptance suite validates against — including the displayed
 38-digit `special_value` string the precision-seam finding is about — is traceable to a file
 here.
 

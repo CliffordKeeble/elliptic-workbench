@@ -1,12 +1,12 @@
 {
   "schema": "elliptic-workbench/bsd-rank0/v6",
   "engine": {
-    "commit": "1ad7de8",
+    "commit": "fe1a128",
     "generated": "2026-10-15",
     "precisionDigits": 80
   },
-  "provenance": "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, Tamagawa product, torsion, root number, quotient), computed at 512-bit working precision with the term count set via digits so the engine\u0027s own TermsFor clears the certified floor M. The generator only chooses the term count, computes the certificate (q, tail bound, certified digits), and DERIVES quantities the engine does not itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the engine computes. Cross-checked against a 640-bit run. Workbench ids are internal names; each curve\u0027s labels block carries its Cremona and LMFDB labels sourced from the archived ec_curvedata record (pulled 2026-07-31), with the model-to-published-curve attachment named per curve (Brief 06).",
-  "certificate": "Tail bound: |tail| \u003C= 4 q^(M\u002B1)/(1-q), q = exp(-2\u03C0/\u221AN), via |a_n/n| \u003C= 2 (Hasse \u002B divisor bound, bad primes included). Series verified against the engine (brief 03 \u00A72): leading 2, exp(-2\u03C0n/\u221AN), a_{p^k}=a_p^k at bad primes.",
+  "provenance": "Every real quantity is a direct output of a single Elliptic.Bsd RunRankZero call per curve (L, period, Tamagawa product, torsion, root number, quotient), computed at 512-bit working precision with the term count set via digits so the engine\u0027s own TermsFor clears the certified floor M. The generator only chooses the term count, computes the certificate (q, tail bound, certified digits), and DERIVES quantities the engine does not itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the engine computes. Cross-checked against a 640-bit run. Workbench ids are internal names; each curve\u0027s labels block carries its Cremona and LMFDB labels sourced from the archived ec_curvedata record (pulled 2026-07-31), with the model-to-published-curve attachment named per curve.",
+  "certificate": "Tail bound: |tail| \u003C= 4 q^(M\u002B1)/(1-q), q = exp(-2\u03C0/\u221AN), via |a_n/n| \u003C= 2 (Hasse \u002B divisor bound, bad primes included). Series verified against the engine: leading 2, exp(-2\u03C0n/\u221AN), a_{p^k}=a_p^k at bad primes.",
   "modelAttachmentValues": [
     "a-invariants-match",
     "invariant-match",
@@ -3816,7 +3816,7 @@
     },
     {
       "label": "30a1",
-      "labelProvenance": "internal bench name (xUnit Finding-2 curve); NOT pulled from LMFDB",
+      "labelProvenance": "internal bench name (the xUnit torsion-bound-defect curve); NOT pulled from LMFDB",
       "labels": {
         "workbenchId": "30a1",
         "clabel": "30a1",
@@ -4198,7 +4198,7 @@
     },
     {
       "label": "n233-reg",
-      "labelProvenance": "internal regression curve (v1.0.1 Finding-1), conductor 233; no bench/LMFDB label",
+      "labelProvenance": "internal regression curve (v1.0.1 bad-prime seeding fix), conductor 233; no bench/LMFDB label",
       "labels": {
         "workbenchId": "n233-reg",
         "clabel": "233a2",
@@ -4759,7 +4759,7 @@
         "exact": false,
         "method": "gcd bound",
         "trueOrder": null,
-        "trueOrderSource": "NULL BY CinC RULING (brief 05). LMFDB lists conductor 233 as minimal model [1,0,1,-5,3] = 233.a1 (torsion Z/2Z). Our model [1,3,0,-1,0] is the same curve: matching c4=217, c6=-3133, Delta=233 fixes it up to isomorphism over Q and torsion order is an isomorphism invariant, so the identification is a theorem, not a guess. It is left null anyway: the value would only make n233 a fourth tight example, whereas the null is a visible instance of the provenance rule declining (source-displayed accepted; derived-by-us, however sound, not). Reasoning recorded so the value is one step away if ever needed.",
+        "trueOrderSource": "NULL BY RULING (provenance rule: an unsourced value is not shipped). LMFDB lists conductor 233 as minimal model [1,0,1,-5,3] = 233.a1 (torsion Z/2Z). Our model [1,3,0,-1,0] is the same curve: matching c4=217, c6=-3133, Delta=233 fixes it up to isomorphism over Q and torsion order is an isomorphism invariant, so the identification is a theorem, not a guess. It is left null anyway: the value would only make n233 a fourth tight example, whereas the null is a visible instance of the provenance rule declining (source-displayed accepted; derived-by-us, however sound, not). Reasoning recorded so the value is one step away if ever needed.",
         "gcdPrimes": [
           3,
           5,

@@ -3,7 +3,7 @@ using Elliptic.Numerics;
 namespace Elliptic.Bsd;
 
 /// <summary>
-/// ⚠ v1 limitation (Finding 2, 3 Jul 2026): <c>TorsionBound</c> is a gcd upper bound, not a
+/// ⚠ v1 limitation (recorded 3 Jul 2026): <c>TorsionBound</c> is a gcd upper bound, not a
 /// certified order, and it enters <c>ShaEstimate</c> squared — an overshoot by k inflates the
 /// estimate by k² (witness: 30a1 reports 4 where the truth is 1, and 4 is itself a plausible
 /// square). Treat ShaEstimate as exact only for curves whose torsion is independently known
@@ -25,7 +25,7 @@ public sealed record RankZeroReport(
 /// external data anywhere in the pipeline (LMFDB published values appear only in the
 /// acceptance suite, as oracles-after —
 /// the discipline of papers/paper_144_genuine_phantoms/ §4.3; the frozen 3 July 2026 bench values they replaced in
-/// Brief 03 are recorded in acceptance-constants.md).
+/// the LMFDB conversion are recorded in app/Elliptic.Bsd.Acceptance/acceptance-constants.md).
 /// v2 (derivative engine: Γ*, η(s), Richardson — Papers 140/142) and v3 (full Tate at p = 2, 3)
 /// extend this class.
 /// </summary>

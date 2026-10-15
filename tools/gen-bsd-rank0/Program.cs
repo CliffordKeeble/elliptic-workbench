@@ -11,7 +11,7 @@ var inv = CultureInfo.InvariantCulture;
 string engineCommit = args.Length > 0 ? args[0] : "unknown";
 string generated    = args.Length > 1 ? args[1] : DateTime.UtcNow.ToString("yyyy-MM-dd", inv);
 string outPath      = args.Length > 2 ? args[2] : "bsd-rank0.json";
-// Brief 06 §2: the one archive the labels are sourced from (one archive that must agree, not a
+// The one archive the labels are sourced from (one archive that must agree, not a
 // second copy). Default assumes the repo root as cwd.
 string archiveDir   = args.Length > 3 ? args[3] : Path.Combine("app", "Elliptic.Bsd.Acceptance", "lmfdb");
 
@@ -27,11 +27,11 @@ const int OutDigits = 80;    // certified decimal digits emitted for real quanti
 const int WorkBits  = 512;   // primary working precision
 const int CheckBits = 640;   // second precision, to test the implementation (section 9)
 
-// ── Brief 06 §2: per-curve label block, sourced from the LMFDB archive ──────────
+// ── per-curve label block, sourced from the LMFDB archive ──────────
 // modelAttachment says how the workbench MODEL was tied to the published curve. A value that
-// feeds the panel's arithmetic must be sourced end to end (§1); a label is display metadata, so
+// feeds the panel's arithmetic must be sourced end to end; a label is display metadata, so
 // it may NAME an unsourced attachment rather than absorb it. The enum is all THREE from the start
-// (§2) so a curve added later cannot be forced into "a-invariants-match" for lack of "unverified":
+// so a curve added later cannot be forced into "a-invariants-match" for lack of "unverified":
 //   a-invariants-match — workbench a-invariants compared to LMFDB's displayed a-invariants, matched
 //   invariant-match    — identity via a c4/c6/Δ (j) match; the workbench model differs (e.g. a translation of the minimal model)
 //   unverified         — nothing checked (e.g. curves the panel does not use)
@@ -71,17 +71,17 @@ catch (Exception ex)
 
 // TrueOrder is a CURATED external value: the true torsion order, pulled from a published source
 // (LMFDB) with the date, NOT computed by the engine or taken from the xUnit suite. It is null where
-// the source could not be established directly (CinC brief 05: stop and report, do not ship unsourced).
+// the source could not be established directly (provenance rule: stop and report, do not ship unsourced).
 var defs = new (string Label, string Prov, long A1, long A2, long A3, long A4, long A6, long N, long[] Bad, long? TrueOrder, string TrueOrderSource)[]
 {
     ("11a1",    "internal bench name; NOT pulled from LMFDB", 0, -1, 1, -10, -20, 11, new long[] { 11 },
         5, "LMFDB 11.a2 (https://www.lmfdb.org/EllipticCurve/Q/11a1/): a-invariants [0,-1,1,-10,-20] match; torsion Z/5Z, order 5; pulled from the LMFDB CURVE PAGE 2026-07-29 (not the API archive, which was fetched 2026-07-31)"),
     ("27606c1", "internal bench name; NOT pulled from LMFDB", 1, 0, 0, -10289707, 12703497719, 27606, new long[] { 2, 3, 43, 107 },
         1, "LMFDB 27606.c1 (https://www.lmfdb.org/EllipticCurve/Q/27606c1/): a-invariants [1,0,0,-10289707,12703497719] match; torsion trivial, order 1; pulled from the LMFDB CURVE PAGE 2026-07-29 (not the API archive, which was fetched 2026-07-31)"),
-    ("30a1",    "internal bench name (xUnit Finding-2 curve); NOT pulled from LMFDB", 1, 0, 1, 1, 2, 30, new long[] { 2, 3, 5 },
+    ("30a1",    "internal bench name (the xUnit torsion-bound-defect curve); NOT pulled from LMFDB", 1, 0, 1, 1, 2, 30, new long[] { 2, 3, 5 },
         6, "LMFDB 30.a8 (https://www.lmfdb.org/EllipticCurve/Q/30a1/): a-invariants [1,0,1,1,2] match; torsion Z/6Z, order 6; pulled from the LMFDB CURVE PAGE 2026-07-29 (not the API archive, which was fetched 2026-07-31)"),
-    ("n233-reg","internal regression curve (v1.0.1 Finding-1), conductor 233; no bench/LMFDB label", 1, 3, 0, -1, 0, 233, new long[] { 233 },
-        null, "NULL BY CinC RULING (brief 05). LMFDB lists conductor 233 as minimal model [1,0,1,-5,3] = 233.a1 (torsion Z/2Z). Our model [1,3,0,-1,0] is the same curve: matching c4=217, c6=-3133, Delta=233 fixes it up to isomorphism over Q and torsion order is an isomorphism invariant, so the identification is a theorem, not a guess. It is left null anyway: the value would only make n233 a fourth tight example, whereas the null is a visible instance of the provenance rule declining (source-displayed accepted; derived-by-us, however sound, not). Reasoning recorded so the value is one step away if ever needed."),
+    ("n233-reg","internal regression curve (v1.0.1 bad-prime seeding fix), conductor 233; no bench/LMFDB label", 1, 3, 0, -1, 0, 233, new long[] { 233 },
+        null, "NULL BY RULING (provenance rule: an unsourced value is not shipped). LMFDB lists conductor 233 as minimal model [1,0,1,-5,3] = 233.a1 (torsion Z/2Z). Our model [1,3,0,-1,0] is the same curve: matching c4=217, c6=-3133, Delta=233 fixes it up to isomorphism over Q and torsion order is an isomorphism invariant, so the identification is a theorem, not a guess. It is left null anyway: the value would only make n233 a fourth tight example, whereas the null is a visible instance of the provenance rule declining (source-displayed accepted; derived-by-us, however sound, not). Reasoning recorded so the value is one step away if ever needed."),
 };
 
 // Tail-bound inversion: for D certified digits, M = ceil((D·ln10 + ln(4/(1-q))) / (-ln q)), q = exp(-2π/√N).
@@ -192,7 +192,7 @@ foreach (var d in defs)
 
     Console.WriteLine($"{d.Label,-10} {M,7} {digits,7} {termsUsed,10} {certDigits,7} {(gatePass ? "pass" : "FAIL"),5} {(isSq ? "sq" : "NO"),4} {stL}/{stO}/{stQ}");
 
-    // Brief 06 §2: resolve this curve's labels from the archive (the §3-sourced correspondence).
+    // Resolve this curve's labels from the archive (the archive-sourced correspondence).
     var (archClabel, attachment) = labelInfo[d.Label];
     if (!ModelAttachmentEnum.Contains(attachment))
         throw new InvalidDataException($"gen: {d.Label} modelAttachment '{attachment}' not in the enum");
@@ -230,7 +230,7 @@ foreach (var d in defs)
             ["tailBound"] = tailD.ToString("E4", inv),           // tail at termsUsed
             ["certifiedDigits"] = certDigits,                    // from termsUsed, not M
             ["digitsEmitted"] = OutDigits,
-            ["seriesVerified"] = true,                           // brief 03 §2: engine series matches the certified series exactly
+            ["seriesVerified"] = true,                           // engine series matches the certified series exactly
         },
         ["nonVanishing"] = new JsonObject
         {
@@ -316,9 +316,9 @@ var root = new JsonObject
                    + "itself produce (per-prime Tamagawa, the gcd prime list, the non-vanishing ratio); it never re-derives a value the "
                    + "engine computes. Cross-checked against a " + CheckBits + "-bit run. Workbench ids are internal names; each curve's labels "
                    + "block carries its Cremona and LMFDB labels sourced from the archived ec_curvedata record (pulled " + labelAccessDate + "), "
-                   + "with the model-to-published-curve attachment named per curve (Brief 06).",
+                   + "with the model-to-published-curve attachment named per curve.",
     ["certificate"] = "Tail bound: |tail| <= 4 q^(M+1)/(1-q), q = exp(-2π/√N), via |a_n/n| <= 2 (Hasse + divisor bound, bad primes included). "
-                    + "Series verified against the engine (brief 03 §2): leading 2, exp(-2πn/√N), a_{p^k}=a_p^k at bad primes.",
+                    + "Series verified against the engine: leading 2, exp(-2πn/√N), a_{p^k}=a_p^k at bad primes.",
     ["modelAttachmentValues"] = new JsonArray(ModelAttachmentEnum.Select(x => (JsonNode)x).ToArray()),
     ["curves"] = curvesJson,
 };

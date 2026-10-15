@@ -1,6 +1,6 @@
-// Ported verbatim from Icosian.Numerics.Tests/NumericsTests.cs (CliffordKeeble/Icosian,
-// 2 Sep 2026), namespace apart. Icosian holds the twin; the two suites test
-// byte-identical copies of the same class and are expected to stay in step.
+// These tests began as Icosian's (Icosian.Numerics.Tests/NumericsTests.cs, 2 Sep 2026).
+// BigFloat and Reals have a twin in Icosian.Numerics, and a change to one should be
+// followed up on the other.
 using System.Numerics;
 using Elliptic.Numerics;
 using Xunit;

@@ -5,6 +5,7 @@
     <Platform Name="x86" />
   </Configurations>
   <Folder Name="/app/">
+    <Project Path="app/Elliptic.Site/Elliptic.Site.csproj" />
     <Project Path="app/Elliptic.Bsd.Acceptance/Elliptic.Bsd.Acceptance.csproj" />
   </Folder>
   <Folder Name="/src/">
@@ -12,6 +13,7 @@
     <Project Path="src/Elliptic.Numerics/Elliptic.Numerics.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Elliptic.Site.Tests/Elliptic.Site.Tests.csproj" />
     <Project Path="tests/Elliptic.Bsd.Tests/Elliptic.Bsd.Tests.csproj" />
     <Project Path="tests/Elliptic.Numerics.Tests/Elliptic.Numerics.Tests.csproj" />
   </Folder>
