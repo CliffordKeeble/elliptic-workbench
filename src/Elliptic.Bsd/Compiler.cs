@@ -39,6 +39,16 @@ public static class BsdCompiler
             throw new NotSupportedException(
                 $"ε = {eps}: odd analytic rank forced; the rank-0 channel does not apply (v2 scope).");
 
+        // Even analytic rank >= 2 (389a1: ε = +1, rank 2) gives L(E,1) = 0, and the quotient
+        // below would be |Ш| ~ 0. The root number cannot see it; |L| against the series tail
+        // does: if |L| is no larger than what the truncation may have dropped, L(E,1) is not
+        // certified non-zero and the rank-0 channel does not apply.
+        var tail = Analytic.TailBound(e.Conductor, Analytic.TermsFor(e.Conductor, digits));
+        if (l.Abs() <= tail)
+            throw new NotSupportedException(
+                "L(E,1) is not certified non-zero (|L| is within the series tail): analytic rank ≥ 2 " +
+                "is outside the rank-0 channel.");
+
         var omega = Analytic.RealPeriod(e);
         var tam = e.TamagawaProduct(ap);
         var tor = e.TorsionBound();

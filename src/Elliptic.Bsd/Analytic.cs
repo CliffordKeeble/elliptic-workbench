@@ -18,13 +18,42 @@ namespace Elliptic.Bsd;
 /// </summary>
 public static class Analytic
 {
+    // EllipticCurve.An allocates a long table of this length (10,000,000 terms = 80 MB), and the
+    // cap keeps the int cast in TermsFor safe with a wide margin.
+    private const int MaxTerms = 10_000_000;
+
     /// <summary>Number of series terms for the given decimal-digit target.</summary>
     public static int TermsFor(long conductor, int digits)
-        => (int)Math.Ceiling(digits * Math.Log(10) * Math.Sqrt(conductor) / (2 * Math.PI)) + 64;
+    {
+        double terms = Math.Ceiling(digits * Math.Log(10) * Math.Sqrt(conductor) / (2 * Math.PI)) + 64;
+        if (!(terms <= MaxTerms))        // also catches NaN
+            throw new ArgumentOutOfRangeException(nameof(conductor), conductor,
+                $"{digits} digits at conductor {conductor} needs more than {MaxTerms:N0} series terms.");
+        return (int)terms;
+    }
+
+    /// <summary>
+    /// Bound on what the series drops after <paramref name="terms"/> terms: 4 q^(n+1) / (1 − q),
+    /// q = e^(−2π/√N), from |a_n/n| ≤ 2 (Hasse and the divisor bound, bad primes included).
+    /// Computed in BigFloat because a double underflows at large digit targets.
+    /// </summary>
+    public static BigFloat TailBound(long conductor, int terms)
+    {
+        var rate = Reals.Pi().Twice() / BigFloat.Sqrt(BigFloat.From(conductor));   // 2π/√N
+        var q = BigFloat.Exp(-rate);
+        var qPow = BigFloat.Exp(-(rate * (terms + 1L)));                            // q^(n+1)
+        return (qPow * 4L) / (BigFloat.One - q);
+    }
 
     /// <summary>L(E, 1) for ε = +1 via the exact smoothed series, to roughly <paramref name="digits"/> digits.</summary>
     public static BigFloat LValueRankZero(EllipticCurve e, int digits, out Dictionary<long, long> ap)
     {
+        // `digits` sets only the term count; roundoff is set by BigFloat.Precision, which nothing
+        // here raises. Past about 0.30103 · Precision − 10 digits the answer would be silently short.
+        int maxDigits = (int)Math.Floor(0.30103 * BigFloat.Precision) - 10;
+        if (digits < 1 || digits > maxDigits)
+            throw new ArgumentOutOfRangeException(nameof(digits), digits,
+                $"digits must be in [1, {maxDigits}] at BigFloat.Precision = {BigFloat.Precision} bits.");
         int nmax = TermsFor(e.Conductor, digits);
         var an = e.An(nmax, out ap);
 

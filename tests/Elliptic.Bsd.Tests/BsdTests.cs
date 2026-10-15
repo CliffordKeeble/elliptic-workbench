@@ -22,6 +22,7 @@ public class BsdTests
     static readonly EllipticCurve E37 = new(0, 0, 1, -1, 0, 37, new long[] { 37 });
     static readonly EllipticCurve E233 = new(1, 3, 0, -1, 0, 233, new long[] { 233 });
     static readonly EllipticCurve E27606 = new(1, 0, 0, -10289707, 12703497719, 27606, new long[] { 2, 3, 43, 107 });
+    static readonly EllipticCurve E389 = new(0, 1, 1, -2, 0, 389, new long[] { 389 });
 
     static long M(BigInteger a, long p) { var r = (long)(a % p); return r < 0 ? r + p : r; }
 
@@ -118,6 +119,7 @@ public class BsdTests
 #pragma warning restore xUnit1031
         catch (AggregateException) { finished = true; }
         Assert.True(finished, "constructor did not return within 5 s (Ord hang).");
+        Assert.True(t.IsFaulted, "constructor accepted p = 1 (returned without throwing).");
         Assert.IsAssignableFrom<ArgumentException>(t.Exception!.InnerException);
     }
 
@@ -168,4 +170,150 @@ public class BsdTests
     [Trait("Finding", "2")]
     public void Sha_30a1_Reports4_DocumentsOpenFinding2()
         => Assert.StartsWith("4.00000000", BsdCompiler.RunRankZero(E30, digits: 20).ShaEstimate.ToDecimalString(10));
+
+    // ── 8. The library refuses what it cannot answer (D37 / 1015-FLINT-4, part 2) ──
+
+    // 8a. Even analytic rank >= 2: 389a1 has epsilon = +1 and rank 2, so L(E,1) = 0 and the
+    // rank-0 quotient is meaningless. It used to come back as |Sha| ~ 0. The root number alone
+    // cannot catch it; the gate is |L| against the series tail.
+    [Fact]
+    public void RunRankZero_389a1_Rank2_IsRefused()
+        => Assert.Contains("not certified", Assert.Throws<NotSupportedException>(
+            () => BsdCompiler.RunRankZero(E389)).Message);
+
+    // P6-1. The spec says epsilon = -1 is refused; nothing tested it. Green from the start.
+    [Fact]
+    public void RunRankZero_37a1_EpsilonMinus1_IsRefused()
+        => Assert.Contains("ε = -1", Assert.Throws<NotSupportedException>(
+            () => BsdCompiler.RunRankZero(E37)).Message);
+
+    // 8b. digits must fit what the working precision carries: 1 <= digits <= floor(0.30103 * 320) - 10 = 86.
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-5)]
+    [InlineData(87)]
+    [InlineData(200)]
+    public void LValue_DigitsOutOfRange_Throws(int digits)
+        => Assert.Throws<ArgumentOutOfRangeException>(() => Analytic.LValueRankZero(E11, digits, out _));
+
+    [Fact]
+    public void RunRankZero_DigitsZero_Throws()
+        => Assert.Throws<ArgumentOutOfRangeException>(() => BsdCompiler.RunRankZero(E11, digits: 0));
+
+    [Fact]
+    public void LValue_DigitsAtTheBound_IsAccepted()
+        => Analytic.LValueRankZero(E11, 86, out _);
+
+    // The term count is capped at 10,000,000 (An allocates a long table that long). 10^12 and
+    // long.MaxValue both overshoot it; the second also wrapped the int cast.
+    [Theory]
+    [InlineData(1_000_000_000_000L, 30)]
+    [InlineData(long.MaxValue, 30)]
+    public void TermsFor_BeyondTheCap_Throws(long conductor, int digits)
+        => Assert.Throws<ArgumentOutOfRangeException>(() => Analytic.TermsFor(conductor, digits));
+
+    [Fact]
+    public void TermsFor_WellInsideTheCap_IsAccepted()
+        => Assert.InRange(Analytic.TermsFor(100_000_000_000L, 30), 3_000_000, 4_000_000);
+
+    // 8c. The validated input stays validated.
+    [Fact]
+    public void BadPrimes_CannotBeCastBackAndMutated()
+    {
+        var e = new EllipticCurve(0, -1, 1, -10, -20, 11, new long[] { 11 });
+        Assert.IsNotType<long[]>(e.BadPrimes);
+        Assert.Throws<NotSupportedException>(() => ((IList<long>)e.BadPrimes)[0] = 7);
+        Assert.Equal(11L, e.BadPrimes[0]);
+    }
+
+    // Green from the start: the constructor copies, so the caller's array is not shared.
+    [Fact]
+    public void BadPrimes_IsACopyOfTheCallersArray()
+    {
+        var mine = new long[] { 11 };
+        var e = new EllipticCurve(0, -1, 1, -10, -20, 11, mine);
+        mine[0] = 7;
+        Assert.Equal(11L, e.BadPrimes[0]);
+    }
+
+    // 8d. The public helpers refuse what the constructor refuses.
+    // Ord(n, 1) looped for ever (n % 1 == 0, n / 1 == n): off-thread, as T3.
+    [Fact]
+    public void Ord_PrimeOne_ThrowsAndDoesNotHang()
+    {
+        var t = Task.Run(() => EllipticCurve.Ord(12, 1));
+        bool finished;
+#pragma warning disable xUnit1031   // the bounded Wait IS the assertion; see T3 above.
+        try { finished = t.Wait(TimeSpan.FromSeconds(5)); }
+#pragma warning restore xUnit1031
+        catch (AggregateException) { finished = true; }
+        Assert.True(finished, "Ord(12, 1) did not return within 5 s (the p = 1 hang).");
+        Assert.True(t.IsFaulted, "Ord(12, 1) returned without throwing.");
+        Assert.IsType<ArgumentOutOfRangeException>(t.Exception!.InnerException);
+    }
+
+    [Theory]
+    [InlineData(0L)]
+    [InlineData(-5L)]
+    public void Ord_PrimeBelowTwo_Throws(long p)
+        => Assert.Throws<ArgumentOutOfRangeException>(() => EllipticCurve.Ord(12, p));
+
+    // The valuation of 0 is infinite. Not a throw: the constructor's u^12 test evaluates
+    // Ord(c4, p) and c4 = 0 is a legal model (y^2 = x^3 + 1).
+    [Fact]
+    public void Ord_Zero_IsInfinite() => Assert.Equal(int.MaxValue, EllipticCurve.Ord(0, 7));
+
+    [Fact]
+    public void Ord_OrdinaryValues() { Assert.Equal(3, EllipticCurve.Ord(8, 2)); Assert.Equal(2, EllipticCurve.Ord(-18, 3)); Assert.Equal(0, EllipticCurve.Ord(10, 3)); }
+
+    [Theory]
+    [InlineData(0L)]
+    [InlineData(1L)]
+    [InlineData(-3L)]
+    public void Ap_PrimeBelowTwo_Throws(long p)
+        => Assert.Throws<ArgumentOutOfRangeException>(() => E11.Ap(p));
+
+    [Theory]
+    [InlineData(4L)]
+    [InlineData(9L)]
+    [InlineData(15L)]
+    public void Ap_Composite_Throws(long p)
+        => Assert.Throws<ArgumentException>(() => E11.Ap(p));
+
+    [Fact]
+    public void TorsionPrimes_AreTheOddPrimesTo37()
+    {
+        Assert.Equal(new long[] { 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 }, EllipticCurve.TorsionPrimes.ToArray());
+        Assert.DoesNotContain(2L, EllipticCurve.TorsionPrimes);
+    }
+
+    // 8e. P6-2. The spec promises L(E,1) and the real period, and a planted fault in L used to
+    // turn one xUnit test red, and that one asserted a known-wrong value. 11a1 against the
+    // archived strings, copied as literals from
+    //   app/Elliptic.Bsd.Acceptance/lmfdb/ec_mwbsd_11.a2.json  (fields real_period, special_value)
+    // Both are compared at 28 dp, +-1/2 ulp: special_value displays 38 dp but is
+    // self-consistent only to about 28 (acceptance-constants.md).
+    private const string Omega11Archived = "1.2692093042795534216887946168";
+    private const string L11Archived = "0.25384186085591068433775892335043887465";
+
+    static BigFloat Decimal(string s)
+    {
+        int dot = s.IndexOf('.');
+        return BigFloat.FromRatio(BigInteger.Parse(s.Remove(dot, 1)), BigInteger.Pow(10, s.Length - dot - 1));
+    }
+
+    static void AssertAgreesTo28dp(BigFloat got, string archived)
+    {
+        var halfUlp = BigFloat.FromRatio(1, 2 * BigInteger.Pow(10, 28));
+        var diff = (got - Decimal(archived)).Abs();
+        Assert.True(diff <= halfUlp, $"{got.ToDecimalString(32)} vs archived {archived}");
+    }
+
+    [Fact]
+    public void Omega_11a1_MatchesTheArchive_28dp()
+        => AssertAgreesTo28dp(Analytic.RealPeriod(E11), Omega11Archived);
+
+    [Fact]
+    public void LValue_11a1_MatchesTheArchive_28dp()
+        => AssertAgreesTo28dp(Analytic.LValueRankZero(E11, 34, out _), L11Archived);
 }

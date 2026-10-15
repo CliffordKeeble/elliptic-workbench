@@ -28,7 +28,7 @@ public sealed class EllipticCurve
     public readonly BigInteger A1, A2, A3, A4, A6;
     public readonly BigInteger B2, B4, B6, B8, C4, C6, Delta;
     public readonly long Conductor;
-    public readonly long[] BadPrimes;
+    public IReadOnlyList<long> BadPrimes { get; }
 
     public EllipticCurve(BigInteger a1, BigInteger a2, BigInteger a3, BigInteger a4, BigInteger a6,
                          long conductor, long[] badPrimes)
@@ -64,8 +64,9 @@ public sealed class EllipticCurve
         }
 
         Conductor = conductor;
-        // Step 5: copy, so a caller cannot mutate the array after it has been validated.
-        BadPrimes = badPrimes.ToArray();
+        // A read-only view over a private copy: the caller cannot mutate the array they passed
+        // after it has been validated, and cannot cast what they read back to one either.
+        BadPrimes = Array.AsReadOnly(badPrimes.ToArray());
 
         // ── Step 2: unchanged.
         foreach (var p in badPrimes)
@@ -116,8 +117,14 @@ public sealed class EllipticCurve
         return true;
     }
 
+    /// <summary>
+    /// The exponent of the prime p in n. <c>int.MaxValue</c> for n = 0, where the valuation is
+    /// infinite: not a throw, because the u¹² test evaluates Ord(c₄, p) and c₄ = 0 is a legal model.
+    /// </summary>
     public static int Ord(BigInteger n, long p)
     {
+        if (p < 2) throw new ArgumentOutOfRangeException(nameof(p), p, "Ord needs p ≥ 2 (p = 1 divides everything and never terminates).");
+        if (n.IsZero) return int.MaxValue;
         n = BigInteger.Abs(n);
         int k = 0;
         while (!n.IsZero && n % p == 0) { n /= p; k++; }
@@ -133,6 +140,8 @@ public sealed class EllipticCurve
     /// </summary>
     public long Ap(long p)
     {
+        if (p < 2) throw new ArgumentOutOfRangeException(nameof(p), p, "Ap needs a prime p ≥ 2.");
+        if (!IsPrime(p)) throw new ArgumentException($"Ap needs a prime; {p} is composite.", nameof(p));
         if (p == 2)
         {
             long count = 1; // point at infinity
@@ -264,16 +273,24 @@ public sealed class EllipticCurve
         return prod;
     }
 
+    /// <summary>The odd primes <see cref="TorsionBound"/> takes the gcd of #E(𝔽_p) over. No 2: reduction need not be injective on torsion there.</summary>
+    public static IReadOnlyList<long> TorsionPrimes { get; } =
+        Array.AsReadOnly(new long[] { 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 });
+
     /// <summary>Upper bound on |E(ℚ)_tors| via gcd of #E(𝔽_p) over small good odd primes.</summary>
     public long TorsionBound()
     {
         long g = 0;
-        foreach (var p in new long[] { 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 })
+        foreach (var p in TorsionPrimes)
         {
             if (Delta % p == 0) continue;
             long np = p + 1 - Ap(p);
             g = g == 0 ? np : Gcd(g, np);
         }
+        // Every listed prime divides Δ (it takes N ≥ 3.7·10¹²): there is no bound, and returning
+        // 0 would have made |Ш| = 0.
+        if (g == 0)
+            throw new NotSupportedException("TorsionBound: every torsion prime divides Δ, so no bound is available.");
         return g;
     }
 

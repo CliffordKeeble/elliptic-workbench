@@ -138,6 +138,8 @@ string omega37 = "5.9869172924639192596640199589";
 string omega389 = "4.9804251217101101506427155839";
 // n233 = LMFDB 233.a1 (Cremona 233a2)
 long root233 = +1, tam233 = 1, tor233 = 2;
+string omega233 = "5.5685343942644786617970905028";
+string lval233 = "1.3921335985661196654492726256926551267";
 string sha233 = "1";
 
 // ── Constants vs archive — the middle link (CinC follow-on) ─────────────────
@@ -225,6 +227,8 @@ var (cd233, mw233) = MapCurve("233a2");
 EqInt("n233 root ε ← (−1)^analytic_rank", root233, RootOf(AInt(cd233, "analytic_rank")));
 EqInt("n233 ∏c_p ← tamagawa_product",     tam233,  AInt(mw233, "tamagawa_product"));
 EqInt("n233 torsion ← curvedata torsion", tor233,  AInt(cd233, "torsion"));
+EqStr("n233 Ω ← real_period",             omega233, ALit(mw233, "real_period"));
+EqStr("n233 L(E,1) ← special_value",      lval233,  ALit(mw233, "special_value"));
 EqSha("n233 |Sha| ← sha_an",              sha233,  mw233);
 Console.WriteLine();
 
@@ -237,7 +241,7 @@ CheckLong("∏c_p (tamagawa_product)", r11.TamagawaProduct, tam11, "LMFDB 11.a2"
 CheckLong("torsion — bound = published order 5 (tight)", r11.TorsionBound, tor11, "LMFDB 11.a2 order");
 CheckDecimal("Ω (real_period)", r11.Omega, omega11, "LMFDB 11.a2");
 CheckDecimal("L(E,1) (special_value)", r11.LValue, lval11, "LMFDB 11.a2", atDp: 28);
-CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r11.ShaEstimate, sha11, "LMFDB 11.a2");
+CheckDecimal("|Sha| analytic order (sha_an)", r11.ShaEstimate, ALit(mw11, "sha_an"), "LMFDB 11.a2");
 Console.WriteLine();
 
 // ── 27606c1 = LMFDB 27606.c1 = [1,0,0,−10289707,12703497719] ─────────────────
@@ -249,7 +253,7 @@ CheckLong("∏c_p (tamagawa_product)", r27.TamagawaProduct, tam27, "LMFDB 27606.
 CheckLong("torsion — bound = published order 1 (tight)", r27.TorsionBound, tor27, "LMFDB 27606.c1 order");
 CheckDecimal("Ω (real_period)", r27.Omega, omega27, "LMFDB 27606.c1");
 CheckDecimal("L(E,1) (special_value)", r27.LValue, lval27, "LMFDB 27606.c1", atDp: 28);
-CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r27.ShaEstimate, sha27, "LMFDB 27606.c1");
+CheckDecimal("|Sha| analytic order (sha_an)", r27.ShaEstimate, ALit(mw27, "sha_an"), "LMFDB 27606.c1");
 Console.WriteLine();
 
 // ── Period-only cross-checks, Δ > 0 branch (rank ≥ 1) ───────────────────────
@@ -271,7 +275,9 @@ var r233 = BsdCompiler.RunRankZero(e233, digits: 30);
 CheckLong("root number ε (ar=0)", r233.RootNumber, root233, "LMFDB 233.a1");
 CheckLong("∏c_p (tamagawa_product)", r233.TamagawaProduct, tam233, "LMFDB 233.a1");
 CheckLong("torsion — bound = published order 2 (tight)", r233.TorsionBound, tor233, "LMFDB 233.a1 order");
-CheckDecimal("|Sha| analytic order (sha_an), estimate rounds to", r233.ShaEstimate, sha233, "LMFDB 233.a1");
+CheckDecimal("Ω (real_period)", r233.Omega, omega233, "LMFDB 233.a1");
+CheckDecimal("L(E,1) (special_value)", r233.LValue, lval233, "LMFDB 233.a1", atDp: 28);
+CheckDecimal("|Sha| analytic order (sha_an)", r233.ShaEstimate, ALit(mw233, "sha_an"), "LMFDB 233.a1");
 Console.WriteLine();
 
 // ── 30a1 = LMFDB 30.a8 — torsion-bound benchmark (Brief 03 step 7) ───────────
