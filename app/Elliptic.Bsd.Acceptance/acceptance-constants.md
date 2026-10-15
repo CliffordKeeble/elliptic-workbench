@@ -92,8 +92,8 @@ the disease this job cures.
 
 **Route.** Values pulled from the **LMFDB API** — `ec_curvedata` (labels, a-invariants,
 conductor, rank, `analytic_rank`, torsion order, `sha`) and `ec_mwbsd` (`real_period`,
-`special_value` = L(E,1), `tamagawa_product`, `sha_an`). **Access date: 2026-07-30**
-(LMFDB API response timestamp). The citation is the LMFDB curve page,
+`special_value` = L(E,1), `tamagawa_product`, `sha_an`). **Access date: 2026-07-31**
+(LMFDB API response timestamp — all twelve archived responses carry it). The citation is the LMFDB curve page,
 `https://www.lmfdb.org/EllipticCurve/Q/<Cremona>/`.
 
 **Root number.** LMFDB carries no separate "root number" field; the functional-equation
@@ -286,7 +286,7 @@ in a one-off shell). Per archived response, three assertions, driven by
    check descends into `.data` (where LMFDB carries the value + `prec`), so a field present but
    hollow still fails.
 3. **A SHA-256 content hash per file matches the manifest**, recorded alongside the access date
-   (`2026-07-30`), so a later silent re-fetch or hand-edit is detectable rather than assumed
+   (`2026-07-31`), so a later silent re-fetch or hand-edit is detectable rather than assumed
    absent.
 
 **Result — all 12 files pass** (the 10 from Brief 03 plus the two 30a1 evidence files

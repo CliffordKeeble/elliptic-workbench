@@ -7,7 +7,7 @@ using Elliptic.Numerics;
 // ─────────────────────────────────────────────────────────────────────────────
 // Elliptic.Bsd acceptance suite (v1, rank-0 channel + period cross-checks).
 //
-// Reference constants are PUBLISHED VALUES from LMFDB, accessed 2026-07-30 via the
+// Reference constants are PUBLISHED VALUES from LMFDB, accessed 2026-07-31 via the
 // LMFDB API (ec_curvedata + ec_mwbsd). Each curve cites its LMFDB label; the
 // citation is the curve page https://www.lmfdb.org/EllipticCurve/Q/<Cremona>/.
 // Provenance and per-constant deltas: app/Elliptic.Bsd.Acceptance/acceptance-constants.md.
@@ -161,6 +161,12 @@ JsonNode Rec(string file)
 }
 long AInt(JsonNode rec, string field) => rec[field]!.GetValue<long>();
 string ALit(JsonNode rec, string field) => rec[field]!["data"]!.GetValue<string>();
+// The conductor and the bad primes are INPUTS to the engine, not just reference values, so
+// they come from the archive like everything else rather than from literals typed at the
+// bench (A3, 1015-FLINT-2). Both are in every ec_curvedata record, and both are now in the
+// manifest's requiredFields, so the integrity block above covers them.
+long NOf(JsonNode cd) => AInt(cd, "conductor");
+long[] PsOf(JsonNode cd) => cd["bad_primes"]!.AsArray().Select(n => n!.GetValue<long>()).ToArray();
 long RootOf(long ar) => ar % 2 == 0 ? +1 : -1;               // ε = (−1)^analytic_rank
 void EqInt(string name, long c, long a) =>
     CheckBool(name, c == a, c == a ? $"{c} = archive {a}" : $"constant {c} != archive {a}");
@@ -210,9 +216,9 @@ EqStr("27606c1 Ω ← real_period",             omega27, ALit(mw27, "real_period
 EqStr("27606c1 L(E,1) ← special_value",      lval27,  ALit(mw27, "special_value"));
 EqSha("27606c1 |Sha| ← sha_an",              sha27,   mw27);
 
-var (_, mw37) = MapCurve("37a1");
+var (cd37, mw37) = MapCurve("37a1");
 EqStr("37a1 Ω ← real_period",  omega37,  ALit(mw37, "real_period"));
-var (_, mw389) = MapCurve("389a1");
+var (cd389, mw389) = MapCurve("389a1");
 EqStr("389a1 Ω ← real_period", omega389, ALit(mw389, "real_period"));
 
 var (cd233, mw233) = MapCurve("233a2");
@@ -224,7 +230,7 @@ Console.WriteLine();
 
 // ── 11a1 = LMFDB 11.a2 = [0,−1,1,−10,−20], N = 11 ───────────────────────────
 Console.WriteLine("11a1  (LMFDB 11.a2)  y² + y = x³ − x² − 10x − 20");
-var e11 = new EllipticCurve(0, -1, 1, -10, -20, 11, new long[] { 11 });
+var e11 = new EllipticCurve(0, -1, 1, -10, -20, NOf(cd11), PsOf(cd11));
 var r11 = BsdCompiler.RunRankZero(e11, digits: 34);
 CheckLong("root number ε (sign = (−1)^analytic_rank, ar=0)", r11.RootNumber, root11, "LMFDB 11.a2");
 CheckLong("∏c_p (tamagawa_product)", r11.TamagawaProduct, tam11, "LMFDB 11.a2");
@@ -236,7 +242,7 @@ Console.WriteLine();
 
 // ── 27606c1 = LMFDB 27606.c1 = [1,0,0,−10289707,12703497719] ─────────────────
 Console.WriteLine("27606c1  (LMFDB 27606.c1)  y² + xy = x³ − 10289707x + 12703497719");
-var e27 = new EllipticCurve(1, 0, 0, -10289707, 12703497719, 27606, new long[] { 2, 3, 43, 107 });
+var e27 = new EllipticCurve(1, 0, 0, -10289707, 12703497719, NOf(cd27), PsOf(cd27));
 var r27 = BsdCompiler.RunRankZero(e27, digits: 34);
 CheckLong("root number ε (ar=0)", r27.RootNumber, root27, "LMFDB 27606.c1");
 CheckLong("∏c_p (tamagawa_product)", r27.TamagawaProduct, tam27, "LMFDB 27606.c1");
@@ -248,9 +254,9 @@ Console.WriteLine();
 
 // ── Period-only cross-checks, Δ > 0 branch (rank ≥ 1) ───────────────────────
 Console.WriteLine("Δ > 0 period branch (rank ≥ 1; L-machinery is rank-0 only)");
-var e37 = new EllipticCurve(0, 0, 1, -1, 0, 37, new long[] { 37 });
+var e37 = new EllipticCurve(0, 0, 1, -1, 0, NOf(cd37), PsOf(cd37));
 CheckDecimal("Ω(37a1) (LMFDB 37.a1 real_period)", Analytic.RealPeriod(e37), omega37, "LMFDB 37.a1");
-var e389 = new EllipticCurve(0, 1, 1, -2, 0, 389, new long[] { 389 });
+var e389 = new EllipticCurve(0, 1, 1, -2, 0, NOf(cd389), PsOf(cd389));
 CheckDecimal("Ω(389a1) (LMFDB 389.a1 real_period)", Analytic.RealPeriod(e389), omega389, "LMFDB 389.a1");
 Console.WriteLine();
 
@@ -258,7 +264,9 @@ Console.WriteLine();
 // Same curve as LMFDB's minimal [1,0,1,−5,3] by c4=217, c6=−3133, Δ=233 (invariant-level,
 // two independent computations; direct a-invariant comparison n/a). Regression: bad prime = Δ.
 Console.WriteLine("n233  (LMFDB 233.a1 / Cremona 233a2)  workbench model y² + xy = x³ + 3x² − x, N = 233");
-var e233 = new EllipticCurve(1, 3, 0, -1, 0, 233, new long[] { 233 });
+// N and the bad primes come from the 233a2 record even though the model below is the
+// workbench’s own [1,3,0,−1,0]: both are invariants of the curve, not of the model.
+var e233 = new EllipticCurve(1, 3, 0, -1, 0, NOf(cd233), PsOf(cd233));
 var r233 = BsdCompiler.RunRankZero(e233, digits: 30);
 CheckLong("root number ε (ar=0)", r233.RootNumber, root233, "LMFDB 233.a1");
 CheckLong("∏c_p (tamagawa_product)", r233.TamagawaProduct, tam233, "LMFDB 233.a1");
@@ -274,7 +282,8 @@ Console.WriteLine();
 // future Nagell–Lutz cure flips these lines visibly. The published order 6 is the target. The
 // cure is parked (candidate future brief); this pass documents, it does not fix.
 Console.WriteLine("30a1  (LMFDB 30.a8)  torsion-bound benchmark — KNOWN DEFECT (live)");
-var e30 = new EllipticCurve(1, 0, 1, 1, 2, 30, new long[] { 2, 3, 5 });
+var cd30 = Rec("ec_curvedata_30a1.json");   // integrity-guaranteed above; no new check here
+var e30 = new EllipticCurve(1, 0, 1, 1, 2, NOf(cd30), PsOf(cd30));
 var r30 = BsdCompiler.RunRankZero(e30, digits: 34);
 CheckLong("KNOWN DEFECT — torsion: gcd bound overshoots the published order 6 (target)", r30.TorsionBound, 12, "engine gcd bound; LMFDB 30.a8 order = 6");
 CheckDecimal("KNOWN DEFECT — |Sha| estimate inflated by (bound/order)² = 4 (analytic order is 1)", r30.ShaEstimate, "4", "engine estimate; LMFDB 30.a8 analytic order = 1", atDp: 0);

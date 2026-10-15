@@ -5,8 +5,15 @@ Raw LMFDB API JSON responses, archived as **source evidence** for the acceptance
 38-digit `special_value` string the precision-seam finding is about — is traceable to a file
 here.
 
-**Access date: 2026-07-30** (the LMFDB API stamps each response with its own timestamp; see the
-`timestamp` field in each file).
+**Access date: 2026-07-31** (the LMFDB API stamps each response with its own timestamp; see the
+`timestamp` field in each file — all twelve read 31 July 2026, and `42874b3`, which archived
+them, is dated 31 July 10:47 BST).
+
+**Two dates, and which is which.** The archived API responses here were fetched on
+**2026-07-31**. The true torsion orders curated in `tools/gen-bsd-rank0` were read from the
+LMFDB **curve pages** on **2026-07-29** (committed in `5881419`, 29 July 21:42 BST), which is
+what that generator's `trueOrderSource` strings refer to. They are two different reads of
+LMFDB, and the 29 July date is correct where it appears.
 
 **Source of record** is the LMFDB curve page: `https://www.lmfdb.org/EllipticCurve/Q/<Cremona>/`.
 These JSON files are the raw API responses the values were pulled from.

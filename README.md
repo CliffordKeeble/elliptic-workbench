@@ -43,7 +43,7 @@ whose torsion is independently known. Certified torsion (Lutz–Nagell) is futur
 ## Acceptance constants
 
 `Elliptic.Bsd.Acceptance` validates the pipeline against **published reference values
-from LMFDB** (`ec_curvedata` + `ec_mwbsd`, accessed 2026-07-30), each curve citing its
+from LMFDB** (`ec_curvedata` + `ec_mwbsd`, accessed 2026-07-31), each curve citing its
 LMFDB label. The raw API responses are archived under
 `app/Elliptic.Bsd.Acceptance/lmfdb/` and **integrity-checked at the start of every run**
 — label field, required fields, and a per-file SHA-256 against `lmfdb/manifest.json`.
@@ -52,8 +52,16 @@ the suite establishes engine = constant = archive rather than engine = a hard-co
 oracle of unknown provenance.
 
 The reference values **never feed the pipeline** — the engine computes L(E,1), Ω, ∏c_p,
-the torsion bound and the root number from the curve's coefficients alone (see
-`Compiler.cs`); LMFDB appears only in the acceptance suite, as an oracle-after. 37a1 and
+the torsion bound and the root number itself (see `Compiler.cs`), and LMFDB appears only in
+the acceptance suite, as an oracle-after. What the engine is **given** is the five
+Weierstrass coefficients, the conductor, and the list of bad primes. It does not take those
+three on trust: the constructor requires every declared prime to be a distinct prime in
+[2, 2³¹ − 1], requires them to be *exactly* the primes dividing Δ, and requires the
+conductor to be their product. Reduction at each must be multiplicative, which with the
+other two makes the model minimal at every prime, so a non-minimal or non-semistable model
+is refused rather than silently given wrong numbers. The acceptance harness reads the
+conductor and the bad primes from the archived `ec_curvedata` records, not from literals
+typed at the bench — they are inputs, so they carry provenance like every other value. 37a1 and
 389a1 are period-only cross-checks (the Δ > 0 AGM branch at rank ≥ 1). For L(E,1),
 LMFDB's `special_value` is compared at its self-consistent precision (~28 dp): its
 display carries more digits than it is internally consistent to — a **precision seam,
