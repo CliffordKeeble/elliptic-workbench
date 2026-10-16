@@ -206,9 +206,10 @@ public class BsdTests
     public void RunRankZero_DigitsZero_Throws()
         => Assert.Throws<ArgumentOutOfRangeException>(() => BsdCompiler.RunRankZero(E11, digits: 0));
 
+    // At the bound the answer must still be the right answer, not merely an answer.
     [Fact]
     public void LValue_DigitsAtTheBound_IsAccepted()
-        => Analytic.LValueRankZero(E11, 86, out _);
+        => AssertAgreesTo28dp(Analytic.LValueRankZero(E11, 86, out _), L11Archived);
 
     // The term count is capped at 10,000,000 (An allocates a long table that long). 10^12 and
     // long.MaxValue both overshoot it; the second also wrapped the int cast.
@@ -318,6 +319,18 @@ public class BsdTests
     [Fact]
     public void Omega_11a1_MatchesTheArchive_28dp()
         => AssertAgreesTo28dp(Analytic.RealPeriod(E11), Omega11Archived);
+
+    // The Δ > 0 branch of RealPeriod (three real roots). 11a1 has Δ < 0, so without this the
+    // xUnit suite never ran it. Copied as a literal from
+    //   app/Elliptic.Bsd.Acceptance/lmfdb/ec_mwbsd_37.a1.json  (field real_period)
+    private const string Omega37Archived = "5.9869172924639192596640199589";
+
+    [Fact]
+    public void Omega_37a1_PositiveDiscriminant_MatchesTheArchive_28dp()
+    {
+        Assert.True(E37.Delta.Sign > 0);   // the branch this test exists for
+        AssertAgreesTo28dp(Analytic.RealPeriod(E37), Omega37Archived);
+    }
 
     [Fact]
     public void LValue_11a1_MatchesTheArchive_28dp()

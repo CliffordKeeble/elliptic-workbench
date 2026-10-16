@@ -7,10 +7,15 @@ namespace Elliptic.Site.Tests;
 
 public sealed class SiteTests : IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
     private readonly RepositorySite _repo = RepositorySite.Locate(AppContext.BaseDirectory);
 
-    public SiteTests(WebApplicationFactory<Program> factory) => _client = factory.CreateClient();
+    public SiteTests(WebApplicationFactory<Program> factory)
+    {
+        _factory = factory;
+        _client = factory.CreateClient();
+    }
 
     /// <summary>
     /// The input list of tools/build-site.sh, read from the script and not copied here, so a page
@@ -95,6 +100,31 @@ public sealed class SiteTests : IClassFixture<WebApplicationFactory<Program>>
             await File.ReadAllBytesAsync(_repo.PathOf("404.html")),
             await response.Content.ReadAsByteArrayAsync());
     }
+
+    // P6-1. HttpClient normalises "/web/../README.md" to "/README.md" before it sends, so the
+    // "/web/../README.md" row above only repeats the "/README.md" row. This sends the path to the
+    // test server literally, the way a client that does not normalise (curl --path-as-is) would.
+    [Fact]
+    public async Task ATraversalPathSentLiterallyIs404WithTheBodyOf404Html()
+    {
+        var context = await _factory.Server.SendAsync(c =>
+        {
+            c.Request.Method = "GET";
+            c.Request.Path = "/web/../README.md";
+        });
+
+        Assert.Equal((int)HttpStatusCode.NotFound, context.Response.StatusCode);
+        using var body = new MemoryStream();
+        await context.Response.Body.CopyToAsync(body);
+        Assert.Equal(await File.ReadAllBytesAsync(_repo.PathOf("404.html")), body.ToArray());
+    }
+
+    // P6-2. "Nothing else" is pinned both ways. EveryPublishedInputIsServedByteIdentical goes red
+    // when the deploy publishes a file this host does not serve; this goes red when this host
+    // serves a file the deploy does not publish.
+    [Fact]
+    public void EveryRootFileTheHostServesIsPublishedByTheDeploy()
+        => Assert.Subset(PublishedInputs().ToHashSet(), RepositorySite.RootFiles.ToHashSet());
 
     [Fact]
     public async Task AnUnknownPageIs404WithTheBodyOf404Html()
