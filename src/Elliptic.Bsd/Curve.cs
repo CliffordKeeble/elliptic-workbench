@@ -26,9 +26,19 @@ namespace Elliptic.Bsd;
 /// </summary>
 public sealed class EllipticCurve
 {
-    public readonly BigInteger A1, A2, A3, A4, A6;
-    public readonly BigInteger B2, B4, B6, B8, C4, C6, Delta;
-    public readonly long Conductor;
+    public BigInteger A1 { get; }
+    public BigInteger A2 { get; }
+    public BigInteger A3 { get; }
+    public BigInteger A4 { get; }
+    public BigInteger A6 { get; }
+    public BigInteger B2 { get; }
+    public BigInteger B4 { get; }
+    public BigInteger B6 { get; }
+    public BigInteger B8 { get; }
+    public BigInteger C4 { get; }
+    public BigInteger C6 { get; }
+    public BigInteger Delta { get; }
+    public long Conductor { get; }
     public IReadOnlyList<long> BadPrimes { get; }
 
     public EllipticCurve(BigInteger a1, BigInteger a2, BigInteger a3, BigInteger a4, BigInteger a6,
@@ -50,7 +60,7 @@ public sealed class EllipticCurve
         // guard below, and a negative p produced a nonsense ε. All three now stop here.
         // 2³¹ − 1 bounds each prime, not N: it keeps Ap's long products safe and trial division
         // to √p at most 46,341 steps. The bound on N is Analytic.MaxSeriesTerms, 10,000,000 terms.
-        if (badPrimes is null) throw new ArgumentNullException(nameof(badPrimes));
+        ArgumentNullException.ThrowIfNull(badPrimes);
         for (int i = 0; i < badPrimes.Length; i++)
         {
             long p = badPrimes[i];

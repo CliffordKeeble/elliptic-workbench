@@ -5,6 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <!-- CA1707 (no underscores in identifiers) is off in the test projects: xUnit's Method_Condition
+         test names are the point of them. The one suppression under the analyzer bar; see
+         Directory.Build.props. -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 
 namespace Elliptic.Numerics;
@@ -47,8 +48,8 @@ public readonly struct BigFloat : IComparable<BigFloat>, IEquatable<BigFloat>
     // working precision of about 3 x 10^5 bits. Past that Exp throws instead of returning short.
     private const int MaxExpTerms = 20000;
 
-    public readonly BigInteger Mantissa;
-    public readonly int Exponent;
+    public BigInteger Mantissa { get; }
+    public int Exponent { get; }
 
     private BigFloat(BigInteger mantissa, int exponent)
     {
@@ -225,7 +226,7 @@ public readonly struct BigFloat : IComparable<BigFloat>, IEquatable<BigFloat>
             : (scaled + (BigInteger.One << (-Exponent - 1))) >> (-Exponent);
         var ip = i / pow;
         var fp = i % pow;
-        return (Sign < 0 ? "-" : "") + ip + "." + fp.ToString().PadLeft(fracDigits, '0');
+        return (Sign < 0 ? "-" : "") + ip + "." + fp.ToString(CultureInfo.InvariantCulture).PadLeft(fracDigits, '0');
     }
 
     public override string ToString() => ToDecimalString(Math.Max(1, (int)(Precision * 0.30103) - 4));

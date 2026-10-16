@@ -1,0 +1,19 @@
+<Project>
+
+  <!--
+    The analyzer bar for every project under this folder: the .NET 10 recommended analyzers, and a
+    warning is an error. Set once, here.
+
+    Two exceptions, each with its reason where it lives:
+      1. CA1707 is switched off in the three test projects (a NoWarn in each .csproj): xUnit's
+         Method_Condition test names are the point of them.
+      2. The start-up log line in app/Elliptic.Site/Program.cs is a source-generated
+         [LoggerMessage] method, not a suppression of CA1848 and CA1873.
+    Nothing else is suppressed. A new warning is fixed, or flagged if fixing it would change behaviour.
+  -->
+  <PropertyGroup>
+    <AnalysisLevel>10.0-recommended</AnalysisLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

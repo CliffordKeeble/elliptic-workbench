@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
@@ -61,12 +62,12 @@ void CheckDecimal(string name, BigFloat got, string lmfdb, string src, int atDp 
 
 static BigInteger Scaled(string s, int frac)
 {
-    bool neg = s.StartsWith("-"); if (neg) s = s.Substring(1);
+    bool neg = s.StartsWith('-'); if (neg) s = s.Substring(1);
     int dot = s.IndexOf('.');
     string ip = dot < 0 ? s : s.Substring(0, dot);
     string fp = dot < 0 ? "" : s.Substring(dot + 1);
     fp = fp.Length >= frac ? fp.Substring(0, frac) : fp.PadRight(frac, '0');
-    var v = BigInteger.Parse((ip.Length == 0 ? "0" : ip) + fp);
+    var v = BigInteger.Parse((ip.Length == 0 ? "0" : ip) + fp, CultureInfo.InvariantCulture);
     return neg ? -v : v;
 }
 
@@ -106,7 +107,7 @@ foreach (var e in manifest["files"]!.AsArray())
 
     if (bytes is not null)
     {
-        if (Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant() != e["sha256"]!.GetValue<string>())
+        if (Convert.ToHexStringLower(SHA256.HashData(bytes)) != e["sha256"]!.GetValue<string>())
             problems.Add("sha256 mismatch");
         string lf = e["labelField"]!.GetValue<string>();
         JsonNode? rec = null;
@@ -200,7 +201,7 @@ void EqStr(string name, string c, string a) =>
 void EqSha(string name, string c, JsonNode mw)              // sha_an is stored as "N.000…0"
 {
     string a = ALit(mw, "sha_an");
-    bool ok = BigInteger.Parse(c) * BigInteger.Pow(10, 28) == Scaled(a, 28);
+    bool ok = BigInteger.Parse(c, CultureInfo.InvariantCulture) * BigInteger.Pow(10, 28) == Scaled(a, 28);
     CheckBool(name, ok, ok ? $"{c} = archive sha_an {a}" : $"constant {c} != archive sha_an {a}");
 }
 JsonNode? TryRec(string file, out string? error)
@@ -213,7 +214,7 @@ JsonNode? TryRec(string file, out string? error)
 bool HasMw([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] JsonNode? mw, string curve, string what)
 {
     if (mw is not null) return true;
-    Console.WriteLine($"  [SKIP] {(what.StartsWith(curve) ? what : curve + " " + what)}: its ec_mwbsd record is absent (see the map line above)");
+    Console.WriteLine($"  [SKIP] {(what.StartsWith(curve, StringComparison.Ordinal) ? what : curve + " " + what)}: its ec_mwbsd record is absent (see the map line above)");
     return false;
 }
 

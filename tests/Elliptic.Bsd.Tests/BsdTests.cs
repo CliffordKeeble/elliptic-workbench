@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using Elliptic.Bsd;
 using Elliptic.Numerics;
@@ -306,7 +307,7 @@ public class BsdTests
     static BigFloat Decimal(string s)
     {
         int dot = s.IndexOf('.');
-        return BigFloat.FromRatio(BigInteger.Parse(s.Remove(dot, 1)), BigInteger.Pow(10, s.Length - dot - 1));
+        return BigFloat.FromRatio(BigInteger.Parse(s.Remove(dot, 1), CultureInfo.InvariantCulture), BigInteger.Pow(10, s.Length - dot - 1));
     }
 
     static void AssertAgreesTo28dp(BigFloat got, string archived)
