@@ -99,7 +99,7 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5.4vw,50px);
   letter-spacing:.19em;text-transform:uppercase;color:var(--graphite);margin-bottom:6px}
 .card .v{display:block;font-family:var(--data);font-size:14px;font-weight:500;
   word-break:break-all;margin-bottom:8px}
-.card .m{font-family:var(--data);font-size:9.5px;line-height:1.65;color:var(--graphite)}
+.card .m{font-family:var(--data);font-size:9.5px;line-height:1.65;color:var(--graphite);overflow-wrap:anywhere}
 .tag{display:inline-block;font-family:var(--data);font-size:8.5px;font-weight:600;
   letter-spacing:.14em;text-transform:uppercase;padding:2px 5px;margin:0 4px 4px 0;
   border:1px solid currentColor}
@@ -167,6 +167,7 @@ h2.sec{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:
   .prov{grid-template-columns:repeat(2,1fr)}
   .prov .c{border-bottom:1px solid var(--rule)}
   .formula{gap:10px}
+  .inv .dt{white-space:normal;overflow-wrap:anywhere}
 }
 </style>
 </head>
@@ -300,6 +301,27 @@ const dec = (str,n) => {
 };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+// The curve's published names, from the file's labels block. Where our equation is not
+// LMFDB's own, the line says so rather than letting two labels imply one equation.
+function names(l){
+  if (!l) return "";
+  const src = l.labelSource ? ` title="${esc(l.labelSource)}"` : "";
+  let s = `<span${src}>Cremona ${esc(l.clabel)}</span><span${src}>LMFDB ${esc(l.lmfdbLabel)}</span>`;
+  if (l.modelAttachment === "invariant-match")
+    s += `<span>a translate of LMFDB's equation (same c&#8324;, c&#8326;, &Delta;)</span>`;
+  else if (l.modelAttachment && l.modelAttachment !== "a-invariants-match")
+    s += `<span>model: ${esc(l.modelAttachment)}</span>`;
+  return s;
+}
+
+// A long note is cut at a word and marked with an ellipsis, and the whole of it is on hover,
+// so a date is never cut through the middle and a cut never passes for the end.
+function clip(s, n){
+  if (s.length <= n) return esc(s);
+  const cut = s.slice(0, n), at = cut.lastIndexOf(" ");
+  return `<span title="${esc(s)}">${esc(at > 0 ? cut.slice(0, at) : cut)}&hellip;</span>`;
+}
+
 function eqn(w){
   const t = (c, s) => c === 0 ? "" :
     " " + (c < 0 ? MINUS : "+") + " " + (Math.abs(c) === 1 && s ? "" : Math.abs(c)) + s;
@@ -395,6 +417,7 @@ function renderBody(){
         <span>conductor ${esc(c.conductor)}</span>
         <span>rank ${esc(c.rank)}</span>
         <span>w = ${c.rootNumber.value>0?"+1":MINUS+"1"}</span>
+        ${names(c.labels)}
       </p>
       <div class="formula">
         <span class="sha">|&#1064;|</span>
@@ -455,7 +478,7 @@ function renderBody(){
         : (K === 1
             ? "Matches the true order, so the bound is tight here."
             : "Overshoots the true order by a factor of " + K + ", and it enters squared.")}
-      <br>${esc((c.torsion.trueOrderSource || "no external source").toString().slice(0,150))}</div>`]
+      <br>${clip((c.torsion.trueOrderSource || "no external source").toString(), 240)}</div>`]
   ];
 
   const npStrip = (c.pointCounts||[]).slice(0,10).map(x =>
