@@ -49,7 +49,7 @@ public sealed class EllipticCurve
         // p = 1 made Ord loop for ever, p = 0 raised DivideByZeroException from inside the
         // guard below, and a negative p produced a nonsense ε. All three now stop here.
         // 2³¹ − 1 bounds each prime, not N: it keeps Ap's long products safe and trial division
-        // to √p at most 46,341 steps. The bound on N is Analytic.TermsFor's cap of 10,000,000 terms.
+        // to √p at most 46,341 steps. The bound on N is Analytic.MaxSeriesTerms, 10,000,000 terms.
         if (badPrimes is null) throw new ArgumentNullException(nameof(badPrimes));
         for (int i = 0; i < badPrimes.Length; i++)
         {
@@ -194,8 +194,15 @@ public sealed class EllipticCurve
         return (long)result;
     }
 
+    /// <summary>
+    /// The primes up to and including <paramref name="limit"/>, by a sieve. Empty for 0 and 1.
+    /// <paramref name="limit"/> must be in [0, <see cref="Analytic.MaxSeriesTerms"/>].
+    /// </summary>
     public static long[] Primes(long limit)
     {
+        if (limit < 0 || limit > Analytic.MaxSeriesTerms)
+            throw new ArgumentOutOfRangeException(nameof(limit), limit,
+                $"limit must be in [0, {Analytic.MaxSeriesTerms:N0}].");
         var sieve = new bool[limit + 1];
         var list = new List<long>();
         for (long i = 2; i <= limit; i++)
@@ -211,9 +218,15 @@ public sealed class EllipticCurve
 
     // ── Stage 1½: the Hecke rebuild (parsing) ────────────────────────────────
 
-    /// <summary>Full multiplicative sequence a_n for n ≤ bound, rebuilt from a_p via Hecke recursion.</summary>
+    /// <summary>
+    /// Full multiplicative sequence a_n for n ≤ bound, rebuilt from a_p via Hecke recursion.
+    /// <paramref name="bound"/> must be in [1, <see cref="Analytic.MaxSeriesTerms"/>].
+    /// </summary>
     public long[] An(int bound, out Dictionary<long, long> ap)
     {
+        if (bound < 1 || bound > Analytic.MaxSeriesTerms)
+            throw new ArgumentOutOfRangeException(nameof(bound), bound,
+                $"bound must be in [1, {Analytic.MaxSeriesTerms:N0}].");
         var primes = Primes(bound);
         ap = new Dictionary<long, long>();
         foreach (var p in primes) ap[p] = Ap(p);
@@ -270,7 +283,7 @@ public sealed class EllipticCurve
         {
             int n = Ord(Delta, p);
             bool split = ap[p] == 1;
-            prod *= split ? n : (n % 2 == 1 ? 1 : 2);
+            checked { prod *= split ? n : (n % 2 == 1 ? 1 : 2); }
         }
         return prod;
     }

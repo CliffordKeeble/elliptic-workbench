@@ -152,4 +152,34 @@ public class NumericsTests
         Assert.False(BigFloat.From(3) == a);
         Assert.True(BigFloat.Zero == BigFloat.Zero.Twice());
     }
+
+    // ── 9. The precision setter checks its range (1016-FLINT-2, P8-3) ─────────
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(63)]
+    [InlineData(1_048_577)]
+    [InlineData(int.MaxValue)]
+    public void PrecisionSetter_OutOfRange_Throws(int bits)
+    {
+        try
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => BigFloat.Precision = bits);
+            Assert.Equal(320, BigFloat.Precision);   // a refused value must not stick
+        }
+        finally { BigFloat.Precision = 320; }
+    }
+
+    [Theory]
+    [InlineData(64)]
+    [InlineData(1_048_576)]
+    public void PrecisionSetter_AtTheEnds_IsAccepted(int bits)
+    {
+        try
+        {
+            BigFloat.Precision = bits;
+            Assert.Equal(bits, BigFloat.Precision);
+        }
+        finally { BigFloat.Precision = 320; }
+    }
 }

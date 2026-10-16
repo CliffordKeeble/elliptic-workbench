@@ -91,35 +91,58 @@ Console.WriteLine("Archive integrity — LMFDB evidence base");
 string lmfdbDir = Path.Combine(AppContext.BaseDirectory, "lmfdb");
 var manifest = JsonNode.Parse(File.ReadAllText(Path.Combine(lmfdbDir, "manifest.json")))!;
 var realLit = manifest["realLiteralFields"]!.AsArray().Select(n => n!.GetValue<string>()).ToHashSet();
+var unreadableInputs = new List<string>();   // ec_curvedata records the engine's inputs are read from
 foreach (var e in manifest["files"]!.AsArray())
 {
     string file = e!["file"]!.GetValue<string>();
     string exp = e["expectedLabel"]!.GetValue<string>();
     var problems = new List<string>();
-    byte[] bytes = File.ReadAllBytes(Path.Combine(lmfdbDir, file));
-    if (Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant() != e["sha256"]!.GetValue<string>())
-        problems.Add("sha256 mismatch");
-    JsonNode? rec = null;
-    try { var data = JsonNode.Parse(bytes)!["data"]; rec = data is JsonArray arr ? arr[0] : data; }
-    catch { problems.Add("not JSON"); }
-    if (rec is null) problems.Add("no data record");
-    else
+    // A missing or unreadable file is a FAIL line like any other failed check, not a stack trace.
+    byte[]? bytes = null;
+    try { bytes = File.ReadAllBytes(Path.Combine(lmfdbDir, file)); }
+    catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+    { problems.Add("file missing"); }
+    catch (Exception ex) { problems.Add($"unreadable: {ex.Message}"); }
+
+    if (bytes is not null)
     {
+        if (Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant() != e["sha256"]!.GetValue<string>())
+            problems.Add("sha256 mismatch");
         string lf = e["labelField"]!.GetValue<string>();
-        string? got = rec[lf]?.GetValue<string>();
-        if (got != exp) problems.Add($"label {lf}={got ?? "absent"} != {exp}");
-        foreach (var rfn in e["requiredFields"]!.AsArray())
+        JsonNode? rec = null;
+        string? got = null;
+        try
         {
-            string rf = rfn!.GetValue<string>();
-            var v = rec[rf];
-            if (v is null) problems.Add($"{rf} absent");
-            else if (realLit.Contains(rf) && (v as JsonObject)?["data"] is null) problems.Add($"{rf}.data null");
+            var data = JsonNode.Parse(bytes)!["data"]; rec = data is JsonArray arr ? arr[0] : data;
+            got = rec?[lf]?.GetValue<string>();     // a label of the wrong type throws here, not outside
+        }
+        catch (Exception ex) { problems.Add($"not JSON: {ex.Message}"); }
+        if (rec is null) problems.Add("no data record");
+        else
+        {
+            if (got != exp) problems.Add($"label {lf}={got ?? "absent"} != {exp}");
+            foreach (var rfn in e["requiredFields"]!.AsArray())
+            {
+                string rf = rfn!.GetValue<string>();
+                var v = rec[rf];
+                if (v is null) problems.Add($"{rf} absent");
+                else if (realLit.Contains(rf) && (v as JsonObject)?["data"] is null) problems.Add($"{rf}.data null");
+            }
         }
     }
     CheckBool($"archive {file} ({exp})", problems.Count == 0,
               problems.Count == 0 ? "label✓ fields✓ hash✓" : "FAIL: " + string.Join("; ", problems));
+    if (problems.Count > 0 && file.StartsWith("ec_curvedata_", StringComparison.Ordinal)) unreadableInputs.Add(file);
 }
 Console.WriteLine();
+// The conductor and the bad primes are read from the ec_curvedata records. If one of those is
+// missing or unreadable, the checks below would fail on it with a stack trace, not a result.
+if (unreadableInputs.Count > 0)
+{
+    Console.WriteLine($"The engine's inputs are read from {string.Join(", ", unreadableInputs)}; nothing further can run.");
+    Console.WriteLine($"{pass} passed, {fail} failed.");
+    return 1;
+}
 
 // ── Acceptance constants — each pinned to its archived source in the block below ──
 // Declared once here, asserted equal to the archive next, then fed to the engine checks.
@@ -180,7 +203,11 @@ void EqSha(string name, string c, JsonNode mw)              // sha_an is stored 
     bool ok = BigInteger.Parse(c) * BigInteger.Pow(10, 28) == Scaled(a, 28);
     CheckBool(name, ok, ok ? $"{c} = archive sha_an {a}" : $"constant {c} != archive sha_an {a}");
 }
-JsonNode? TryRec(string file) { try { return Rec(file); } catch { return null; } }
+JsonNode? TryRec(string file, out string? error)
+{
+    try { error = null; return Rec(file); }
+    catch (Exception ex) { error = ex.Message; return null; }
+}
 // A curve whose mwbsd record is absent cannot have its mwbsd constants checked. MapCurve has
 // already printed the FAIL that names the file; this prints what was not run (not counted).
 bool HasMw([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] JsonNode? mw, string curve, string what)
@@ -204,13 +231,13 @@ bool HasMw([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] JsonNode? mw, str
     string cdLabel    = cd["Clabel"]!.GetValue<string>();
     string lmfdbLabel = cd["lmfdb_label"]!.GetValue<string>();
     string mwFile = $"ec_mwbsd_{lmfdbLabel}.json";
-    var mw = TryRec(mwFile);
+    var mw = TryRec(mwFile, out var mwError);
     string mwLabel = mw?["lmfdb_label"]?.GetValue<string>() ?? "(absent)";
     bool ok = cdLabel == clabel && mw is not null && mwLabel == lmfdbLabel;
     CheckBool($"map {clabel} → {lmfdbLabel} (Cremona↔LMFDB from the ec_curvedata record, not hardcoded)", ok,
         ok ? "curvedata Clabel✓, derived mwbsd lmfdb_label✓"
            : mw is null
-               ? $"FAIL: {mwFile} is absent or unreadable in the archive; this curve's mwbsd checks are skipped"
+               ? $"FAIL: {mwFile} is absent or unreadable in the archive ({mwError}); this curve's mwbsd checks are skipped"
                : $"MISMATCH: curvedata Clabel={cdLabel} (want {clabel}); mwbsd for '{lmfdbLabel}' lmfdb_label={mwLabel}");
     return (cd, mw);
 }

@@ -16,8 +16,30 @@ public readonly struct BigFloat : IComparable<BigFloat>, IEquatable<BigFloat>
     /// precisions on two threads at once; a per-thread or per-call precision would change the
     /// class's contract; and the class has a twin in another repository (Icosian.Numerics) that
     /// must stay in step with this one.
+    /// <para>
+    /// Must be in [64, 1,048,576] bits, else
+    /// <see cref="ArgumentOutOfRangeException"/>. The floor: below about 64 bits
+    /// <see cref="ToDecimalString"/> and the guard-bit arithmetic stop meaning anything. The
+    /// ceiling: <c>Precision + Guard</c>, and <c>2L · (Precision + Guard)</c> in
+    /// <see cref="Sqrt"/> and the addition cut-off, must not overflow.
+    /// </para>
     /// </remarks>
-    public static int Precision { get; set; } = 320;
+    public static int Precision
+    {
+        get => _precision;
+        set
+        {
+            if (value < MinPrecision || value > MaxPrecision)
+                throw new ArgumentOutOfRangeException(nameof(value), value,
+                    $"Precision must be in [{MinPrecision}, {MaxPrecision:N0}] bits.");
+            _precision = value;
+        }
+    }
+
+    private const int MinPrecision = 64;
+    private const int MaxPrecision = 1_048_576;   // 2^20
+
+    private static int _precision = 320;
 
     private const int Guard = 32;
 

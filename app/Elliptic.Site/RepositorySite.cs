@@ -37,8 +37,10 @@ public sealed class RepositorySite
 
     /// <summary>
     /// Walks up from <paramref name="startDirectory"/> to the first folder holding
-    /// <see cref="RootMarker"/>. Throws <see cref="RepositoryNotFoundException"/>, naming where it
-    /// looked, if there is none.
+    /// <see cref="RootMarker"/>, and checks that it holds everything this host serves:
+    /// the <c>web</c> folder and each of <see cref="RootFiles"/>. Throws
+    /// <see cref="SiteNotServableException"/> if there is no such folder, or if what it serves is
+    /// missing; the message names every missing item and the folder it looked in.
     /// </summary>
     public static RepositorySite Locate(string startDirectory)
     {
@@ -47,13 +49,39 @@ public sealed class RepositorySite
         {
             if (File.Exists(Path.Combine(dir.FullName, RootMarker)))
             {
-                return new RepositorySite(dir.FullName);
+                var site = new RepositorySite(dir.FullName);
+                site.RequireWhatItServes();
+                return site;
             }
         }
 
-        throw new RepositoryNotFoundException(
+        throw new SiteNotServableException(
             $"Cannot find the repository: no folder from '{start}' up to the drive root holds {RootMarker}.");
+    }
+
+    private void RequireWhatItServes()
+    {
+        var missing = new List<string>();
+        if (!Directory.Exists(WebFolder))
+        {
+            missing.Add(WebFolderName + "/");
+        }
+
+        foreach (var file in RootFiles)
+        {
+            if (!File.Exists(PathOf(file)))
+            {
+                missing.Add(file);
+            }
+        }
+
+        if (missing.Count > 0)
+        {
+            throw new SiteNotServableException(
+                $"Cannot serve the site from '{Root}': missing {string.Join(", ", missing)}.");
+        }
     }
 }
 
-public sealed class RepositoryNotFoundException(string message) : Exception(message);
+/// <summary>The repository cannot be found, or does not hold what the host serves.</summary>
+public sealed class SiteNotServableException(string message) : Exception(message);

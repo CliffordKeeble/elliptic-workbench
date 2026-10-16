@@ -1,3 +1,4 @@
+using System.Globalization;
 using Elliptic.Numerics;
 
 namespace Elliptic.Bsd;
@@ -8,6 +9,11 @@ namespace Elliptic.Bsd;
 /// estimate by k² (witness: 30a1 reports 4 where the truth is 1, and 4 is itself a plausible
 /// square). Treat ShaEstimate as exact only for curves whose torsion is independently known
 /// until v1.1 lands Lutz–Nagell certification.
+/// <para>
+/// <c>SeriesTailBound</c> is the bound on what the L-series truncation dropped, at the term count
+/// actually used (<see cref="Analytic.TailBound"/>). It is not always below 10^−digits: see the
+/// remarks on <see cref="Analytic.TermsFor"/>.
+/// </para>
 /// </summary>
 public sealed record RankZeroReport(
     long Conductor,
@@ -16,7 +22,8 @@ public sealed record RankZeroReport(
     long TorsionBound,
     BigFloat LValue,
     BigFloat Omega,
-    BigFloat ShaEstimate);
+    BigFloat ShaEstimate,
+    BigFloat SeriesTailBound);
 
 /// <summary>
 /// v1 of the BSD compiler: the rank-0 channel (ε = +1, semistable, minimal model).
@@ -33,21 +40,23 @@ public static class BsdCompiler
 {
     public static RankZeroReport RunRankZero(EllipticCurve e, int digits = 30)
     {
+        // LValueRankZero refuses ε ≠ +1, so every report from here has ε = +1.
         var l = Analytic.LValueRankZero(e, digits, out var ap);
-        var eps = e.RootNumber(ap);
-        if (eps != +1)
-            throw new NotSupportedException(
-                $"ε = {eps}: odd analytic rank forced; the rank-0 channel does not apply (v2 scope).");
+        const int eps = +1;
 
         // Even analytic rank >= 2 (389a1: ε = +1, rank 2) gives L(E,1) = 0, and the quotient
         // below would be |Ш| ~ 0. The root number cannot see it; |L| against the series tail
         // does: if |L| is no larger than what the truncation may have dropped, L(E,1) is not
         // certified non-zero and the rank-0 channel does not apply.
-        var tail = Analytic.TailBound(e.Conductor, Analytic.TermsFor(e.Conductor, digits));
+        var terms = Analytic.TermsFor(e.Conductor, digits);
+        var tail = Analytic.TailBound(e.Conductor, terms);
         if (l.Abs() <= tail)
             throw new NotSupportedException(
                 "L(E,1) is not certified non-zero (|L| is within the series tail): analytic rank ≥ 2 " +
-                "is outside the rank-0 channel.");
+                "is outside the rank-0 channel. " +
+                $"|L| = {l.Abs().ToDouble().ToString("E3", CultureInfo.InvariantCulture)}, " +
+                $"tail bound = {tail.ToDouble().ToString("E3", CultureInfo.InvariantCulture)}, " +
+                $"{terms} terms, N = {e.Conductor}, {digits} digits.");
 
         var omega = Analytic.RealPeriod(e);
         var tam = e.TamagawaProduct(ap);
@@ -55,6 +64,6 @@ public static class BsdCompiler
 
         // Rank 0: R = 1.  |Sha| estimate = L · |tor|² / (Ω · ∏c_p).
         var sha = (l * (tor * tor)) / (omega * BigFloat.From(tam));
-        return new RankZeroReport(e.Conductor, eps, tam, tor, l, omega, sha);
+        return new RankZeroReport(e.Conductor, eps, tam, tor, l, omega, sha, tail);
     }
 }

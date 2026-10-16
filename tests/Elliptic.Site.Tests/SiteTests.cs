@@ -110,8 +110,31 @@ public sealed class SiteTests : IClassFixture<WebApplicationFactory<Program>>
     public void LocatingFromOutsideAnyRepositoryRefusesAndNamesWhereItLooked()
     {
         var elsewhere = Path.GetPathRoot(Path.GetTempPath())!;
-        var e = Assert.Throws<RepositoryNotFoundException>(() => RepositorySite.Locate(elsewhere));
+        var e = Assert.Throws<SiteNotServableException>(() => RepositorySite.Locate(elsewhere));
         Assert.Contains(Path.GetFullPath(elsewhere), e.Message);
         Assert.Contains(RepositorySite.RootMarker, e.Message);
+    }
+
+    // P4-4. A repository that lacks what the host serves is refused at start-up, naming every
+    // missing item and the folder it looked in, not left to answer 500 on the first request.
+    [Fact]
+    public void ARepositoryMissingWhatItServesIsRefusedAndNamesEveryMissingItem()
+    {
+        var root = Directory.CreateTempSubdirectory("elliptic-site-").FullName;
+        try
+        {
+            File.WriteAllText(Path.Combine(root, RepositorySite.RootMarker), "");
+            var e = Assert.Throws<SiteNotServableException>(() => RepositorySite.Locate(root));
+            Assert.Contains(root, e.Message);
+            Assert.Contains(RepositorySite.WebFolderName, e.Message);
+            foreach (var file in RepositorySite.RootFiles)
+            {
+                Assert.Contains(file, e.Message);
+            }
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
     }
 }

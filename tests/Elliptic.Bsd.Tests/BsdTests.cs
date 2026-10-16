@@ -178,8 +178,14 @@ public class BsdTests
     // cannot catch it; the gate is |L| against the series tail.
     [Fact]
     public void RunRankZero_389a1_Rank2_IsRefused()
-        => Assert.Contains("not certified", Assert.Throws<NotSupportedException>(
-            () => BsdCompiler.RunRankZero(E389)).Message);
+    {
+        var message = Assert.Throws<NotSupportedException>(() => BsdCompiler.RunRankZero(E389)).Message;
+        Assert.Contains("not certified", message);
+        // The refusal carries its numbers (P10-1): the term count, N and digits it was judged at.
+        Assert.Contains($"{Analytic.TermsFor(389, 30)} terms", message);
+        Assert.Contains("N = 389", message);
+        Assert.Contains("30 digits", message);
+    }
 
     // The spec says epsilon = -1 is refused; nothing tested it.
     [Fact]
@@ -316,4 +322,63 @@ public class BsdTests
     [Fact]
     public void LValue_11a1_MatchesTheArchive_28dp()
         => AssertAgreesTo28dp(Analytic.LValueRankZero(E11, 34, out _), L11Archived);
+
+    // ── 9. Fail safely and refuse bad input (1016-FLINT-2, Part 1) ──
+
+    // P4-1. The public L-value refuses epsilon != +1 itself: 37a1 (epsilon = -1) used to come
+    // back with a number that is not L(E,1). The message is RunRankZero's, because the rule is
+    // one rule.
+    [Fact]
+    public void LValueRankZero_37a1_EpsilonMinus1_IsRefused()
+    {
+        var ex = Assert.Throws<NotSupportedException>(() => Analytic.LValueRankZero(E37, 30, out _));
+        Assert.Contains("ε = -1", ex.Message);
+        Assert.Equal(Assert.Throws<NotSupportedException>(() => BsdCompiler.RunRankZero(E37)).Message, ex.Message);
+    }
+
+    // P8-2. The public helpers refuse absurd input (TermsFor(11, -100) returned -57).
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-100)]
+    public void TermsFor_DigitsBelowOne_Throws(int digits)
+        => Assert.Throws<ArgumentOutOfRangeException>(() => Analytic.TermsFor(11, digits));
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void An_BoundBelowOne_Throws(int bound)
+        => Assert.Throws<ArgumentOutOfRangeException>(() => E11.An(bound, out _));
+
+    [Theory]
+    [InlineData(Analytic.MaxSeriesTerms + 1)]
+    [InlineData(int.MaxValue)]
+    public void An_BoundAboveTheCap_Throws(int bound)
+        => Assert.Throws<ArgumentOutOfRangeException>(() => E11.An(bound, out _));
+
+    [Theory]
+    [InlineData(-1L)]
+    [InlineData(-5L)]
+    [InlineData(Analytic.MaxSeriesTerms + 1L)]
+    [InlineData(long.MaxValue)]
+    public void Primes_LimitOutOfRange_Throws(long limit)
+        => Assert.Throws<ArgumentOutOfRangeException>(() => EllipticCurve.Primes(limit));
+
+    [Theory]
+    [InlineData(0L)]
+    [InlineData(1L)]
+    public void Primes_BelowTwo_IsEmpty(long limit)
+        => Assert.Empty(EllipticCurve.Primes(limit));
+
+    // P4-2. The report carries the tail bound it achieved, so a caller can see the truncation
+    // error the digit target really bought (TermsFor's count is approximate).
+    [Fact]
+    public void RunRankZero_11a1_ReportCarriesTheSeriesTailBound()
+    {
+        var report = BsdCompiler.RunRankZero(E11, digits: 34);
+        Assert.Equal(Analytic.TailBound(11, Analytic.TermsFor(11, 34)), report.SeriesTailBound);
+        Assert.True(report.SeriesTailBound > BigFloat.Zero);
+    }
+
+    [Fact]
+    public void MaxSeriesTerms_IsTenMillion() => Assert.Equal(10_000_000, Analytic.MaxSeriesTerms);
 }

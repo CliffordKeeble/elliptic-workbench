@@ -5,7 +5,7 @@ try
 {
     site = RepositorySite.Locate(AppContext.BaseDirectory);
 }
-catch (RepositoryNotFoundException e)
+catch (SiteNotServableException e)
 {
     Console.Error.WriteLine(e.Message);
     return 1;

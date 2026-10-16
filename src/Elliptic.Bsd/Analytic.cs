@@ -18,17 +18,34 @@ namespace Elliptic.Bsd;
 /// </summary>
 public static class Analytic
 {
+    /// <summary>
+    /// The most series terms anything here will build: <see cref="TermsFor"/> refuses a digit target
+    /// that needs more, and <see cref="EllipticCurve.An"/> and <see cref="EllipticCurve.Primes"/>
+    /// refuse a bound above it.
+    /// </summary>
     // EllipticCurve.An allocates a long table of this length (10,000,000 terms = 80 MB), and the
     // cap keeps the int cast in TermsFor safe with a wide margin.
-    private const int MaxTerms = 10_000_000;
+    public const int MaxSeriesTerms = 10_000_000;
 
-    /// <summary>Number of series terms for the given decimal-digit target.</summary>
+    /// <summary>
+    /// Number of series terms for the given decimal-digit target (<paramref name="digits"/> ≥ 1).
+    /// </summary>
+    /// <remarks>
+    /// The count is approximate. It is ⌈digits · ln 10 · √N / 2π⌉ + 64, which leaves out the
+    /// ln(4/(1 − q)) / (−ln q) term the tail bound needs (q = e^(−2π/√N)), so at a large
+    /// conductor the tail <see cref="TailBound"/> reports can exceed 10^−digits (at N = 10¹⁰ and
+    /// 30 digits it is 10^−25.2). <see cref="RankZeroReport.SeriesTailBound"/> carries the bound
+    /// actually achieved. The count is left as it is because the data generator calls it to choose
+    /// its term count, so a change here moves the published numbers.
+    /// </remarks>
     public static int TermsFor(long conductor, int digits)
     {
+        if (digits < 1)
+            throw new ArgumentOutOfRangeException(nameof(digits), digits, "digits must be at least 1.");
         double terms = Math.Ceiling(digits * Math.Log(10) * Math.Sqrt(conductor) / (2 * Math.PI)) + 64;
-        if (!(terms <= MaxTerms))        // also catches NaN
+        if (!(terms <= MaxSeriesTerms))        // also catches NaN
             throw new ArgumentOutOfRangeException(nameof(conductor), conductor,
-                $"{digits} digits at conductor {conductor} needs more than {MaxTerms:N0} series terms.");
+                $"{digits} digits at conductor {conductor} needs more than {MaxSeriesTerms:N0} series terms.");
         return (int)terms;
     }
 
@@ -45,7 +62,10 @@ public static class Analytic
         return (qPow * 4L) / (BigFloat.One - q);
     }
 
-    /// <summary>L(E, 1) for ε = +1 via the exact smoothed series, to roughly <paramref name="digits"/> digits.</summary>
+    /// <summary>
+    /// L(E, 1) for ε = +1 via the exact smoothed series, to roughly <paramref name="digits"/> digits.
+    /// Throws <see cref="NotSupportedException"/> when the root number is not +1.
+    /// </summary>
     public static BigFloat LValueRankZero(EllipticCurve e, int digits, out Dictionary<long, long> ap)
     {
         // `digits` sets only the term count; roundoff is set by BigFloat.Precision, which nothing
@@ -56,6 +76,13 @@ public static class Analytic
                 $"digits must be in [1, {maxDigits}] at BigFloat.Precision = {BigFloat.Precision} bits.");
         int nmax = TermsFor(e.Conductor, digits);
         var an = e.An(nmax, out ap);
+
+        // The one place the rule lives: this series is L(E,1) only when the root number is +1.
+        // For ε = −1 the same sum is not L(E,1), and a public method must not return it as such.
+        var eps = e.RootNumber(ap);
+        if (eps != +1)
+            throw new NotSupportedException(
+                $"ε = {eps}: odd analytic rank forced; the rank-0 channel does not apply (v2 scope).");
 
         var pi = Reals.Pi();
         var sqrtN = BigFloat.Sqrt(BigFloat.From(e.Conductor));
