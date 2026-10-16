@@ -1,5 +1,7 @@
 # Acceptance constants — inventory and provenance
 
+*A historical log of the conversion from frozen bench values to LMFDB published values; the current suite is the harness's count (59 checks), and the constants are LMFDB values, pinned to the archive.*
+
 The remediation of the acceptance constants' provenance: frozen bench values replaced by LMFDB published values (29 July 2026).
 
 This file is the **before-photograph**: every constant the acceptance suite

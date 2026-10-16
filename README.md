@@ -14,7 +14,10 @@ assembles the refined BSD quotient in the rank-0 channel:
 
 - **L(E, 1)** by the exact smoothed Dirichlet series
   `L(E,1) = 2 Σ (a_n / n) e^(−2πn/√N)` — an identity, not a quadrature; the only
-  errors are series truncation (set by the digit target) and roundoff.
+  errors are series truncation and roundoff. The digit target sets the truncation only
+  approximately: `TermsFor` leaves one term out of the tail bound, so at a large conductor the
+  tail can exceed 10^−digits (at N = 10¹⁰ and 30 digits it is 10^−25.2). The report carries the
+  tail bound the run achieved, as `SeriesTailBound`.
 - **Real period Ω** by the arithmetic-geometric mean, both discriminant signs,
   with full-precision bisection for the cubic roots (no quadrature, no seeds).
 - **a_p and the Hecke rebuild**: a_p by direct point counting over 𝔽_p, then the
@@ -34,11 +37,24 @@ High-precision arithmetic (`BigFloat`, π via Brent–Salamin, AGM) lives in
   is not certified non-zero and `RunRankZero` throws `NotSupportedException` (389a1, ε = +1,
   rank 2, is the witness).
 - `digits` is bounded by the working precision: `1 ≤ digits ≤ ⌊0.30103 · BigFloat.Precision⌋ − 10`,
-  else `ArgumentOutOfRangeException`. The series is capped at 10,000,000 terms (`An` allocates a
-  table that long, 80 MB), which bounds the conductor for a given digit target.
+  else `ArgumentOutOfRangeException`. The public helpers refuse absurd input the same way:
+  `TermsFor` needs `digits ≥ 1`, and `An` and `Primes` need a bound in `[1, MaxSeriesTerms]` and
+  `[0, MaxSeriesTerms]`.
+- The series is capped at `Analytic.MaxSeriesTerms` = 10,000,000 terms, which bounds the conductor
+  for a given digit target. The a_n table is 80 MB at the cap, plus the prime sieve and the a_p
+  dictionary. The time is Θ(n²/ln n), because `Ap` counts points at each prime. `An` on 11a1
+  takes 0.64 s at n = 10⁴ and 63 s at n = 10⁵ (medians of three Release runs on an AMD Ryzen 5
+  PRO 7535U, 6 cores, 30.8 GB, Windows 11, .NET SDK 10.0.402), so by that growth the cap is days
+  of CPU: roughly five to seven.
 - Additive reduction throws by design — the full Tate algorithm is out of scope.
-- The model must be minimal; a necessary minimality test is enforced.
-- Not thread-safe for concurrent use at different precisions: `BigFloat.Precision` is one process-wide setting, so set it once, before use.
+- The model must be minimal, and the constructor enforces it. It requires the declared bad primes
+  to be exactly the primes dividing Δ, the reduction at each to be multiplicative, and the
+  conductor to be their product; together these imply the model is minimal at every prime, which
+  is stronger than the u¹² test (kept as a named diagnostic, because its message is clearer on a
+  rescaled model).
+- `TorsionBound` throws `NotSupportedException` when every torsion prime (3 to 37) divides Δ,
+  because there is then no bound to return.
+- Not thread-safe for concurrent use at different precisions: `BigFloat.Precision` is one process-wide setting, so set it once, before use. It accepts 64 to 1,048,576 bits and refuses anything else.
 
 ### Known limitation — torsion bound
 
@@ -103,9 +119,21 @@ dotnet run --project app/Elliptic.Bsd.Acceptance   # prints results; exit 0 on a
 dotnet test elliptic-workbench.slnx
 ```
 
-A good run prints `59 passed, 0 failed.` from the harness (and exits 0), then
-`Passed!  - Failed: 0, Passed: 40` for `Elliptic.Numerics.Tests.dll` and
-`Passed!  - Failed: 0, Passed: 62` for `Elliptic.Bsd.Tests.dll`.
+A good run prints `59 passed, 0 failed.` from the harness (and exits 0), then one line for each
+test project, as the tool prints it (the duration is whatever the run took):
+
+```
+Passed!  - Failed:     0, Passed:    47, Skipped:     0, Total:    47, Duration: … - Elliptic.Numerics.Tests.dll (net10.0)
+Passed!  - Failed:     0, Passed:    78, Skipped:     0, Total:    78, Duration: … - Elliptic.Bsd.Tests.dll (net10.0)
+Passed!  - Failed:     0, Passed:    16, Skipped:     0, Total:    16, Duration: … - Elliptic.Site.Tests.dll (net10.0)
+```
+
+The build runs the .NET 10 recommended analyzers with warnings as errors
+(`Directory.Build.props`: `AnalysisLevel` `10.0-recommended`, `TreatWarningsAsErrors`). There are
+two exceptions. CA1707 is switched off in the three test projects, because xUnit's
+`Method_Condition` test names are the point of them. And the start-up log line in
+`Elliptic.Site` is a source-generated `[LoggerMessage]` method rather than a suppression of
+CA1848 and CA1873: it is the platform's own pattern, and it costs nothing when the level is off.
 
 Requires the .NET 10 SDK.
 
@@ -118,7 +146,8 @@ straight from those folders.
 - **Visual Studio:** open `elliptic-workbench.slnx`; right-click `Elliptic.Site`,
   *Set as Startup Project*; press F5 (or Ctrl+F5 to run without the debugger).
   The browser opens at `http://localhost:5190`.
-- **Command line:** `dotnet run --project app/Elliptic.Site`
+- **Command line:** `dotnet run --project app/Elliptic.Site`; the site is at
+  `http://localhost:5190`.
 - Edit a page and refresh the browser; no rebuild is needed.
 
 Only the published pages are served; the source, the tools and `.git` are not
