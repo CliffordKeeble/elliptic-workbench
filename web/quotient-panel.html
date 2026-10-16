@@ -46,12 +46,18 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5.4vw,50px);
 .fixbar.on{display:block}
 
 /* picker */
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 0;padding-bottom:2px}
+/* A button is a raised key: an ink edge with a 2px ink step under it, so it
+   reads as something to press. Pressed, or selected, it sinks onto the step.
+   The data tags below stay flat, so a button and a label no longer look alike. */
 .chip{font-family:var(--data);font-size:10.5px;font-weight:500;letter-spacing:.07em;
-  background:transparent;color:var(--ink);border:1px solid var(--rule);
-  padding:7px 10px;cursor:pointer;line-height:1}
-.chip:hover{border-color:var(--ink)}
-.chip[aria-pressed=true]{background:var(--ink);color:var(--plate);border-color:var(--ink)}
+  background:#FBFCFA;color:var(--ink);border:1px solid var(--ink);
+  box-shadow:0 2px 0 var(--ink);
+  padding:7px 10px;cursor:pointer;line-height:1;
+  transition:transform .06s ease,box-shadow .06s ease,background-color .06s ease}
+.chip:hover{background:#fff}
+.chip:active,.chip[aria-pressed=true]{transform:translateY(2px);box-shadow:0 0 0 var(--ink)}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--plate)}
 .chip.bad[aria-pressed=true]{background:var(--accent);border-color:var(--accent)}
 .chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
@@ -146,6 +152,11 @@ h2.sec{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:
   text-transform:uppercase;color:var(--graphite);margin:0 0 8px}
 .load p{margin:0 0 11px;font-size:13.5px;font-weight:300;color:var(--graphite);max-width:64ch}
 .load input[type=file]{font-family:var(--data);font-size:11px}
+.load input[type=file]::file-selector-button{font-family:var(--data);font-size:10.5px;font-weight:500;
+  letter-spacing:.07em;background:#FBFCFA;color:var(--ink);border:1px solid var(--ink);
+  box-shadow:0 2px 0 var(--ink);padding:6px 10px;margin:0 10px 2px 0;cursor:pointer}
+.load input[type=file]::file-selector-button:hover{background:#fff}
+.load input[type=file]::file-selector-button:active{transform:translateY(2px);box-shadow:0 0 0 var(--ink)}
 .load .err{font-family:var(--data);font-size:11px;color:var(--accent);margin-top:9px;display:none}
 .load .err.on{display:block}
 
