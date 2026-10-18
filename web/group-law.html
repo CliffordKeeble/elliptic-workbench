@@ -68,7 +68,8 @@ h1{
 .plate-wrap{position:relative;border-right:1px solid var(--ink);min-width:0}
 canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
 .plate-wrap:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.plate-wrap{aspect-ratio:1.42;outline:none}
+/* The frame takes its height from its width alone, never from the canvas it holds. */
+.plate-wrap{aspect-ratio:1.42;outline:none;min-height:0}
 .offview{
   position:absolute;left:10px;bottom:10px;
   display:none;align-items:center;gap:8px;
@@ -661,11 +662,13 @@ const render = () => { draw(); sync(); };
 
 /* ----------------------------------------------------------------- layout */
 
+// The canvas fills the frame inside its 1px rule. Sized with the rule included, it came out 1px too
+// tall wherever the rule runs along the bottom (narrow screens), the frame grew to hold it, the
+// observer fired again, and the plate grew without end.
 function resize(){
-  const r = wrap.getBoundingClientRect();
   const dpr = Math.min(window.devicePixelRatio||1, 2);
-  W = Math.max(200, Math.round(r.width));
-  H = Math.max(160, Math.round(r.height));
+  W = Math.max(200, wrap.clientWidth);
+  H = Math.max(160, wrap.clientHeight);
   cv.width = W*dpr; cv.height = H*dpr;
   cv.style.width = W+"px"; cv.style.height = H+"px";
   ctx.setTransform(dpr,0,0,dpr,0,0);
