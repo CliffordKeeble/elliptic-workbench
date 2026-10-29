@@ -7,6 +7,8 @@ A small, dependency-light .NET library for the rank-0 case of the Birch and
 Swinnerton-Dyer formula over ℚ, with a high-precision arithmetic core. BCL-only:
 the compute projects reference no NuGet packages and restore offline.
 
+**Live:** https://elliptic-workbench.clifford-keeble.workers.dev/
+
 ## What it computes
 
 Given a minimal Weierstrass model of an elliptic curve over ℚ, `Elliptic.Bsd`
